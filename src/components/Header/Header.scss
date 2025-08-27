@@ -1,0 +1,31 @@
+.header-container {
+  @apply w-full bg-white shadow-sm sticky top-0 z-50;
+
+  .inner {
+    @apply max-w-7xl mx-auto flex items-center justify-between px-6 py-3;
+  }
+  .search-box {
+    @apply border rounded-full px-3 py-2 w-72;
+    input {
+      @apply flex-1 outline-none text-sm px-2;
+    }
+    button {
+      @apply text-[#192f20] hover:text-[#3c8a90];
+    }
+  }
+
+  .right-menu {
+    @apply text-gray-700 font-medium;
+
+    a {
+      @apply hover:text-[#192f20];
+    }
+
+    .dropdown-menu {
+      @apply absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md border flex flex-col;
+      a {
+        @apply px-4 py-2 hover:bg-gray-100;
+      }
+    }
+  }
+}
