@@ -4,61 +4,37 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchCurrentUser } from "./features/auth/authSlice";
 import { RootState, AppDispatch } from "./app/store";
 
-import MainLayout from "./layouts/MainLayout";
+import MainLayout from "./layouts/MainLayout"; // <- thêm layout cho home
 import HomePage from "./pages/HomePage";
-import LoginPage from "./features/auth/LoginPage";
-import ProfilePage from "./pages/ProfilePage";
-import AdminPage from "./features/admin/AdminPage";
-
-import ProtectedRoute from "./routes/ProtectedRoute";
-import PublicRoute from "./routes/PublicRoute";
+import { appRoutes } from "./routes";
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
   const { token } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    if (token) {
-      dispatch(fetchCurrentUser());
-    }
+    if (token) dispatch(fetchCurrentUser());
   }, [token, dispatch]);
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Layout có header*/}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
-
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={["ADMIN"]}>
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-        </Route>
-
-        {/* Public routes */}
+        {/* Home page cũng có layout */}
         <Route
-          path="/login"
+          path="/"
           element={
-            <PublicRoute>
-              <LoginPage />
-            </PublicRoute>
+            <MainLayout>
+              <HomePage />
+            </MainLayout>
           }
         />
 
+        {/* Các route khác từ features */}
+        {appRoutes.map((r) => (
+          <Route key={r.path} path={r.path} element={r.element} />
+        ))}
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
