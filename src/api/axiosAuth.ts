@@ -25,14 +25,18 @@ axiosAuth.interceptors.request.use(
 axiosAuth.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 403) {
+    const errorCode = error.response?.data?.error?.code;
+
+    // Token hết hạn
+    if (errorCode === "ERR.TOK0102") {
       localStorage.removeItem("token");
       store.dispatch(logout());
       window.location.href = "/login";
-      // Có thể redirect về login
     }
+
     return Promise.reject(error);
   }
 );
+
 
 export default axiosAuth;

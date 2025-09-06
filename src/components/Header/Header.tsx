@@ -4,7 +4,6 @@ import { RootState } from "../../app/store";
 import { logout } from "../../features/auth/authSlice";
 import Dropdown from "../Dropdown/Dropdown";
 import { useState } from "react";
-import logo from "../../assets/images/logo.png";
 import "./Header.scss";
 
 const Header: React.FC = () => {
@@ -23,12 +22,10 @@ const Header: React.FC = () => {
     <header className="header-container border-b shadow-sm">
       <div className="inner flex justify-between items-center px-4 py-2">
         {/* Logo */}
-        <Link to="/">
-          <img
-            src={logo}
-            alt="Logo"
-            className="h-10 md:h-12 lg:h-14 object-contain"
-          />
+        <Link to="/" className="flex items-center gap-2">
+          <div className="text-[#106c54] font-extrabold text-xl md:text-2xl lg:text-3xl">
+            Course<span className="text-gray-800">vo</span>
+          </div>
         </Link>
 
         {/* Search box (desktop only) */}
@@ -79,9 +76,13 @@ const Header: React.FC = () => {
               label={
                 <div className="flex items-center gap-2">
                   <img
-                    src={`https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`}
+                    src={
+                      user.avatar
+                        ? user.avatar 
+                        : `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`
+                    }
                     alt="avatar"
-                    className="w-8 h-8 rounded-full"
+                    className="w-8 h-8 rounded-full object-cover"
                   />
                   <span>{user.first_name}</span>
                 </div>
@@ -91,7 +92,10 @@ const Header: React.FC = () => {
                 setOpenDropdown(openDropdown === "user" ? null : "user")
               }
             >
-              <Link to="/profile" className="px-4 py-2 hover:bg-gray-100">
+              <Link
+                to="/account-profile"
+                className="px-4 py-2 hover:bg-gray-100"
+              >
                 Trang cá nhân
               </Link>
               {user.role === "ADMIN" && (
@@ -134,7 +138,7 @@ const Header: React.FC = () => {
 
           {user ? (
             <>
-              <Link to="/profile">Trang cá nhân</Link>
+              <Link to="/account-profile">Trang cá nhân</Link>
               {user.role === "ADMIN" && <Link to="/admin">Quản trị</Link>}
               <button onClick={handleLogout} className="text-left text-red-600">
                 Đăng xuất
