@@ -6,12 +6,12 @@ import { RootState } from "../app/store";
 interface ProtectedRouteProps {
   children: React.ReactNode;
   roles?: string[];
+  redirect?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles ,redirect}) => {
   const { token, user } = useSelector((state: RootState) => state.auth);
-
-  if (!token) return <Navigate to="/login" replace />;
+  if (!token) return <Navigate to={redirect || "/login"} replace />;
   if (roles && user && !roles.includes(user.role))
     return <Navigate to="/" replace />;
 

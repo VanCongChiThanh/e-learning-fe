@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../app/store";
-import { logout } from "../../features/auth/authSlice";
+import type { AppDispatch, RootState } from "../../app/store";
+import { logout, logoutAsync } from "../../features/auth/authSlice";
 import Dropdown from "../Dropdown/Dropdown";
 import { useState } from "react";
 import "./Header.scss";
 
 const Header: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
 
   // State
@@ -15,7 +15,7 @@ const Header: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutAsync());
   };
 
   return (

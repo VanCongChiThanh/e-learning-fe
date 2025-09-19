@@ -22,3 +22,22 @@ export const logoutAPI = async () => {
   const res = await axiosAuth.post("/oauth/revoke");
   return res.data;
 };
+
+//ADMIN
+// login admin dùng chung endpoint /oauth/token
+export const loginAdminAPI = async (body: LoginRequest) => {
+  const res = await axiosClient.post("admin/oauth/token", body);
+  return res.data; // { access_token, ... }
+};
+
+// lấy thông tin admin hiện tại dùng chung /user
+export const getCurrentAdminAPI = async () => {
+  const res = await axiosAuth.get("/user");
+  return res.data; // { id, first_name, last_name, email, role, ... }
+};
+
+// logout admin dùng chung /oauth/revoke
+export const logoutAdminAPI = async () => {
+  const res = await axiosAuth.post("/oauth/revoke");
+  return res.data;
+};
