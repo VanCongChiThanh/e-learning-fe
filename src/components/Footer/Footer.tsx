@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Logo + Intro */}
         <div>
-          <h2 className="text-2xl font-bold text-white">E-Learning</h2>
+          <h2 className="text-2xl font-bold text-white">Coursevo</h2>
           <p className="mt-3 text-sm text-gray-400">
             Nền tảng học trực tuyến giúp bạn nâng cao kỹ năng và phát triển sự
             nghiệp.
