@@ -46,9 +46,10 @@ function LearnerProfileEdit() {
         const ext = "." + newAvatarFile.name.split(".").pop()?.toLowerCase();
         const { url, key } = await getPresignedUrl(ext);
         await uploadAvatarToS3(url, newAvatarFile);
-        avatarToSave = `https://e-learning-data.s3.us-east-1.amazonaws.com/${encodeURIComponent(
+        avatarToSave = `https://dinhlooc-test-2025.s3.us-east-1.amazonaws.com/${encodeURIComponent(
           key
         )}`;
+        console.log("Avatar URL to save:", avatarToSave);
       }
 
       const updated = await updateUserInfo({

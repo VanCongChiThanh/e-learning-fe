@@ -59,9 +59,9 @@ const EditCourse: React.FC = () => {
         console.log("Presign:", url, key);
         await uploadCourseImageToS3(url, newImageFile);
         console.log("Upload S3 xong");
-        const imageUrlFull = `https://e-learning-data.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
+        const imageUrlFull = `https://dinhlooc-test-2025.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
         await updateCourseImageUrl(courseId, imageUrlFull);
-        imageToSave = `https://e-learning-data.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
+        imageToSave = `https://dinhlooc-test-2025.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
         setImageUrl(imageToSave);
         //setPreviewImage(imageToSave);
         setNewImageFile(null);
