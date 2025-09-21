@@ -16,7 +16,7 @@ const View: React.FC<ViewProps> = ({ enrollment, fetchEnrollmentById }) => {
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         enrollment.status === "COMPLETED" 
                           ? "bg-green-100 text-green-800"
-                          : enrollment.status === "in_progress"
+                          : enrollment.status === "ACTIVE"
                           ? "bg-blue-100 text-blue-800"
                           : "bg-gray-100 text-gray-800"
                       }`}>

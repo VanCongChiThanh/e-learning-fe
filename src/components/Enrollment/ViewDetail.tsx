@@ -29,6 +29,10 @@ const ViewDetail: React.FC<ViewDetailProps> = ({ selectedEnrollment, setSelected
                 <div>
                   <label className="block text-sm font-medium text-gray-700">ID Khóa học</label>
                   <p className="text-gray-900 font-mono text-sm">{selectedEnrollment.courseId}</p>
+            </div>
+            <div>
+                  <label className="block text-sm font-medium text-gray-700">ID User</label>
+                  <p className="text-gray-900 font-mono text-sm">{selectedEnrollment.userId}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Tiến độ</label>

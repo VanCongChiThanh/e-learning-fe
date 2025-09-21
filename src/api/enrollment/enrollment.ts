@@ -54,5 +54,8 @@ export const getEnrollmentByUserId = async (id: UUID): Promise<any> => {
     const res: AxiosResponse = await api.get(`/user/${id}`);
     return res;
 }
-
+export const getEnrollmentByCourseId = async (courseId: UUID): Promise<any> => {
+  const res: AxiosResponse = await api.get(`/course/${courseId}`);
+    return res;
+}
 export default api;

@@ -5,10 +5,11 @@ import {
   getEnrollmentByUserId,
   createEnrollment,
   updateEnrollment,
+  getEnrollmentByCourseId
 } from "../../../api/enrollment/index";
 import { UUID } from "crypto";
 
-export function useEnrollments(userId?: UUID) {
+export function useEnrollments(userId?: UUID, courseId?: UUID) {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [selectedEnrollment, setSelectedEnrollment] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +22,10 @@ export function useEnrollments(userId?: UUID) {
       let data;
       if (userId) {
         const res = await getEnrollmentByUserId(userId);
-        data = res.data ?? res; 
+        data = res.data ?? res;
+      } else if (courseId) {
+        const res = await getEnrollmentByCourseId(courseId);
+        data = res.data ?? res;
       } else {
         data = await getAllEnrollment();
       }
@@ -31,7 +35,7 @@ export function useEnrollments(userId?: UUID) {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, courseId]);
 
   // Lấy enrollment theo id
   const fetchEnrollmentById = useCallback(async (id: UUID) => {
