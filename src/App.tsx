@@ -7,7 +7,6 @@ import { RootState, AppDispatch } from "./app/store";
 import MainLayout from "./layouts/MainLayout"; // <- thêm layout cho home
 import HomePage from "./pages/HomePage";
 import { appRoutes } from "./routes";
-
 function App() {
   const dispatch = useDispatch<AppDispatch>();
   const { token } = useSelector((state: RootState) => state.auth);
@@ -28,7 +27,6 @@ function App() {
             </MainLayout>
           }
         />
-
         {/* Các route khác từ features */}
         {appRoutes.map((r) => (
           <Route key={r.path} path={r.path} element={r.element} />

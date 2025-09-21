@@ -1,35 +1,96 @@
-import { useEffect, useState } from "react";
-import { getAllEnrollment, createEnrollment } from "../../../api/enrollment/index";
+import { useEffect, useState, useCallback } from "react";
+import {
+  getAllEnrollment,
+  getEnrollmentById,
+  getEnrollmentByUserId,
+  createEnrollment,
+  updateEnrollment,
+} from "../../../api/enrollment/index";
 import { UUID } from "crypto";
 
 export function useEnrollments(userId?: UUID) {
   const [enrollments, setEnrollments] = useState<any[]>([]);
+  const [selectedEnrollment, setSelectedEnrollment] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const data = await getAllEnrollment();
-        setEnrollments(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  // Load danh sách enrollments
+  const fetchEnrollments = useCallback(async () => {
+    setLoading(true);
+    try {
+      let data;
+      if (userId) {
+        const res = await getEnrollmentByUserId(userId);
+        data = res.data ?? res; 
+      } else {
+        data = await getAllEnrollment();
       }
-    };
-    fetchData();
+      setEnrollments(data);
+    } catch (err: any) {
+      setError(err.message || "Error fetching enrollments");
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
-  const addEnrollment = async (courseId: UUID) => {
+  // Lấy enrollment theo id
+  const fetchEnrollmentById = useCallback(async (id: UUID) => {
+    setLoading(true);
     try {
-      const newEnroll = await createEnrollment({ userId: userId!, courseId });
-      setEnrollments((prev) => [...prev, newEnroll]);
+      const data = await getEnrollmentById(id);
+      setSelectedEnrollment(data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Error fetching enrollment by id");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  return { enrollments, loading, error, addEnrollment };
+  // Tạo enrollment
+  const addEnrollment = useCallback(
+    async (courseId: UUID) => {
+      if (!userId) {
+        setError("userId is required to create enrollment");
+        return;
+      }
+      try {
+        const newEnroll = await createEnrollment({ userId, courseId });
+        setEnrollments((prev) => [...prev, newEnroll.data ?? newEnroll]);
+      } catch (err: any) {
+        setError(err.message || "Error creating enrollment");
+      }
+    },
+    [userId]
+  );
+
+  // Cập nhật enrollment
+  const editEnrollment = useCallback(
+    async (id: UUID, data: any) => {
+      try {
+        const updated = await updateEnrollment(id, data);
+        setEnrollments((prev) =>
+          prev.map((e) => (e.id === id ? { ...e, ...updated } : e))
+        );
+      } catch (err: any) {
+        setError(err.message || "Error updating enrollment");
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    fetchEnrollments();
+  }, [fetchEnrollments]);
+
+  return {
+    enrollments,
+    selectedEnrollment,
+    setSelectedEnrollment, 
+    loading,
+    error,
+    fetchEnrollments,
+    fetchEnrollmentById,
+    addEnrollment,
+    editEnrollment,
+  };
 }
