@@ -5,6 +5,7 @@ import EditCourse from "./Instructor/EditCourse";
 import MyCoursesInstructor from "./Instructor/MycourseInstructor";
 import LearningPage from "./Learning/LearningPage";
 import EditLecture from "./Instructor/EditLecture";
+import EditCourseDetail from "./Instructor/EditCoureseDetail";
 export const courseRoutes = [
   {
     path: "/my-courses",
@@ -53,6 +54,16 @@ export const courseRoutesForInstructor = [
       <ProtectedRoute roles={["INSTRUCTOR"]}>
         <MainLayout>
           <EditLecture />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/instructor/courses/:courseId/detail",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <EditCourseDetail />
         </MainLayout>
       </ProtectedRoute>
     ),

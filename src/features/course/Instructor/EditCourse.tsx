@@ -6,6 +6,7 @@ import {
   updateCourseImageUrl,
 } from "../api";
 import axiosAuth from "../../../api/axiosAuth";
+import { useNavigate } from "react-router-dom";
 
 const EditCourse: React.FC = () => {
   const { courseId } = useParams();
@@ -18,6 +19,7 @@ const EditCourse: React.FC = () => {
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchCourse() {
@@ -95,6 +97,8 @@ const EditCourse: React.FC = () => {
         >
           <i className="fas fa-pen text-blue-600 text-lg"></i>
         </button>
+        
+        
       )}
 
       <h2 className="text-xl font-bold mb-4 text-center">Chỉnh sửa khóa học</h2>
@@ -183,6 +187,12 @@ const EditCourse: React.FC = () => {
           </div>
         )}
       </form>
+      <button
+        className="w-full mt-6 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700"
+        onClick={() => navigate(`/instructor/courses/${courseId}/detail`)}
+      >
+        Chỉnh sửa chi tiết khóa học
+      </button>
     </div>
   );
 };
