@@ -10,8 +10,8 @@ const LoginForm: React.FC = () => {
     (state: RootState) => state.auth
   );
 
-  const [email, setEmail] = useState("vancongchithanh223@gmail.com");
-  const [password, setPassword] = useState("12345Thanh");
+  const [email, setEmail] = useState("ngoloc3304@gmail.com");
+  const [password, setPassword] = useState("Ngoloc12@");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
