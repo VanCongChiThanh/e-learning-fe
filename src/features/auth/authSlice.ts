@@ -1,5 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginAPI, getCurrentUserAPI, LoginRequest } from "./authAPI";
+import {
+  loginAdminAPI,
+  loginAPI,
+  getCurrentUserAPI,
+  LoginRequest,
+  logoutAPI,
+} from "./authAPI";
 
 interface User {
   id: string;
@@ -36,7 +42,18 @@ export const login = createAsyncThunk(
     }
   }
 );
-
+export const loginAdmin = createAsyncThunk(
+  "auth/loginAdmin",
+  async (body: LoginRequest, { rejectWithValue }) => {
+    try {
+      const res = await loginAdminAPI(body);
+      return res.data; // { access_token, ... }
+    } catch (err: any) {
+      console.error(err);
+      return rejectWithValue(err.response?.data || "Login admin failed");
+    }
+  }
+);
 // fetch current user
 export const fetchCurrentUser = createAsyncThunk(
   "auth/fetchCurrentUser",
@@ -50,6 +67,18 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
+// logout async action
+export const logoutAsync = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await logoutAPI(); // gọi POST /oauth/revoke
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data || "Logout failed");
+    }
+  }
+);
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -79,6 +108,25 @@ const authSlice = createSlice({
       // fetch user
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.user = action.payload;
+      })
+      // logout
+      .addCase(logoutAsync.fulfilled, (state) => {
+        state.token = null;
+        state.user = null;
+        localStorage.removeItem("token");
+      })
+      // login admin
+      .addCase(loginAdmin.rejected, (state, action) => {
+        state.loading = false;
+        if (
+          action.payload &&
+          typeof action.payload === "object" &&
+          "error" in action.payload
+        ) {
+          state.error = (action.payload as any).error.message;
+        } else {
+          state.error = (action.payload as string) || "Login admin failed";
+        }
       });
   },
 });

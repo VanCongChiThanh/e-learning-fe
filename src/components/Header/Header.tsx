@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../app/store";
-import { logout } from "../../features/auth/authSlice";
+import type { AppDispatch, RootState } from "../../app/store";
+import { logout, logoutAsync } from "../../features/auth/authSlice";
 import Dropdown from "../Dropdown/Dropdown";
 import { useState } from "react";
 import "./Header.scss";
 
 const Header: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
 
   // State
@@ -15,7 +15,7 @@ const Header: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutAsync());
   };
 
   return (
@@ -35,6 +35,19 @@ const Header: React.FC = () => {
             <i className="fa-solid fa-search"></i>
           </button>
         </div>
+
+        {/*nút khóa học của tôi*/}
+        <nav className="flex items-center gap-4">
+          {/* ...existing menu items... */}
+          {user?.role === "INSTRUCTOR" && (
+            <Link
+              to="/instructor/my-courses"
+              className="px-3 py-2 rounded hover:bg-gray-100 font-medium"
+            >
+              Quản lý khóa học
+            </Link>
+          )}
+        </nav>
 
         {/* Nút menu mobile */}
         <button

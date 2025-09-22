@@ -3,9 +3,6 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCurrentUser } from "./features/auth/authSlice";
 import { RootState, AppDispatch } from "./app/store";
-
-import MainLayout from "./layouts/MainLayout"; // <- thêm layout cho home
-import HomePage from "./pages/HomePage";
 import { appRoutes } from "./routes";
 function App() {
   const dispatch = useDispatch<AppDispatch>();
@@ -18,15 +15,6 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Home page cũng có layout */}
-        <Route
-          path="/"
-          element={
-            <MainLayout>
-              <HomePage />
-            </MainLayout>
-          }
-        />
         {/* Các route khác từ features */}
         {appRoutes.map((r) => (
           <Route key={r.path} path={r.path} element={r.element} />
