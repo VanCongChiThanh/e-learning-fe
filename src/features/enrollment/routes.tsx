@@ -9,31 +9,31 @@ export const LearnRoutes = [
 {
     path: "/learn/enrollments",
     element: (
-    // <ProtectedRoute roles={["LEARN"]}>
+    <ProtectedRoute roles={["ROLE_LEARNER"]}>
         <MainLayout>
-        <EnrollmentLearn userId="123e4567-e89b-12d3-a456-426614174000" />
+        <EnrollmentLearn />
         </MainLayout>
-    // </ProtectedRoute>
+    </ProtectedRoute>
     ),
     },
     {
     path: "/teacher/enrollments",
     element: (
-    // <ProtectedRoute roles={["LEARN"]}>
+    <ProtectedRoute roles={["ROLE_INSTRUCTOR"]}>
         <MainLayout>
         <EnrollmentTeacher courseId="a1c2d3e4-f567-8901-2345-6789abcdef13" />
         </MainLayout>
-    // </ProtectedRoute>
+    </ProtectedRoute>
     ),
     },
     {
     path: "/admin/enrollments",
     element: (
-    // <ProtectedRoute roles={["LEARN"]}>
+    <ProtectedRoute roles={["ROLE_ADMIN"]}>
         <AdminLayout>
         <EnrollmentManager/>
         </AdminLayout>
-    // </ProtectedRoute>
+    </ProtectedRoute>
     ),
 },
 ];

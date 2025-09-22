@@ -1,10 +1,15 @@
 import React from "react";
 import { useEnrollments } from "../hook/useEnrollment";
 import { UUID } from "../utils/UUID";
+import { useSelector } from "react-redux";
 import { Card } from "../../../components/Enrollment/Card";
 import View from "../../../components/Enrollment/View";
 import ViewDetail from "../../../components/Enrollment/ViewDetail";
-const EnrollmentLearn: React.FC<{ userId: UUID }> = ({ userId }) => {
+import { RootState } from "../../../app/store";
+const EnrollmentLearn: React.FC = () => {
+  const { user } = useSelector((state: RootState) => state.auth);
+  console.log("User in EnrollmentLearn:", user);
+  const userId = user?.id;
   const {
     enrollments,
     selectedEnrollment,
@@ -13,7 +18,7 @@ const EnrollmentLearn: React.FC<{ userId: UUID }> = ({ userId }) => {
     error,
     fetchEnrollmentById,
     fetchEnrollments,
-  } = useEnrollments(userId);
+  } = useEnrollments(userId as UUID);
 
   // Loading state
   if (loading) {
