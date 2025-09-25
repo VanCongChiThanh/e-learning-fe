@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "./authSlice";
 import type { AppDispatch, RootState } from "../../app/store";
-import styles from "./LoginForm.module.scss";
 
 const LoginForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -10,64 +9,114 @@ const LoginForm: React.FC = () => {
     (state: RootState) => state.auth
   );
 
-  const [email, setEmail] = useState("ngoloc3304@gmail.com");
-  const [password, setPassword] = useState("Ngoloc12@");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     dispatch(login({ email, password }));
   };
 
+  // Thêm handle login Google và Apple (demo)
+  const handleGoogleLogin = () => {
+    console.log("Login with Google");
+    // Gọi API backend hoặc OAuth flow ở đây
+  };
+
+  const handleAppleLogin = () => {
+    console.log("Login with Apple");
+    // Gọi API backend hoặc OAuth flow ở đây
+  };
+
   return (
-    <div
-      className={`max-w-md mx-auto mt-16 p-8 rounded-2xl shadow-lg bg-white ${styles.wrapper}`}
-    >
-      <h2 className="text-2xl font-bold text-center mb-6 text-green-700">
-        Đăng nhập
-      </h2>
-
-      {token && (
-        <p className="mb-4 text-center text-green-600 font-medium">
-          Đăng nhập thành công! Token: {token}
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Left: Login Form */}
+      <div className="md:w-1/2 flex flex-col justify-center items-center p-10 bg-white">
+        <h1 className="text-3xl font-bold text-emerald-700 mb-2">Coursevo</h1>
+        <p className="text-gray-600 mb-6 text-center">
+          Bắt đầu hành trình học tập của bạn với Coursevo
         </p>
-      )}
-      {error && (
-        <p className="mb-4 text-center text-red-600 font-medium">{error}</p>
-      )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label className="block mb-1 font-medium text-gray-700">Email</label>
+        {token && (
+          <p className="mb-4 text-center text-green-600 font-medium">
+            Đăng nhập thành công! Token: {token}
+          </p>
+        )}
+
+        {error && (
+          <p className="mb-4 text-center text-red-600 font-medium">
+            {typeof error === "string" ? error : error.message}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5">
           <input
             type="email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className={`w-full px-3 py-2 rounded-lg border focus:outline-none ${styles.input}`}
+            className="w-full px-4 py-3 rounded-xl border border-green-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium text-gray-700">
-            Mật khẩu
-          </label>
           <input
             type="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className={`w-full px-3 py-2 rounded-lg border focus:outline-none ${styles.input}`}
+            className="w-full px-4 py-3 rounded-xl border border-green-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-xl font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {loading ? "Đang đăng nhập..." : "Login"}
+          </button>
+        </form>
+
+        <div className="mt-5 w-full max-w-sm space-y-3">
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full flex items-center justify-center py-3 border rounded-xl hover:bg-gray-100 transition"
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png"
+              alt="Google"
+              className="w-5 h-5 mr-3"
+            />
+            Đăng nhập với Google
+          </button>
+
+          <button
+            onClick={handleAppleLogin}
+            className="w-full flex items-center justify-center py-3 border rounded-xl hover:bg-gray-100 transition"
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg"
+              alt="Apple"
+              className="w-5 h-5 mr-3"
+            />
+            Đăng nhập với Apple
+          </button>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 rounded-lg font-semibold transition duration-200 text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
-        >
-          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-        </button>
-      </form>
+        <p className="mt-5 text-center text-gray-500 text-sm">
+          Bạn chưa có tài khoản?{" "}
+          <span className="text-emerald-600 font-medium cursor-pointer">
+            Đăng ký ngay
+          </span>
+        </p>
+      </div>
+
+      {/* Right: Illustration */}
+      <div className="md:w-1/2 hidden md:flex items-center justify-center bg-green-50">
+        <img
+          src="/svg/login.svg"
+          alt="Illustration"
+          className="max-w-xs md:max-w-md"
+        />
+      </div>
     </div>
   );
 };
