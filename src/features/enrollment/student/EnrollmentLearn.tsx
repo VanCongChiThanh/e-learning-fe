@@ -19,7 +19,6 @@ const EnrollmentLearn: React.FC = () => {
     fetchEnrollmentById,
     fetchEnrollments,
   } = useEnrollments(userId as UUID);
-
   // Loading state
   if (loading) {
     return (
