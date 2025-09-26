@@ -6,7 +6,7 @@ import {
   gradeAssignmentSubmission,
   getAssignmentSubmissionsByAssignment,
   getAssignmentSubmissionsByUser
-} from "../../../api/enrollment/assignmentSubmission";
+} from "../api/assignmentSubmission";
 
 // Hook for getting assignment submission by ID
 export function useAssignmentSubmission(id?: UUID) {

@@ -2,9 +2,9 @@ import React from "react";
 import { useEnrollments } from "../hook/useEnrollment";
 import { UUID } from "../utils/UUID";
 import { useSelector } from "react-redux";
-import { Card } from "../../../components/Enrollment/Card";
-import View from "../../../components/Enrollment/View";
-import ViewDetail from "../../../components/Enrollment/ViewDetail";
+import { Card } from "../Enrollment/Card";
+import View from "../Enrollment/View";
+import ViewDetail from "../Enrollment/ViewDetail";
 import { RootState } from "../../../app/store";
 const EnrollmentLearn: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);

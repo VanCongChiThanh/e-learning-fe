@@ -1,267 +1,411 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Users, BookOpen, TrendingUp, Filter, Eye, Edit2, Calendar, Award, Pen, NotebookIcon } from 'lucide-react';
+﻿import React, { useState, useMemo } from 'react';
 import { useEnrollments } from '../hook/useEnrollment';
-import { UUID } from '../utils/UUID';
 import { formatDate } from '../utils/formatDate';
-import CardAdmin from '../../../components/Enrollment/CardAdmin';
-import Table from '../../../components/Enrollment/Table';
-import ViewDetail from '../../../components/Enrollment/ViewDetail';
-const EnrollmentManagement = () => {
+import { EnrollmentCard } from '../Enrollment/EnrollmentCard';
+import { StatsCard } from '../common/Progress';
+import { LoadingSpinner, ErrorMessage, EmptyState } from '../common/States';
+import { Modal, Button, Input, Select } from '../common/UI';
+
+const EnrollmentManager = () => {
+  // State management
   const [filterUserId, setFilterUserId] = useState('');
   const [filterCourseId, setFilterCourseId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // all, user, course
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
+  const [editData, setEditData] = useState({
+    progressPercentage: '',
+    status: '',
+    totalWatchTimeMinutes: '',
+  });
   
-  // Sử dụng hook với filter
-  const currentUserId = activeFilter === 'user' && filterUserId ? filterUserId : undefined;
-  const currentCourseId = activeFilter === 'course' && filterCourseId ? filterCourseId : undefined;
-  
+  // Get all enrollments (Admin can see all)
   const {
     enrollments,
-    selectedEnrollment,
-    setSelectedEnrollment,
     loading,
     error,
     fetchEnrollments,
-    fetchEnrollmentById,
-  } = useEnrollments(currentUserId as UUID, currentCourseId as UUID);
+    editEnrollment,
+  } = useEnrollments();
 
-    const columns = [
-        { header: "ID", accessor: "id", render: (row: any) => row.id?.substring(0, 8) + "..." },
-        { header: "ID Khóa học", accessor: "courseId", render: (row: any) => row.courseId.substring(0, 8) + "..." },
-        { header: "ID User", accessor: "userId", render: (row: any) => row.userId.substring(0, 8) + "..."},
-        {
-            header: "Ngày Đăng Ký",
-            accessor: "enrollment_date",
-            render: (row: any) => (
-                <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                    {row.enrollmentDate? formatDate(row.enrollmentDate) : "Chưa có"}
-                </div>
-            ),
-        },
-        {
-            header: "Trạng Thái",
-            accessor: "status",
-            render: (row: any) => (
-                <div className="flex items-center">
-                <NotebookIcon
-                    className={`w-4 h-4 mr-2 ${getStatusColor(row.status)}`}
-                />
-                <span className={getStatusColor(row.status)}>
-                    {row.status || "Chưa có"}
-                </span>
-                </div>
-            ),
-        },
-        {
-            header: "Thao tác",
-            accessor: "actions",
-            render: (row: any) => (
-                <div className="flex space-x-4">
-                    <button
-                        onClick={() => fetchEnrollmentById(row.id)}
-                        className="text-blue-600 hover:text-blue-900 transition-colors"
-                    >
-                        <Eye className="w-4 h-4" />
-                    </button>
-                </div>
-            ),
-        },
-    ];
-
-  // Tính toán thống kê
-  const statistics = useMemo(() => {
-    const total = enrollments.length;
-    const completed = enrollments.filter(e => e.status === 'COMPLETED').length;
-    const inProgress = enrollments.filter(e => e.status === 'ACTIVE').length;
-    const completionRate = total > 0 ? (completed / total * 100).toFixed(1) : '0';
-    
-    return {
-      totalEnrollments: total,
-      completedEnrollments: completed,
-      inProgressEnrollments: inProgress,
-      completionRate: parseFloat(completionRate)
-    };
-  }, [enrollments]);
-
-  // Lọc enrollments theo search term
+  // Advanced filtering and search functionality
   const filteredEnrollments = useMemo(() => {
-    if (!searchTerm) return enrollments;
-    return enrollments.filter(enrollment => 
-      enrollment.userId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enrollment.courseId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enrollment.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enrollment.userName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [enrollments, searchTerm]);
+    if (!enrollments) return [];
+    
+    return enrollments.filter((enrollment: any) => {
+      const matchesSearch = searchTerm === '' || 
+        enrollment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        enrollment.courseId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        enrollment.userId.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const handleFilterChange = (type: string) => {
-    setActiveFilter(type);
-    if (type === 'all') {
-      setFilterUserId('');
-      setFilterCourseId('');
+      const matchesUserId = activeFilter !== 'user' || 
+        (filterUserId === '' || enrollment.userId.toLowerCase().includes(filterUserId.toLowerCase()));
+
+      const matchesCourseId = activeFilter !== 'course' || 
+        (filterCourseId === '' || enrollment.courseId.toLowerCase().includes(filterCourseId.toLowerCase()));
+
+      return matchesSearch && matchesUserId && matchesCourseId;
+    });
+  }, [enrollments, searchTerm, activeFilter, filterUserId, filterCourseId]);
+
+  // System-wide statistics calculation
+  const calculateSystemStats = () => {
+    if (!enrollments || enrollments.length === 0) {
+      return {
+        totalEnrollments: 0,
+        completedEnrollments: 0,
+        inProgressEnrollments: 0,
+        completionRate: 0,
+        activeUsers: 0,
+        activeCourses: 0,
+      };
+    }
+
+    const completed = enrollments.filter((e: any) => e.status === "completed").length;
+    const uniqueUsers = new Set(enrollments.map((e: any) => e.userId)).size;
+    const uniqueCourses = new Set(enrollments.map((e: any) => e.courseId)).size;
+
+    return {
+      totalEnrollments: enrollments.length,
+      completedEnrollments: completed,
+      inProgressEnrollments: enrollments.length - completed,
+      completionRate: enrollments.length > 0 ? Math.round((completed / enrollments.length) * 100) : 0,
+      activeUsers: uniqueUsers,
+      activeCourses: uniqueCourses,
+    };
+  };
+
+  const stats = calculateSystemStats();
+
+  // Event handlers
+  const handleViewDetail = (enrollment: any) => {
+    setSelectedEnrollment(enrollment);
+    setShowDetailModal(true);
+  };
+
+  const handleEditEnrollment = (enrollment: any) => {
+    setSelectedEnrollment(enrollment);
+    setEditData({
+      progressPercentage: enrollment.progressPercentage?.toString() || '',
+      status: enrollment.status || '',
+      totalWatchTimeMinutes: enrollment.totalWatchTimeMinutes?.toString() || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateEnrollment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEnrollment) return;
+
+    try {
+      const updateData: any = {};
+      if (editData.progressPercentage) updateData.progressPercentage = editData.progressPercentage;
+      if (editData.status) updateData.status = editData.status;
+      if (editData.totalWatchTimeMinutes) updateData.totalWatchTimeMinutes = editData.totalWatchTimeMinutes;
+
+      await editEnrollment(selectedEnrollment.id, updateData);
+      setShowEditModal(false);
+      setSelectedEnrollment(null);
+      setEditData({ progressPercentage: '', status: '', totalWatchTimeMinutes: '' });
+    } catch (error) {
+      console.error("Error updating enrollment:", error);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'COMPLETED': return 'bg-green-100 text-green-800 border-green-200';
-      case 'ACTIVE': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+  const handleDeleteEnrollment = async (enrollment: any) => {
+    if (window.confirm(`Xác nhận xóa enrollment ${enrollment.id}?`)) {
+      console.log("Delete enrollment:", enrollment.id);
     }
   };
 
-  if (loading && enrollments.length === 0) {
+  if (loading) {
+    return <LoadingSpinner size="lg" className="min-h-[500px]" />;
+  }
+
+  if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải dữ liệu enrollment...</p>
-        </div>
-      </div>
+      <ErrorMessage
+        message={error}
+        onRetry={fetchEnrollments}
+        className="m-6"
+      />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý Enrollment</h1>
-          <p className="text-gray-600">Theo dõi và quản lý tất cả enrollment trong hệ thống</p>
-        </div>
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản lý Enrollment</h1>
+        <p className="text-gray-600">Theo dõi và quản lý tất cả enrollment trong hệ thống</p>
+      </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <CardAdmin statistics={statistics.totalEnrollments} icons={Users} title="Tổng Enrollment" />
-            <CardAdmin statistics={statistics.completedEnrollments} icons={Award} title="Đã Hoàn Thành" />
-            <CardAdmin statistics={statistics.inProgressEnrollments} icons={BookOpen} title="Đang Học" />
-            <CardAdmin statistics={statistics.completionRate} icons={TrendingUp} title="Tỷ Lệ Hoàn Thành" />
-        </div>
+      {/* Comprehensive System Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatsCard
+          title="Tổng Enrollment"
+          value={stats.totalEnrollments}
+          color="#106c54"
+          icon={
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+            </svg>
+          }
+        />
+        <StatsCard
+          title="Đã hoàn thành"
+          value={stats.completedEnrollments}
+          color="#10b981"
+          icon={
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+        />
+        <StatsCard
+          title="Đang học"
+          value={stats.inProgressEnrollments}
+          color="#f59e0b"
+          icon={
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          }
+        />
+        <StatsCard
+          title="Tỷ lệ hoàn thành"
+          value={`${stats.completionRate}%`}
+          color="#8b5cf6"
+          icon={
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          }
+        />
+      </div>
 
-        {/* Filters and Search */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Filter Tabs */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => handleFilterChange('all')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeFilter === 'all' 
-                    ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Tất Cả
-              </button>
-              <button
-                onClick={() => handleFilterChange('user')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeFilter === 'user' 
-                    ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Theo User
-              </button>
-              <button
-                onClick={() => handleFilterChange('course')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeFilter === 'course' 
-                    ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Theo Course
-              </button>
-            </div>
+      {/* Additional System Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <StatsCard
+          title="Người dùng hoạt động"
+          value={stats.activeUsers}
+          color="#3b82f6"
+          icon={
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          }
+        />
+        <StatsCard
+          title="Khóa học hoạt động"
+          value={stats.activeCourses}
+          color="#06b6d4"
+          icon={
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15" />
+            </svg>
+          }
+        />
+      </div>
 
-            {/* Filter Inputs */}
-            <div className="flex flex-col lg:flex-row gap-4 flex-1">
-              {activeFilter === 'user' && (
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    placeholder="Nhập User ID để lọc..."
-                    value={filterUserId}
-                    onChange={(e) => setFilterUserId(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              )}
-              
-              {activeFilter === 'course' && (
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    placeholder="Nhập Course ID để lọc..."
-                    value={filterCourseId}
-                    onChange={(e) => setFilterCourseId(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              )}
+      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Bộ lọc và tìm kiếm</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <Input
+            label="Tìm kiếm"
+            type="text"
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="ID enrollment, course, user..."
+          />
+          
+          <Select
+            label="Loại bộ lọc"
+            value={activeFilter}
+            onChange={setActiveFilter}
+            options={[
+              { value: 'all', label: 'Tất cả' },
+              { value: 'user', label: 'Theo User ID' },
+              { value: 'course', label: 'Theo Course ID' },
+            ]}
+          />
 
-              {/* Search */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm enrollment..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+          {activeFilter === 'user' && (
+            <Input
+              label="User ID"
+              type="text"
+              value={filterUserId}
+              onChange={setFilterUserId}
+              placeholder="Nhập User ID"
+            />
+          )}
 
-              <button
-                onClick={fetchEnrollments}
-                disabled={loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                <Filter className="w-4 h-4 inline mr-2" />
-                {loading ? 'Đang tải...' : 'Áp dụng'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800">{error}</p>
-          </div>
-        )}
-
-        {/* Enrollments Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Danh Sách Enrollment ({filteredEnrollments.length})
-            </h2>
-          </div>
-
-          {filteredEnrollments.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Không có enrollment nào được tìm thấy</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-                <Table columns={columns} data={filteredEnrollments} />
-            </div>
+          {activeFilter === 'course' && (
+            <Input
+              label="Course ID"
+              type="text"
+              value={filterCourseId}
+              onChange={setFilterCourseId}
+              placeholder="Nhập Course ID"
+            />
           )}
         </div>
 
-        {/* Selected Enrollment Details Modal */}
-        {selectedEnrollment && (
-          <ViewDetail selectedEnrollment={selectedEnrollment} setSelectedEnrollment={setSelectedEnrollment} />
-        )}
+        <div className="text-sm text-gray-600">
+          Hiển thị {filteredEnrollments.length} / {enrollments?.length || 0} enrollment
+        </div>
       </div>
+
+      {filteredEnrollments.length === 0 ? (
+        <EmptyState
+          title="Không tìm thấy enrollment nào"
+          description="Thử điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác."
+        />
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Danh sách Enrollment</h3>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => console.log("Export enrollments")}
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Xuất báo cáo
+              </Button>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredEnrollments.map((enrollment: any) => (
+              <EnrollmentCard
+                key={enrollment.id}
+                enrollment={enrollment}
+                viewMode="admin"
+                onViewDetail={handleViewDetail}
+                onEdit={handleEditEnrollment}
+                onDelete={handleDeleteEnrollment}
+                showActions={true}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      <Modal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        title="Chi tiết Enrollment"
+        size="lg"
+      >
+        {selectedEnrollment && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">ID Enrollment</label>
+                <p className="text-gray-900 font-mono text-sm">{selectedEnrollment.id}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">ID Khóa học</label>
+                <p className="text-gray-900 font-mono text-sm">{selectedEnrollment.courseId}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">ID Người dùng</label>
+                <p className="text-gray-900 font-mono text-sm">{selectedEnrollment.userId}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Trạng thái</label>
+                <p className="text-gray-900">{selectedEnrollment.status || "Không xác định"}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tiến độ</label>
+                <p className="text-gray-900">{selectedEnrollment.progressPercentage || 0}%</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Thời gian học</label>
+                <p className="text-gray-900">{selectedEnrollment.totalWatchTimeMinutes || 0} phút</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Ngày đăng ký</label>
+                <p className="text-gray-900">{formatDate(selectedEnrollment.enrolledAt)}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Truy cập cuối</label>
+                <p className="text-gray-900">{formatDate(selectedEnrollment.lastAccessedAt)}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Hoàn thành</label>
+                <p className="text-gray-900">{formatDate(selectedEnrollment.completionDate)}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Chỉnh sửa Enrollment"
+        size="md"
+      >
+        <form onSubmit={handleUpdateEnrollment} className="space-y-4">
+          <Input
+            label="Tiến độ (%)"
+            type="number"
+            value={editData.progressPercentage}
+            onChange={(value) => setEditData({ ...editData, progressPercentage: value })}
+            placeholder="0-100"
+          />
+          
+          <Select
+            label="Trạng thái"
+            value={editData.status}
+            onChange={(value) => setEditData({ ...editData, status: value })}
+            options={[
+              { value: '', label: 'Chọn trạng thái' },
+              { value: 'not_started', label: 'Chưa bắt đầu' },
+              { value: 'in_progress', label: 'Đang học' },
+              { value: 'completed', label: 'Hoàn thành' },
+              { value: 'expired', label: 'Hết hạn' },
+            ]}
+          />
+          
+          <Input
+            label="Thời gian học (phút)"
+            type="number"
+            value={editData.totalWatchTimeMinutes}
+            onChange={(value) => setEditData({ ...editData, totalWatchTimeMinutes: value })}
+            placeholder="Số phút đã học"
+          />
+
+          <div className="flex gap-2 pt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowEditModal(false)}
+              className="flex-1"
+            >
+              Hủy
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              className="flex-1"
+            >
+              Cập nhật
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
 
-export default EnrollmentManagement;
+export default EnrollmentManager;

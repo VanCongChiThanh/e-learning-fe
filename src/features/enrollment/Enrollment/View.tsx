@@ -1,5 +1,5 @@
-import { formatDate } from "../../features/enrollment/utils/formatDate";
-import { UUID } from "../../features/enrollment/utils/UUID";
+import { formatDate } from "../utils/formatDate";
+import { UUID } from "../utils/UUID";
 
 interface ViewProps {
   enrollment: any;

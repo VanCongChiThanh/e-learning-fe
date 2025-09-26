@@ -6,7 +6,7 @@ import {
   updateAssignment,
   deleteAssignment,
   getAssignmentsByCourseId
-} from "../../../api/enrollment/index";
+} from "../api/index";
 
 export function useAssignment(id?: UUID) {
   const [assignment, setAssignment] = useState<any>(null);

@@ -1,5 +1,5 @@
 import React from 'react'
-import { formatDate } from "../../features/enrollment/utils/formatDate";
+import { formatDate } from "../utils/formatDate";
 interface ViewDetailProps {
   selectedEnrollment: any;
   setSelectedEnrollment: (enrollment: any | null) => void;

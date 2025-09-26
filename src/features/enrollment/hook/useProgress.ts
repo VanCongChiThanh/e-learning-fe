@@ -5,7 +5,7 @@ import {
   getProgressById,
   updateProgress,
   getProgressByEnrollmentId
-} from "../../../api/enrollment/progress";
+} from "../api/progress";
 
 // Hook for getting progress by ID
 export function useProgress(id?: UUID) {

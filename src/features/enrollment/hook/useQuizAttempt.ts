@@ -4,7 +4,7 @@ import {
   createQuizAttempt,
   getQuizAttemptsByQuiz,
   getQuizAttemptsByUser
-} from "../../../api/enrollment/quizAttempt";
+} from "../api/quizAttempt";
 
 // Hook for getting quiz attempts by quiz ID
 export function useQuizAttemptsByQuiz(quizId?: UUID) {
