@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchCurrentUser } from "./features/auth/authSlice";
 import { RootState, AppDispatch } from "./app/store";
 import { appRoutes } from "./routes";
-
 function App() {
   const dispatch = useDispatch<AppDispatch>();
   const { token } = useSelector((state: RootState) => state.auth);
