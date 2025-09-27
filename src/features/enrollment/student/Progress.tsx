@@ -4,7 +4,7 @@ import { RootState } from "../../../app/store";
 import { UUID } from "../utils/UUID";
 import { useProgressByEnrollment } from "../hook/useProgress";
 import { useEnrollments } from "../hook/useEnrollment";
-import { ProgressCard } from "../Enrollment/ProgressCard";
+import { ProgressCard } from "../component/ProgressCard";
 import { ProgressBar, StatsCard } from "../common/Progress";
 import { LoadingSpinner, ErrorMessage, EmptyState } from "../common/States";
 import { Modal, Button, Select } from "../common/UI";
@@ -52,7 +52,7 @@ const Progress: React.FC = () => {
     }
 
     const completed = progressList.filter((p: any) => p.isCompleted).length;
-    const totalWatchTime = progressList.reduce((sum: number, p: any) => sum + (p.watchTimeMinutes || 0), 0);
+    const totalWatchTime = progressList.reduce((sum: number, p: any) => sum + (p.watchTimeMinutes || p.watchedDurationMinutes || 0), 0);
 
     return {
       totalLectures: progressList.length,
@@ -253,7 +253,7 @@ const Progress: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Thời gian xem</label>
-                <p className="text-gray-900">{selectedProgress.watchTimeMinutes || 0} phút</p>
+                <p className="text-gray-900">{selectedProgress.watchTimeMinutes || selectedProgress.watchedDurationMinutes || 0} phút</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Ngày tạo</label>
