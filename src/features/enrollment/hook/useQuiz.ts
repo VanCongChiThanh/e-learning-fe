@@ -6,7 +6,7 @@ import {
   updateQuiz,
   deleteQuiz,
   getAllQuizzesByLectureId
-} from "../../../api/enrollment/quiz";
+} from "../api/quiz";
 
 // Hook for getting quiz by ID
 export function useQuiz(id?: UUID) {

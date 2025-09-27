@@ -6,7 +6,7 @@ import {
   createEnrollment,
   updateEnrollment,
   getEnrollmentByCourseId
-} from "../../../api/enrollment/index";
+} from "../api/index";
 import { UUID } from "crypto";
 
 export function useEnrollments(userId?: UUID, courseId?: UUID) {

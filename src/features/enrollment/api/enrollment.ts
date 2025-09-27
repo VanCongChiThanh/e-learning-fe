@@ -1,33 +1,15 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { UUID } from "crypto";
-
-const api: AxiosInstance = axios.create({
-  baseURL: "http://localhost:8105/api/enrollments", 
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// api.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("access_token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
+import axiosAuth from "../../../api/axiosAuth";
 
 // Example: gọi GET users
 export const getEnrollmentById = async (id: UUID): Promise<any> => {
-  const res: AxiosResponse = await api.get(`/${id}`);
+  const res: AxiosResponse = await axiosAuth.get(`/enrollments/${id}`);
   return res.data;
 };
 
 export const getAllEnrollment = async (): Promise<any> => {
-    const res: AxiosResponse = await api.get(``);
+    const res: AxiosResponse = await axiosAuth.get(`/enrollments`);
     return res.data;
 }
 
@@ -35,7 +17,7 @@ export const createEnrollment = async (data: {
   userId: UUID;
   courseId: UUID;
 }): Promise<any> => {
-  const res: AxiosResponse = await api.post("", data);
+  const res: AxiosResponse = await axiosAuth.post("/enrollments", data);
   return res;
 };
 
@@ -46,16 +28,15 @@ export const updateEnrollment = async (
         totalWatchTimeMinutes?: string; lastAccessedAt?: string
     }
 ): Promise<any> => {
-  const res: AxiosResponse = await api.put(`/${id}`, data);
+  const res: AxiosResponse = await axiosAuth.put(`/enrollments/${id}`, data);
   return res.data;
 };
 
 export const getEnrollmentByUserId = async (id: UUID): Promise<any> => {
-    const res: AxiosResponse = await api.get(`/user/${id}`);
+    const res: AxiosResponse = await axiosAuth.get(`/enrollments/user/${id}`);
     return res;
 }
 export const getEnrollmentByCourseId = async (courseId: UUID): Promise<any> => {
-  const res: AxiosResponse = await api.get(`/course/${courseId}`);
+  const res: AxiosResponse = await axiosAuth.get(`/enrollments/course/${courseId}`);
     return res;
 }
-export default api;

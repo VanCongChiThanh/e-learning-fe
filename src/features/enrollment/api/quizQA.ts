@@ -1,28 +1,10 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { UUID } from "crypto";
-
-const apiQuizQuestion: AxiosInstance = axios.create({
-  baseURL: "http://localhost:8105/api/quiz-questions",
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// apiQuizQuestion.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("access_token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
+import axiosAuth from "../../../api/axiosAuth";
 
 // GET /api/quiz-questions/{id} -> getById
 export const getQuizQuestionById = async (id: UUID): Promise<any> => {
-  const res: AxiosResponse = await apiQuizQuestion.get(`/${id}`);
+  const res: AxiosResponse = await axiosAuth.get(`/quiz-questions/${id}`);
   return res.data;
 };
 
@@ -35,7 +17,7 @@ export const createQuizQuestion = async (
     correctAnswer: string;
   }
 ): Promise<any> => {
-  const res: AxiosResponse = await apiQuizQuestion.post(`/${id}`, data);
+  const res: AxiosResponse = await axiosAuth.post(`/quiz-questions/${id}`, data);
   return res.data;
 };
 
@@ -48,20 +30,19 @@ export const updateQuizQuestion = async (
     correctAnswer?: string;
   }
 ): Promise<any> => {
-  const res: AxiosResponse = await apiQuizQuestion.put(`/${id}`, data);
+  const res: AxiosResponse = await axiosAuth.put(`/quiz-questions/${id}`, data);
   return res.data;
 };
 
 // DELETE /api/quiz-questions/{id} -> delete
 export const deleteQuizQuestion = async (id: UUID): Promise<any> => {
-  const res: AxiosResponse = await apiQuizQuestion.delete(`/${id}`);
+  const res: AxiosResponse = await axiosAuth.delete(`/quiz-questions/${id}`);
   return res.data;
 };
 
 // GET /api/quiz-questions/quiz/{quizId} -> getByQuizId
 export const getQuizQuestionsByQuizId = async (quizId: UUID): Promise<any> => {
-  const res: AxiosResponse = await apiQuizQuestion.get(`/quiz/${quizId}`);
+  const res: AxiosResponse = await axiosAuth.get(`/quiz-questions/quiz/${quizId}`);
   return res.data;
 };
 
-export default apiQuizQuestion;

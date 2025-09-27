@@ -1,24 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { UUID } from "crypto";
-
-const apiQuiz: AxiosInstance = axios.create({
-  baseURL: "http://localhost:8105/api/quizzes",
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// apiQuiz.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("access_token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
+import axiosAuth from "../../../api/axiosAuth";
 
 // POST /api/quizzes -> createQuiz
 export const createQuiz = async (data: {
@@ -26,13 +8,13 @@ export const createQuiz = async (data: {
   title: string;
   description?: string;
 }): Promise<any> => {
-  const res: AxiosResponse = await apiQuiz.post("", data);
+  const res: AxiosResponse = await axiosAuth.post("/quizzes", data);
   return res.data;
 };
 
 // GET /api/quizzes/{id} -> getQuizById
 export const getQuizById = async (id: UUID): Promise<any> => {
-  const res: AxiosResponse = await apiQuiz.get(`/${id}`);
+  const res: AxiosResponse = await axiosAuth.get(`/quizzes/${id}`);
   return res.data;
 };
 
@@ -44,20 +26,18 @@ export const updateQuiz = async (
     description?: string;
   }
 ): Promise<any> => {
-  const res: AxiosResponse = await apiQuiz.put(`/${id}`, data);
+  const res: AxiosResponse = await axiosAuth.put(`/quizzes/${id}`, data);
   return res.data;
 };
 
 // DELETE /api/quizzes/{id} -> deleteQuiz
 export const deleteQuiz = async (id: UUID): Promise<any> => {
-  const res: AxiosResponse = await apiQuiz.delete(`/${id}`);
+  const res: AxiosResponse = await axiosAuth.delete(`/quizzes/${id}`);
   return res.data;
 };
 
 // GET /api/quizzes/lecture/{lectureId} -> getAllQuizzesByLectureId
 export const getAllQuizzesByLectureId = async (lectureId: UUID): Promise<any> => {
-  const res: AxiosResponse = await apiQuiz.get(`/lecture/${lectureId}`);
+  const res: AxiosResponse = await axiosAuth.get(`/quizzes/lecture/${lectureId}`);
   return res.data;
 };
-
-export default apiQuiz;

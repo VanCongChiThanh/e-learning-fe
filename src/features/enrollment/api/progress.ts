@@ -1,24 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { UUID } from "crypto";
-
-const apiProgress: AxiosInstance = axios.create({
-  baseURL: "http://localhost:8105/api/progress",
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// apiProgress.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("access_token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
+import axiosAuth from "../../../api/axiosAuth";
 
 // POST /api/progress -> createProgress
 export const createProgress = async (data: {
@@ -27,13 +9,13 @@ export const createProgress = async (data: {
   watchedDurationMinutes?: number;
   lastWatchedAt?: string;
 }): Promise<any> => {
-  const res: AxiosResponse = await apiProgress.post("", data);
+  const res: AxiosResponse = await axiosAuth.post("/progress", data);
   return res.data;
 };
 
 // GET /api/progress/{id} -> getProgressById
 export const getProgressById = async (id: UUID): Promise<any> => {
-  const res: AxiosResponse = await apiProgress.get(`/${id}`);
+  const res: AxiosResponse = await axiosAuth.get(`/progress/${id}`);
   return res.data;
 };
 
@@ -46,14 +28,13 @@ export const updateProgress = async (
     lastWatchedAt?: string;
   }
 ): Promise<any> => {
-  const res: AxiosResponse = await apiProgress.put(`/${id}`, data);
+  const res: AxiosResponse = await axiosAuth.put(`/progress/${id}`, data);
   return res.data;
 };
 
 // GET /api/progress/enrollment/{id} -> getProgressByEnrollmentId
 export const getProgressByEnrollmentId = async (enrollmentId: UUID): Promise<any> => {
-  const res: AxiosResponse = await apiProgress.get(`/enrollment/${enrollmentId}`);
+  const res: AxiosResponse = await axiosAuth.get(`/progress/enrollment/${enrollmentId}`);
   return res.data;
 };
 
-export default apiProgress;

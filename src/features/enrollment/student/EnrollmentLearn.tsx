@@ -1,15 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { useEnrollments } from "../hook/useEnrollment";
 import { UUID } from "../utils/UUID";
 import { useSelector } from "react-redux";
-import { Card } from "../../../components/Enrollment/Card";
-import View from "../../../components/Enrollment/View";
-import ViewDetail from "../../../components/Enrollment/ViewDetail";
+import { Card } from "../component/Card";
+import View from "../component/View";
+import ViewDetail from "../component/ViewDetail";
+import SessionLearn from "./SessionLearn";
 import { RootState } from "../../../app/store";
 const EnrollmentLearn: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
-  console.log("User in EnrollmentLearn:", user);
   const userId = user?.id;
+  
+  // State để quản lý việc hiển thị SessionLearn
+  const [showSessionLearn, setShowSessionLearn] = useState(false);
+  const [currentEnrollmentId, setCurrentEnrollmentId] = useState<UUID | null>(null);
+  const [currentCourseId, setCurrentCourseId] = useState<UUID | null>(null);
   const {
     enrollments,
     selectedEnrollment,
@@ -19,6 +24,20 @@ const EnrollmentLearn: React.FC = () => {
     fetchEnrollmentById,
     fetchEnrollments,
   } = useEnrollments(userId as UUID);
+  
+  // Handler để xem sessions
+  const handleViewSessions = (courseId: UUID, enrollmentId: UUID) => {
+    setCurrentEnrollmentId(enrollmentId);
+    setCurrentCourseId(courseId);
+    setShowSessionLearn(true);
+    setSelectedEnrollment(null); // Đóng modal chi tiết
+  };
+  
+  // Handler để quay lại từ SessionLearn
+  const handleBackFromSessions = () => {
+    setShowSessionLearn(false);
+    setCurrentEnrollmentId(null);
+  };
   // Loading state
   if (loading) {
     return (
@@ -91,8 +110,21 @@ const EnrollmentLearn: React.FC = () => {
 
       {/* Chi tiết enrollment được chọn */}
       {selectedEnrollment && (
-        <ViewDetail selectedEnrollment={selectedEnrollment} setSelectedEnrollment={setSelectedEnrollment} />
+        <ViewDetail 
+          selectedEnrollment={selectedEnrollment} 
+          setSelectedEnrollment={setSelectedEnrollment}
+          onViewSessions={handleViewSessions}
+        />
       )}
+      {
+        showSessionLearn && currentEnrollmentId && currentCourseId && (
+          <SessionLearn 
+            courseId={currentCourseId as UUID}
+            enrollmentId={currentEnrollmentId as UUID}
+            onBack={handleBackFromSessions}
+          />
+        )
+      }
     </div>
   );
 };
