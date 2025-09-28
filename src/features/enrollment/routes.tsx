@@ -18,26 +18,6 @@ export const LearnRoutes = [
     ),
   },
   {
-    path: "/learn/enrollments/sessions",
-    element: (
-      <ProtectedRoute roles={["LEARNER"]}>
-        <MainLayout>
-          <EnrollmentLearn />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/learn/progress",
-    element: (
-      <ProtectedRoute roles={["LEARNER"]}>
-        <MainLayout>
-          <Progress />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
     path: "/teacher/enrollments",
     element: (
       <ProtectedRoute roles={["INSTRUCTOR"]}>

@@ -4,34 +4,29 @@ import { getAllSections } from "../api/session";
 import { getAllLectures } from "../api/lectures";
 import { getProgressByEnrollmentId } from "../api/progress";
 
-// Interface phù hợp với backend Section model
 export interface Session {
-    sectionId: UUID; // Đúng với backend
-    courseId?: UUID; // Có thể không có trong response
+    sectionId: UUID;
+    courseId?: UUID;
     title: string;
     position: number;
-    // Calculated fields
     lectureCount?: number;
-    totalDuration?: number; // Tổng thời lượng của tất cả lectures
+    totalDuration?: number;
     isCompleted?: boolean;
     completedLectureCount?: number;
 }
 
-// Interface phù hợp với backend Lecture model  
 export interface Lecture {
-    lectureId: UUID; // Đúng với backend
+    lectureId: UUID;
     sectionId: UUID;
     title: string;
-    sourceUrl?: string; // Đúng với backend
-    type?: string; // LectureType enum
-    duration?: number; // minutes
+    sourceUrl?: string;
+    type?: string;
+    duration?: number;
     position: number;
-    // Progress fields (mapped from Progress model)
     isCompleted?: boolean;
     watchTimeMinutes?: number;
 }
 
-// Interface phù hợp với backend Progress model
 export interface Progress {
     id: UUID;
     lectureId: UUID;
@@ -62,7 +57,7 @@ export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
                         console.warn("Could not fetch progress data:", err);
                     }
                 }
-
+                console.log("Progress Data:", progressData);
                 // Tính toán completion status cho từng session
                 const sessionsWithCompletion = await Promise.all(
                     data.data.map(async (session: any) => {

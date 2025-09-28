@@ -59,7 +59,7 @@ const SessionLearn: React.FC<SessionLearnProps> = ({ courseId, enrollmentId, onB
             Quay lại danh sách bài giảng
           </button>
         </div>
-        <Progress />
+        {selectedLectureId && <Progress selectedLectureId={selectedLectureId} />}
       </div>
     );
   }

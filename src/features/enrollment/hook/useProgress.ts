@@ -6,7 +6,8 @@ import {
   getProgressByEnrollmentId,
   createProgress,
   updateProgress,
-  getProgressById
+  getProgressById,
+  getProgressByLectureId
 } from "../api/progress";
 
 export interface Session {
@@ -286,4 +287,42 @@ export function useProgressByEnrollment(enrollmentId?: UUID) {
     addProgress,
     updateProgressById,
   };
+}
+
+export function useProgressByLecture(lectureId?: UUID) {
+  const [progress, setProgress] = useState<Progress | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshIndex, setRefreshIndex] = useState(0);
+  useEffect(() => {
+    if (!lectureId) return;
+    const fetchProgress = async () => {
+      setLoading(true);
+      try {
+        const data = await getProgressByLectureId(lectureId as any);
+        if (data) {
+          const mappedProgress = {
+            ...data,
+            watchTimeMinutes: data.watchTimeMinutes || data.watchedDurationMinutes || 0,
+            isCompleted: data.isCompleted || (data.watchedPercentage >= 100),
+          };
+          setProgress(mappedProgress);
+        } else {
+          setProgress(null);
+        }
+      } catch (err: any) {
+        setError(err.message || "Error fetching progress");
+        setProgress(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProgress();
+  }, [lectureId, refreshIndex]);
+
+  const refreshProgress = () => {
+    setRefreshIndex(prev => prev + 1);
+  };
+  return { progress, loading, error, refreshProgress };
 }
