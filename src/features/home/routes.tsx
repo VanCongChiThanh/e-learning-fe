@@ -1,6 +1,5 @@
 import ProtectedRoute from "../../routes/ProtectedRoute";
 import HomePage from "./page/HomePage";
-import MyLearningPage from "./page/MyLearningPage";
 import OnlineDegreesPage from "./page/OnlineDegreesPage";
 import CareersPage from "./page/CareersPage";
 import MainLayout from "../../layouts/MainLayout";
