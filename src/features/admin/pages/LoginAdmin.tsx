@@ -1,9 +1,9 @@
 // src/pages/admin/LoginAdminPage.tsx
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginAdmin } from "../../features/auth/authSlice"; // admin login async
-import { fetchCurrentUser } from "../../features/auth/authSlice"; // dùng chung fetch user
-import type { AppDispatch, RootState } from "../../app/store";
+import { loginAdmin } from "../../auth/authSlice"; // admin login async
+import { fetchCurrentUser } from "../../auth/authSlice"; // dùng chung fetch user
+import type { AppDispatch, RootState } from "../../../app/store";
 import { useNavigate } from "react-router-dom";
 
 const LoginAdminPage: React.FC = () => {
