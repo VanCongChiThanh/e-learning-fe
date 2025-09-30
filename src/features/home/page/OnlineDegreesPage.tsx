@@ -7,7 +7,6 @@ const OnlineDegreesPage = () => {
         <h2 className="text-2xl font-bold text-[#106c54] mb-6">
           Bằng cấp Online
       </h2>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[1, 2].map((id) => (
           <div
