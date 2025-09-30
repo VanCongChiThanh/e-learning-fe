@@ -96,23 +96,29 @@ function LearnerProfileEdit() {
         <>
           {/* Avatar */}
           <div className="flex flex-col items-center mb-6">
-            <img
-              src={
-                previewAvatar ||
-                avatarUrl ||
-                `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`
-              }
-              alt="avatar"
-              className="w-32 h-32 rounded-full object-cover mb-4"
-            />
-            {isEditing && (
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="text-sm"
+            <div className="flex flex-col items-center mb-6 relative group w-32">
+              {/* Avatar */}
+              <img
+                src={
+                  previewAvatar ||
+                  avatarUrl ||
+                  `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`
+                }
+                alt="avatar"
+                className="w-32 h-32 rounded-full object-cover border-2 border-gray-200"
               />
-            )}
+
+              {/* Overlay icon edit */}
+              <label className="absolute bottom-0 right-0 bg-white border border-gray-300 p-1 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                <i className="fas fa-pen text-sm text-gray-700"></i>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
           </div>
 
           {/* First name */}
