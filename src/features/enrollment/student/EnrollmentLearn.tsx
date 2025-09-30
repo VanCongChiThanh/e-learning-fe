@@ -7,6 +7,7 @@ import View from "../component/View";
 import ViewDetail from "../component/ViewDetail";
 import SessionLearn from "./SessionLearn";
 import { RootState } from "../../../app/store";
+import HomeLayout from "../../home/layout/HomeLayout";
 const EnrollmentLearn: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const userId = user?.id;
@@ -50,6 +51,7 @@ const EnrollmentLearn: React.FC = () => {
   // Error state
   if (error) {
     return (
+      <HomeLayout>
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
         <div className="flex">
           <div className="text-red-600">
@@ -69,10 +71,13 @@ const EnrollmentLearn: React.FC = () => {
           </div>
         </div>
       </div>
+      </HomeLayout>
     );
+    
   }
 
   return (
+    <HomeLayout>
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
@@ -126,6 +131,7 @@ const EnrollmentLearn: React.FC = () => {
         )
       }
     </div>
+    </HomeLayout>
   );
 };
 export default EnrollmentLearn;
