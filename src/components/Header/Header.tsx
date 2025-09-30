@@ -36,6 +36,19 @@ const Header: React.FC = () => {
           </button>
         </div>
 
+        {/*nút khóa học của tôi*/}
+        <nav className="flex items-center gap-4">
+          {/* ...existing menu items... */}
+          {user?.role === "INSTRUCTOR" && (
+            <Link
+              to="/instructor/my-courses"
+              className="px-3 py-2 rounded hover:bg-gray-100 font-medium"
+            >
+              Quản lý khóa học
+            </Link>
+          )}
+        </nav>
+
         {/* Nút menu mobile */}
         <button
           className="md:hidden text-2xl"
@@ -68,7 +81,7 @@ const Header: React.FC = () => {
           >
             <Link to="/reviews">Đánh giá</Link>
             <Link to="/partner">Trở thành đối tác</Link>
-            <Link to="/instructor">Trở thành giảng viên</Link>
+            <Link to="/instructor-registration">Trở thành giảng viên</Link>
           </Dropdown>
           {/* Dropdown user hoặc nút đăng nhập */}
           {user ? (
@@ -78,7 +91,7 @@ const Header: React.FC = () => {
                   <img
                     src={
                       user.avatar
-                        ? user.avatar 
+                        ? user.avatar
                         : `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`
                     }
                     alt="avatar"
@@ -124,8 +137,7 @@ const Header: React.FC = () => {
       {/* Menu mobile */}
       {mobileOpen && (
         <div className="md:hidden flex flex-col gap-2 px-4 py-2 bg-gray-50 border-t">
-          {/* Thêm ô search cho mobile */}
-          <div className="search-box flex items-center mx-auto">
+          <div className="search-box hidden md:flex">
             <input type="text" placeholder="Tìm khóa học..." />
             <button>
               <i className="fa-solid fa-search"></i>
@@ -134,7 +146,7 @@ const Header: React.FC = () => {
 
           <Link to="/reviews">Đánh giá</Link>
           <Link to="/partner">Trở thành đối tác</Link>
-          <Link to="/instructor">Trở thành giảng viên</Link>
+          <Link to="/instructor-registration">Trở thành giảng viên</Link>
 
           {user ? (
             <>

@@ -20,7 +20,7 @@ interface AuthState {
   token: string | null;
   user: User | null;
   loading: boolean;
-  error: string | null;
+  error: string | ApiError | null;
 }
 
 const initialState: AuthState = {
@@ -29,6 +29,10 @@ const initialState: AuthState = {
   loading: false,
   error: null,
 };
+interface ApiError {
+  code?: string;
+  message: string;
+}
 
 // login async action
 export const login = createAsyncThunk(
@@ -103,7 +107,20 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        if (
+          action.payload &&
+          typeof action.payload === "object" &&
+          "error" in action.payload
+        ) {
+          state.error = {
+            code: (action.payload as any).error.code,
+            message: (action.payload as any).error.message,
+          };
+        } else {
+          state.error = {
+            message: (action.payload as string) || "Login failed",
+          };
+        }
       })
       // fetch user
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
@@ -116,6 +133,15 @@ const authSlice = createSlice({
         localStorage.removeItem("token");
       })
       // login admin
+      .addCase(loginAdmin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginAdmin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload.access_token;
+        localStorage.setItem("token", action.payload.access_token);
+      })
       .addCase(loginAdmin.rejected, (state, action) => {
         state.loading = false;
         if (
