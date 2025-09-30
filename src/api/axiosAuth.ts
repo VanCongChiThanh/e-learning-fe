@@ -3,7 +3,7 @@ import { logout } from "../features/auth/authSlice";
 import { store } from "../app/store";
 
 const axiosAuth = axios.create({
-  baseURL: "http://coursevo.duckdns.org/api/v1",
+  baseURL: "/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
