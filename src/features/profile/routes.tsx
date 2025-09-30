@@ -5,7 +5,7 @@ export const profileRoutes = [
   {
     path: "/account-profile",
     element: (
-      <ProtectedRoute roles={["LEARNER"]}>
+      <ProtectedRoute roles={["LEARNER", "ADMIN"]} redirect="/login">
         <MainLayout>
           <LearnerProfileEdit />
         </MainLayout>
