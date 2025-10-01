@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "./authSlice";
 import type { AppDispatch, RootState } from "../../app/store";
+import { Link } from "react-router-dom";
 
 const LoginForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,15 +18,22 @@ const LoginForm: React.FC = () => {
     dispatch(login({ email, password }));
   };
 
-  // Thêm handle login Google và Apple (demo)
   const handleGoogleLogin = () => {
-    console.log("Login with Google");
-    // Gọi API backend hoặc OAuth flow ở đây
+    const googleClientId =
+      "642950847149-dajc38ob05u32telc151jhaj5qfrchtg.apps.googleusercontent.com";
+    const redirectUri = "https://coursevo.vercel.app/oauth2/callback/google";
+    const scope = "openid email profile";
+
+    window.location.href =
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${googleClientId}&` +
+      `redirect_uri=${redirectUri}&` +
+      `response_type=code&` +
+      `scope=${encodeURIComponent(scope)}`;
   };
 
   const handleAppleLogin = () => {
     console.log("Login with Apple");
-    // Gọi API backend hoặc OAuth flow ở đây
   };
 
   return (
@@ -104,7 +112,7 @@ const LoginForm: React.FC = () => {
         <p className="mt-5 text-center text-gray-500 text-sm">
           Bạn chưa có tài khoản?{" "}
           <span className="text-emerald-600 font-medium cursor-pointer">
-            Đăng ký ngay
+            <Link to="/register">Đăng ký ngay</Link>
           </span>
         </p>
       </div>
