@@ -1,5 +1,5 @@
 import ProtectedRoute from "../../routes/ProtectedRoute";
-import HomePage from "./page/HomePage";
+import HomePage from "./page/HomePage/HomePage";
 import OnlineDegreesPage from "./page/OnlineDegreesPage";
 import CareersPage from "./page/CareersPage";
 import MainLayout from "../../layouts/MainLayout";
@@ -33,7 +33,7 @@ export const homeRoutes = [
     path: "/instructor-registration",
     element: (
       <ProtectedRoute roles={["LEARNER"]}>
-          <InstructorRegistration />
+        <InstructorRegistration />
       </ProtectedRoute>
     ),
   },

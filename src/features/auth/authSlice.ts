@@ -5,6 +5,7 @@ import {
   getCurrentUserAPI,
   LoginRequest,
   logoutAPI,
+  oauth2LoginAPI,
 } from "./authAPI";
 
 interface User {
@@ -83,6 +84,22 @@ export const logoutAsync = createAsyncThunk(
     }
   }
 );
+// OAuth2 login async action
+export const oauth2Login = createAsyncThunk(
+  "auth/oauth2Login",
+  async (
+    { provider, code }: { provider: string; code: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await oauth2LoginAPI(provider, code);
+      return res.data; // { access_token, ... }
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data || "OAuth2 login failed");
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -153,7 +170,25 @@ const authSlice = createSlice({
         } else {
           state.error = (action.payload as string) || "Login admin failed";
         }
-      });
+      })
+      // OAuth2 login
+      .addCase(oauth2Login.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(oauth2Login.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload.access_token;
+        localStorage.setItem("token", action.payload.access_token);
+      })
+      .addCase(oauth2Login.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          (action.payload as any)?.error?.message ||
+          (action.payload as string) ||
+          "OAuth2 login failed";
+      })
+      
   },
 });
 
