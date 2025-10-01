@@ -1,10 +1,6 @@
-import axiosClient from "../../api/axiosClient";
-import axiosAuth from "../../api/axiosAuth";
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
+import axiosClient from "../../../api/axiosClient";
+import axiosAuth from "../../../api/axiosAuth";
+import { LoginRequest, RegisterRequest } from "../types/authType";
 
 // login để lấy token
 export const loginAPI = async (body: LoginRequest) => {
@@ -39,5 +35,26 @@ export const getCurrentAdminAPI = async () => {
 // logout admin dùng chung /oauth/revoke
 export const logoutAdminAPI = async () => {
   const res = await axiosAuth.post("/oauth/revoke");
+  return res.data;
+};
+
+//confirm email
+export const confirmEmailAPI = async (token: string) => {
+  const res = await axiosClient.get(`/user/confirmation`, {
+    params: { confirmation_token: token },
+  });
+  return res.data;
+};
+
+// OAuth2 login
+export const oauth2LoginAPI = async (provider: string, code: string) => {
+  const res = await axiosClient.get(`/oauth2/${provider}/login`, {
+    params: { code },
+  });
+  return res.data;
+};
+//sign up
+export const register = async (body: RegisterRequest) => {
+  const res = await axiosClient.post("/user/sign-up", body);
   return res.data;
 };

@@ -1,12 +1,14 @@
-import LoginPage from "./LoginPage";
+import LoginPage from "./pages/LoginPage";
+import ConfirmationPage from "./pages/ConfirmationPage";
 import PublicRoute from "../../routes/PublicRoute";
+import RegisterPage from "./pages/RegisterPage";
 
 export const authRoutes = [
   {
     path: "/login",
     element: (
       <PublicRoute>
-          <LoginPage />
+        <LoginPage />
       </PublicRoute>
     ),
   },
@@ -21,4 +23,20 @@ export const authRoutes = [
   //     </PublicRoute>
   //   ),
   // },
+  {
+    path: "/register/confirm",
+    element: (
+      <PublicRoute>
+        <ConfirmationPage />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: "/register",
+    element: (
+      <PublicRoute>
+        <RegisterPage />
+      </PublicRoute>
+    ),
+  },
 ];

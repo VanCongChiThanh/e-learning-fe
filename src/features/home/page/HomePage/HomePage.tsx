@@ -1,5 +1,5 @@
-import HomeLayout from "../layout/HomeLayout";
-import MainLayout from "../../../layouts/MainLayout";
+import HomeLayout from "../../layout/HomeLayout";
+import MainLayout from "../../../../layouts/MainLayout";
 
 const HomePage = () => {
   const courses = [

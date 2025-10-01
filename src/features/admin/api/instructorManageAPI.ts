@@ -21,11 +21,6 @@ export interface InstructorCandidateResponse {
   motivation?: string;
 }
 
-export interface ApplyInstructorRequest {
-  cv_url: string;
-  portfolio_link: string;
-  motivation: string;
-}
 
 export type ApplicationStatus = "APPROVED" | "REJECTED" | "PENDING" | "CANCELED";
 
@@ -55,15 +50,6 @@ export const instructorManageApi = {
     return res.data;
   },
 
-  applyForInstructor: async (
-    request: ApplyInstructorRequest
-  ): Promise<ApiResponse<null>> => {
-    const res = await axiosAuth.post(
-      `/instructor/applications/apply`,
-      request
-    );
-    return res.data;
-  },
 
   cancelApplication: async (
     applicationId: string
