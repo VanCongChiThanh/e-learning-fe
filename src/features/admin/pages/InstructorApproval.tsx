@@ -4,7 +4,7 @@ import {
   instructorManageApi,
   InstructorCandidateResponse,
   PageInfo,
-} from "../api/instructor-manage.api";
+} from "../api/instructorManageAPI";
 
 export default function InstructorApprovalPage() {
   const [applications, setApplications] = useState<

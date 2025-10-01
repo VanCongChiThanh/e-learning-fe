@@ -1,18 +1,7 @@
-import axiosClient from "../../api/axiosClient";
-import axiosAuth from "../../api/axiosAuth";
+import axiosClient from "../../../api/axiosClient";
+import axiosAuth from "../../../api/axiosAuth";
+import { LoginRequest, RegisterRequest } from "../types/authType";
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-export interface RegisterRequest {
-  email: string;
-  firstname: string;
-  lastname: string;
-  password: string;
-  password_confirmation: string;
-  role: string;
-}
 // login để lấy token
 export const loginAPI = async (body: LoginRequest) => {
   const res = await axiosClient.post("/oauth/token", body);
@@ -67,5 +56,5 @@ export const oauth2LoginAPI = async (provider: string, code: string) => {
 //sign up
 export const register = async (body: RegisterRequest) => {
   const res = await axiosClient.post("/user/sign-up", body);
-  return res.data
-}
+  return res.data;
+};

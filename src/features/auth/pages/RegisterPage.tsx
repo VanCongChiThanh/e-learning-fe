@@ -1,8 +1,7 @@
 import type React from "react";
-
 import { useState } from "react";
-import { register, RegisterRequest } from "./authAPI";
-
+import { register } from "../api/authAPI";
+import { RegisterRequest } from "../types/authType";
 export default function RegisterPage() {
   const [formData, setFormData] = useState<RegisterRequest>({
     email: "",

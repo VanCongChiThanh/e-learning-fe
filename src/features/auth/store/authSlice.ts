@@ -1,28 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { LoginRequest } from "../types/authType";
 import {
   loginAdminAPI,
   loginAPI,
   getCurrentUserAPI,
-  LoginRequest,
   logoutAPI,
   oauth2LoginAPI,
-} from "./authAPI";
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  role: string;
-  avatar: string;
-}
-
-interface AuthState {
-  token: string | null;
-  user: User | null;
-  loading: boolean;
-  error: string | ApiError | null;
-}
+} from "../api/authAPI";
+import { AuthState } from "../types/authType";
 
 const initialState: AuthState = {
   token: localStorage.getItem("token") || null,
@@ -30,11 +15,6 @@ const initialState: AuthState = {
   loading: false,
   error: null,
 };
-interface ApiError {
-  code?: string;
-  message: string;
-}
-
 // login async action
 export const login = createAsyncThunk(
   "auth/login",
@@ -187,8 +167,7 @@ const authSlice = createSlice({
           (action.payload as any)?.error?.message ||
           (action.payload as string) ||
           "OAuth2 login failed";
-      })
-      
+      });
   },
 });
 

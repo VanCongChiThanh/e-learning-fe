@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "./authSlice";
-import type { AppDispatch, RootState } from "../../app/store";
+import { login } from "../store/authSlice";
+import type { AppDispatch, RootState } from "../../../app/store";
 import { Link } from "react-router-dom";
 
-const LoginForm: React.FC = () => {
+const LoginPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, token } = useSelector(
     (state: RootState) => state.auth
@@ -129,4 +129,4 @@ const LoginForm: React.FC = () => {
   );
 };
 
-export default LoginForm;
+export default LoginPage;

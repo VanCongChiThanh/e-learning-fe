@@ -1,1 +1,1 @@
-export * from './instructor-manage.api';
+export * from "./instructorManageAPI";

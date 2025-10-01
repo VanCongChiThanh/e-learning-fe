@@ -1,9 +1,9 @@
 import axios from "axios";
-import { logout } from "../features/auth/authSlice";
+import { logout } from "../features/auth/store/authSlice";
 import { store } from "../app/store";
 
 const axiosAuth = axios.create({
-  baseURL: "http://coursevo.duckdns.org/api/v1",
+  baseURL: "http://localhost:8105/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -37,6 +37,5 @@ axiosAuth.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 
 export default axiosAuth;

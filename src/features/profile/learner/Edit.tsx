@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import {
   getUserInfo,
   updateUserInfo,
-  getPresignedUrl,
-  uploadAvatarToS3,
   UserInfo,
 } from "../api";
+import {
+  getPresignedUrl,
+  uploadFileToS3,
+} from "../../../services/file-service";
 
 function LearnerProfileEdit() {
   const [user, setUser] = useState<UserInfo | null>(null);
@@ -45,7 +47,7 @@ function LearnerProfileEdit() {
       if (newAvatarFile) {
         const ext = "." + newAvatarFile.name.split(".").pop()?.toLowerCase();
         const { url, key } = await getPresignedUrl(ext);
-        await uploadAvatarToS3(url, newAvatarFile);
+        await uploadFileToS3(url, newAvatarFile);
         avatarToSave = `https://e-learning-data.s3.us-east-1.amazonaws.com/${encodeURIComponent(
           key
         )}`;

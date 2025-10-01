@@ -1,7 +1,7 @@
-import LoginPage from "./LoginPage";
-import ConfirmationPage from "./ConfirmationPage";
+import LoginPage from "./pages/LoginPage";
+import ConfirmationPage from "./pages/ConfirmationPage";
 import PublicRoute from "../../routes/PublicRoute";
-import RegisterPage from "./RegisterPage";
+import RegisterPage from "./pages/RegisterPage";
 
 export const authRoutes = [
   {
@@ -35,7 +35,7 @@ export const authRoutes = [
     path: "/register",
     element: (
       <PublicRoute>
-          <RegisterPage />
+        <RegisterPage />
       </PublicRoute>
     ),
   },
