@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../app/store";
-import { logout, logoutAsync } from "../../features/auth/authSlice";
+import { logout, logoutAsync } from "../../features/auth/store/authSlice";
 import Dropdown from "../Dropdown/Dropdown";
 import { useState } from "react";
 import "./Header.scss";

@@ -1,4 +1,4 @@
-import { confirmEmailAPI } from "./authAPI";
+import { confirmEmailAPI } from "../api/authAPI";
 import { toast } from "react-toastify";
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -53,6 +53,5 @@ const ConfirmationPage: React.FC = () => {
       )}
     </div>
   );
-
 };
 export default ConfirmationPage;

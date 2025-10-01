@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../app/store";
-import { logoutAsync } from "../features/auth/authSlice";
+import { logoutAsync } from "../features/auth/store/authSlice";
 import { Link, useLocation } from "react-router-dom";
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

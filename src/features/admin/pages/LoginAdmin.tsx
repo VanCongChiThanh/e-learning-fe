@@ -1,8 +1,8 @@
 // src/pages/admin/LoginAdminPage.tsx
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginAdmin } from "../../auth/authSlice"; // admin login async
-import { fetchCurrentUser } from "../../auth/authSlice"; // dùng chung fetch user
+import { loginAdmin } from "../../auth/store/authSlice"; // admin login async
+import { fetchCurrentUser } from "../../auth/store/authSlice"; // dùng chung fetch user
 import type { AppDispatch, RootState } from "../../../app/store";
 import { useNavigate } from "react-router-dom";
 

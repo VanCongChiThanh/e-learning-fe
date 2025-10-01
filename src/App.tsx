@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCurrentUser } from "./features/auth/authSlice";
+import { fetchCurrentUser } from "./features/auth/store/authSlice";
 import { RootState, AppDispatch } from "./app/store";
 import { appRoutes } from "./routes";
 function App() {
