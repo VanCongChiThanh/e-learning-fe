@@ -2,6 +2,7 @@ import LoginPage from "./pages/LoginPage";
 import ConfirmationPage from "./pages/ConfirmationPage";
 import PublicRoute from "../../routes/PublicRoute";
 import RegisterPage from "./pages/RegisterPage";
+import Oauth2Callback from "./pages/Oauth2CallBack";
 
 export const authRoutes = [
   {
@@ -36,6 +37,14 @@ export const authRoutes = [
     element: (
       <PublicRoute>
         <RegisterPage />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: "/oauth2/callback/:provider",
+    element: (
+      <PublicRoute>
+        <Oauth2Callback />
       </PublicRoute>
     ),
   },

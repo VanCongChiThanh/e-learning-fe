@@ -48,6 +48,7 @@ export const confirmEmailAPI = async (token: string) => {
 
 // OAuth2 login
 export const oauth2LoginAPI = async (provider: string, code: string) => {
+  console.log("Calling backend OAuth2", provider, code);
   const res = await axiosClient.get(`/oauth2/${provider}/login`, {
     params: { code },
   });

@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
-import "./InstructorRegistration.scss";
+import "./InstructorRegistration.module.scss";
 import { applyInstructor, ApplyInstructorRequest } from "../../api";
 import {
   getPresignedUrl,
