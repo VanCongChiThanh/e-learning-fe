@@ -36,18 +36,6 @@ const Header: React.FC = () => {
           </button>
         </div>
 
-        {/*nút khóa học của tôi*/}
-        <nav className="flex items-center gap-4">
-          {/* ...existing menu items... */}
-          {user?.role === "INSTRUCTOR" && (
-            <Link
-              to="/instructor/my-courses"
-              className="px-3 py-2 rounded hover:bg-gray-100 font-medium"
-            >
-              Quản lý khóa học
-            </Link>
-          )}
-        </nav>
 
         {/* Nút menu mobile */}
         <button
@@ -70,7 +58,6 @@ const Header: React.FC = () => {
               3
             </span>
           </button>
-
           {/* Dropdown "Xem thêm" */}
           <Dropdown
             label="Xem thêm"
@@ -79,10 +66,19 @@ const Header: React.FC = () => {
               setOpenDropdown(openDropdown === "more" ? null : "more")
             }
           >
-            <Link to="/reviews">Đánh giá</Link>
-            <Link to="/partner">Trở thành đối tác</Link>
-            <Link to="/instructor-registration">Trở thành giảng viên</Link>
+            {user?.role === "INSTRUCTOR" && (
+              <Link to="/instructor/my-courses">Quản lý khóa học</Link>
+            )}
+
+            {user?.role === "LEARNER" && (
+              <>
+                <Link to="/reviews">Đánh giá</Link>
+                <Link to="/partner">Trở thành đối tác</Link>
+                <Link to="/instructor-registration">Trở thành giảng viên</Link>
+              </>
+            )}
           </Dropdown>
+
           {/* Dropdown user hoặc nút đăng nhập */}
           {user ? (
             <Dropdown
