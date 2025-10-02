@@ -12,6 +12,7 @@ const Oauth2Callback: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Oauth2Callback mounted", { provider, code });
     const fetchToken = async () => {
       if (provider && code) {
         try {
