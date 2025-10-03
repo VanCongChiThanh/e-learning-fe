@@ -1,15 +1,21 @@
 import ProtectedRoute from "../../routes/ProtectedRoute";
-import MainLayout from "../../layouts/MainLayout";
 import LearnerProfileEdit from "./learner/Edit";
+import InstructorProfileEdit from "./instructor/Edit";
 export const profileRoutes = [
   {
     path: "/account-profile",
     element: (
       <ProtectedRoute roles={["LEARNER", "ADMIN"]} redirect="/login">
-        <MainLayout>
           <LearnerProfileEdit />
-        </MainLayout>
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/instructor-profile",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]} redirect="/login">
+          <InstructorProfileEdit />
+      </ProtectedRoute>
+    ),
+  }
 ];

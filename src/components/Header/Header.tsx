@@ -108,7 +108,7 @@ const Header: React.FC = () => {
               {user.role === "INSTRUCTOR" && (
                 <>
                   <Link
-                    to="/instructor/my-courses"
+                    to="/instructor-profile"
                     className="px-4 py-2 hover:bg-gray-100"
                   >
                     Hồ sơ giảng viên
@@ -145,31 +145,55 @@ const Header: React.FC = () => {
       </div>
 
       {/* Menu mobile */}
+      {/* Menu mobile */}
       {mobileOpen && (
         <div className="md:hidden flex flex-col gap-2 px-4 py-2 bg-gray-50 border-t">
-          <div className="search-box hidden md:flex">
+          {/* Search box mobile */}
+          <div className="search-box flex items-center mb-2">
             <input type="text" placeholder="Tìm khóa học..." />
             <button>
               <i className="fa-solid fa-search"></i>
             </button>
           </div>
 
-          <Link to="/reviews">Đánh giá</Link>
-          <Link to="/partner">Trở thành đối tác</Link>
-          <Link to="/instructor-registration">Trở thành giảng viên</Link>
+          {/* Nếu chưa login */}
+          {!user && (
+            <Link to="/login" className="text-blue-600">
+              Tham gia miễn phí
+            </Link>
+          )}
 
-          {user ? (
+          {/* Nếu đã login */}
+          {user && (
             <>
-              <Link to="/account-profile">Trang cá nhân</Link>
+              {/* Learner menu */}
+              {user.role === "LEARNER" && (
+                <>
+                  <Link to="/reviews">Đánh giá</Link>
+                  <Link to="/partner">Trở thành đối tác</Link>
+                  <Link to="/instructor-registration">
+                    Trở thành giảng viên
+                  </Link>
+                  <Link to="/account-profile">Trang cá nhân</Link>
+                </>
+              )}
+
+              {/* Instructor menu */}
+              {user.role === "INSTRUCTOR" && (
+                <>
+                  <Link to="/instructor-profile">Hồ sơ giảng viên</Link>
+                  <Link to="/instructor/my-courses">Quản lý khóa học</Link>
+                </>
+              )}
+
+              {/* Admin menu */}
               {user.role === "ADMIN" && <Link to="/admin">Quản trị</Link>}
+
+              {/* Logout cho mọi user */}
               <button onClick={handleLogout} className="text-left text-red-600">
                 Đăng xuất
               </button>
             </>
-          ) : (
-            <Link to="/login" className="text-blue-600">
-              Tham gia miễn phí
-            </Link>
           )}
         </div>
       )}
