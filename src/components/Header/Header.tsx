@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../app/store";
-import { logout, logoutAsync } from "../../features/auth/authSlice";
+import { logout, logoutAsync } from "../../features/auth/store/authSlice";
 import Dropdown from "../Dropdown/Dropdown";
 import { useState } from "react";
 import "./Header.scss";
@@ -57,19 +57,24 @@ const Header: React.FC = () => {
               3
             </span>
           </button>
-
           {/* Dropdown "Xem thêm" */}
-          <Dropdown
-            label="Xem thêm"
-            isOpen={openDropdown === "more"}
-            onToggle={() =>
-              setOpenDropdown(openDropdown === "more" ? null : "more")
-            }
-          >
-            <Link to="/reviews">Đánh giá</Link>
-            <Link to="/partner">Trở thành đối tác</Link>
-            <Link to="/instructor">Trở thành giảng viên</Link>
-          </Dropdown>
+
+          {user?.role === "LEARNER" && (
+            <Dropdown
+              label="Xem thêm"
+              isOpen={openDropdown === "more"}
+              onToggle={() =>
+                setOpenDropdown(openDropdown === "more" ? null : "more")
+              }
+            >
+              <>
+                <Link to="/reviews">Đánh giá</Link>
+                <Link to="/partner">Trở thành đối tác</Link>
+                <Link to="/instructor-registration">Trở thành giảng viên</Link>
+              </>
+            </Dropdown>
+          )}
+
           {/* Dropdown user hoặc nút đăng nhập */}
           {user ? (
             <Dropdown
@@ -78,7 +83,7 @@ const Header: React.FC = () => {
                   <img
                     src={
                       user.avatar
-                        ? user.avatar 
+                        ? user.avatar
                         : `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`
                     }
                     alt="avatar"
@@ -92,12 +97,30 @@ const Header: React.FC = () => {
                 setOpenDropdown(openDropdown === "user" ? null : "user")
               }
             >
-              <Link
-                to="/account-profile"
-                className="px-4 py-2 hover:bg-gray-100"
-              >
-                Trang cá nhân
-              </Link>
+              {user.role === "LEARNER" && (
+                <Link
+                  to="/account-profile"
+                  className="px-4 py-2 hover:bg-gray-100"
+                >
+                  Trang cá nhân
+                </Link>
+              )}
+              {user.role === "INSTRUCTOR" && (
+                <>
+                  <Link
+                    to="/instructor/my-courses"
+                    className="px-4 py-2 hover:bg-gray-100"
+                  >
+                    Hồ sơ giảng viên
+                  </Link>
+                  <Link
+                    to="/instructor/my-courses"
+                    className="px-4 py-2 hover:bg-gray-100"
+                  >
+                    Quản lý khóa học
+                  </Link>
+                </>
+              )}
               {user.role === "ADMIN" && (
                 <Link to="/admin" className="px-4 py-2 hover:bg-gray-100">
                   Quản trị
@@ -124,8 +147,7 @@ const Header: React.FC = () => {
       {/* Menu mobile */}
       {mobileOpen && (
         <div className="md:hidden flex flex-col gap-2 px-4 py-2 bg-gray-50 border-t">
-          {/* Thêm ô search cho mobile */}
-          <div className="search-box flex items-center mx-auto">
+          <div className="search-box hidden md:flex">
             <input type="text" placeholder="Tìm khóa học..." />
             <button>
               <i className="fa-solid fa-search"></i>
@@ -134,7 +156,7 @@ const Header: React.FC = () => {
 
           <Link to="/reviews">Đánh giá</Link>
           <Link to="/partner">Trở thành đối tác</Link>
-          <Link to="/instructor">Trở thành giảng viên</Link>
+          <Link to="/instructor-registration">Trở thành giảng viên</Link>
 
           {user ? (
             <>
