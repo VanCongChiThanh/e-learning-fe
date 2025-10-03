@@ -4,16 +4,6 @@
   .inner {
     @apply max-w-7xl mx-auto flex items-center justify-between px-6 py-3;
   }
-  .search-box {
-    @apply border rounded-full px-3 py-2 w-72;
-    input {
-      @apply  flex-1 outline-none text-sm px-2;
-    }
-    button {
-      @apply text-[#106c54] hover:text-[#3c8a90];
-    }
-  }
-
   .right-menu {
     @apply text-gray-700 font-medium;
 
@@ -26,6 +16,17 @@
       a {
         @apply px-4 py-2 hover:bg-gray-100;
       }
+    }
+  }
+  .search-box {
+    @apply flex items-center border rounded-full px-3  w-72 bg-white;
+
+    input {
+      @apply flex-1 outline-none text-sm px-2 bg-transparent border-none;
+    }
+
+    button {
+      @apply text-[#106c54] hover:text-[#3c8a90];
     }
   }
 }

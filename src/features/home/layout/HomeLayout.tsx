@@ -12,7 +12,7 @@ const HomeLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
           md:top-[var(--header-height,80px)]
         "
       >
-        <div className="mx-2 flex justify-between items-center">
+        <div className="mx-2 my-2 flex justify-between items-center">
           {/* Cuộn ngang khi màn nhỏ */}
           <nav className="flex space-x-6 overflow-x-auto scrollbar-hide">
             <NavLink
