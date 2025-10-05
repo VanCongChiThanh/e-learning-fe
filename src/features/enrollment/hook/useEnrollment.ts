@@ -22,7 +22,6 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
       let data;
       if (userId) {
         const res = await getEnrollmentByUserId(userId);
-        console.log("Response from getEnrollmentByUserId:", res);
         data = res.data ?? res;
       } else if (courseId) {
         const res = await getEnrollmentByCourseId(courseId);
@@ -90,7 +89,7 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
   return {
     enrollments,
     selectedEnrollment,
-    setSelectedEnrollment, 
+    setSelectedEnrollment,
     loading,
     error,
     fetchEnrollments,

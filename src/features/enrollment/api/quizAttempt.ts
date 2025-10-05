@@ -7,10 +7,13 @@ import axiosAuth from "../../../api/axiosAuth";
 export const createQuizAttempt = async (data: {
   quizId: UUID;
   userId: UUID;
-  score?: number;
-  startedAt?: string;
-  completedAt?: string;
+  enrollmentId?: UUID;
+  questionId?: UUID;
+  selectedOption?: string;
+  attemptNumber?: number;
+  timeTakenMinutes?: number;
 }): Promise<any> => {
+  console.log(data);
   const res: AxiosResponse = await axiosAuth.post("/quiz-attempts", data);
   return res.data;
 };

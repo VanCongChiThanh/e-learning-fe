@@ -15,7 +15,7 @@ export function useAssignment(id?: UUID) {
 
   useEffect(() => {
     if (!id) return;
-    
+
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -66,7 +66,9 @@ export function useAssignmentsByCourse(courseId?: UUID) {
       const newAssignment = await createAssignment(assignmentData);
       setAssignments((prev) => [...prev, newAssignment]);
     } catch (err: any) {
+      console.error('Hook: Error creating assignment:', err);
       setError(err.message);
+      throw err; // Re-throw để component có thể catch
     }
   };
 
@@ -75,7 +77,7 @@ export function useAssignmentsByCourse(courseId?: UUID) {
     assignmentData: {
       title?: string;
       description?: string;
-      dueDate?: string;
+      dueDate?: string | null;
     }
   ) => {
     try {

@@ -1,27 +1,91 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../app/store";
 import { UUID } from "../utils/UUID";
 import { useProgressByLecture } from "../hook/useProgress";
-import {  StatsCard } from "../common/Progress";
+import { useQuizzesByLecture } from "../hook/useQuiz";
+import { StatsCard } from "../common/Progress";
 import { LoadingSpinner, ErrorMessage, EmptyState } from "../common/States";
+import { QuizCard } from "../component/QuizCard";
+import { QuizTakeModal } from "../component/QuizAssignmentLearning";
+import { getQuizQuestionsByQuizId } from "../api/quizQA";
+import { createQuizAttempt } from "../api/quizAttempt";
 interface ProgressProps {
   selectedLectureId: UUID;
+  userId: UUID;
+  enrollmentId?: UUID;
 }
 
-const Progress: React.FC<ProgressProps> = ({ selectedLectureId }) => {
-  const { user } = useSelector((state: RootState) => state.auth);
-  const userId = user?.id as UUID;
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedProgress, setSelectedProgress] = useState<any>(null);
+const Progress: React.FC<ProgressProps> = ({ selectedLectureId, userId, enrollmentId}) => {
+  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+
   const {
     progress: progressList,
     loading: progressLoading,
     error: progressError,
   } = useProgressByLecture(selectedLectureId);
-  console.log("Progress List:", progressList);
   
-  if (progressLoading) {
+  const { quizzes, loading: quizzesLoading } = useQuizzesByLecture(selectedLectureId);
+
+  const fetchQuestionsByQuiz = async (quizId: UUID) => {
+    try {
+      return await getQuizQuestionsByQuizId(quizId);
+    } catch (error) {
+      console.error('Error fetching quiz questions:', error);
+      return [];
+    }
+  };
+
+  const handleTakeQuiz = async (quizId: UUID) => {
+    const quiz = quizzes.find(q => q.id === quizId);
+    if (!quiz) return;
+
+    setSelectedQuiz(quiz);
+    const questions = await fetchQuestionsByQuiz(quizId);
+    console.log("Fetched questions:", questions);
+    setQuizQuestions(questions);
+    setIsQuizModalOpen(true);
+  };
+
+  const handleSubmitQuiz = async (answers: Record<UUID, string>) => {
+    if (!selectedQuiz) return;
+    try {
+      // Calculate score
+      let correctAnswers = 0;
+      const currentTime = new Date().toISOString();
+      
+      // Create quiz attempts for each question
+      for (const question of quizQuestions) {
+        const selectedOption = answers[question.id] || '';
+        const isCorrect = selectedOption === question.correctAnswer;
+        const pointsEarned = isCorrect ?  question.points : 0;
+        await createQuizAttempt({
+          quizId: selectedQuiz.id,
+          userId: userId,
+          enrollmentId: enrollmentId,
+          questionId: question.id,
+          selectedOption: selectedOption,
+          attemptNumber: 1,
+          timeTakenMinutes: 0
+        });
+        
+        if (isCorrect) {
+          correctAnswers++;
+        }
+      }
+      
+      const score = (correctAnswers / quizQuestions.length) * 100;
+      alert(`Bạn đã hoàn thành quiz với điểm số: ${score.toFixed(1)}%`);
+      setIsQuizModalOpen(false);
+      setSelectedQuiz(null);
+      setQuizQuestions([]);
+    } catch (error) {
+      console.error('Error submitting quiz:', error);
+      alert('Có lỗi xảy ra khi nộp bài quiz');
+    }
+  };
+  
+  if (progressLoading || quizzesLoading) {
     return <LoadingSpinner size="lg" className="min-h-[400px]" />;
   }
 
@@ -73,6 +137,43 @@ const Progress: React.FC<ProgressProps> = ({ selectedLectureId }) => {
           }
         />
       </div>
+
+      {/* Quiz Section */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quiz cho bài giảng này</h2>
+        {quizzes && quizzes.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {quizzes.map((quiz) => (
+              <QuizCard
+                key={quiz.id}
+                quiz={quiz}
+                userRole="LEARNER"
+                onTakeQuiz={handleTakeQuiz}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p>Chưa có quiz nào cho bài giảng này</p>
+          </div>
+        )}
+      </div>
+
+      {/* Quiz Modal */}
+      <QuizTakeModal
+        isOpen={isQuizModalOpen}
+        onClose={() => {
+          setIsQuizModalOpen(false);
+          setSelectedQuiz(null);
+          setQuizQuestions([]);
+        }}
+        quiz={selectedQuiz || { id: '' as UUID, title: '', description: '' }}
+        questions={quizQuestions}
+        onSubmit={handleSubmitQuiz}
+      />
     </div>
 )};
 

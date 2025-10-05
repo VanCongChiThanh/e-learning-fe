@@ -110,7 +110,8 @@ export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
     }, [courseId, enrollmentId]);
 
     return { sessions, loading, error };
-} export function useLecturesBySession(sessionId?: UUID, enrollmentId?: UUID) {
+}
+export function useLecturesBySession(sessionId?: UUID, enrollmentId?: UUID) {
     const [lectures, setLectures] = useState<Lecture[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

@@ -7,6 +7,9 @@ export const createQuiz = async (data: {
   lectureId: UUID;
   title: string;
   description?: string;
+  maxAttempts: number;
+  passingScore: number;
+  timeLimitMinutes: number;
 }): Promise<any> => {
   const res: AxiosResponse = await axiosAuth.post("/quizzes", data);
   return res.data;
@@ -24,6 +27,10 @@ export const updateQuiz = async (
   data: {
     title?: string;
     description?: string;
+    maxAttempts?: number;
+    passingScore?: number;
+    timeLimitMinutes?: number;
+    numberQuizQuestions?: number;
   }
 ): Promise<any> => {
   const res: AxiosResponse = await axiosAuth.put(`/quizzes/${id}`, data);

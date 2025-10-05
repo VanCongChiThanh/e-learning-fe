@@ -8,7 +8,6 @@ import EnrollmentModals from '../component/EnrollmentModals';
 
 const EnrollmentManager = () => {
   const {
-    // State
     filterUserId,
     setFilterUserId,
     filterCourseId,
@@ -25,14 +24,12 @@ const EnrollmentManager = () => {
     editData,
     setEditData,
     
-    // Data
     enrollments,
     filteredEnrollments,
     stats,
     loading,
     error,
     
-    // Handlers
     handleViewDetail,
     handleEditEnrollment,
     handleUpdateEnrollment,

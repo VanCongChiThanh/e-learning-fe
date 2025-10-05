@@ -16,7 +16,7 @@ export function useQuiz(id?: UUID) {
 
   useEffect(() => {
     if (!id) return;
-    
+
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -61,9 +61,19 @@ export function useQuizzesByLecture(lectureId?: UUID) {
     lectureId: UUID;
     title: string;
     description?: string;
+    maxAttempts?: number;
+    passingScore?: number;
+    timeLimitMinutes?: number;
   }) => {
     try {
-      const newQuiz = await createQuiz(quizData);
+      const newQuiz = await createQuiz({
+        lectureId: quizData.lectureId,
+        title: quizData.title,
+        description: quizData.description,
+        maxAttempts: quizData.maxAttempts ?? 1,
+        passingScore: quizData.passingScore ?? 50,
+        timeLimitMinutes: quizData.timeLimitMinutes ?? 30,
+      });
       setQuizzes((prev) => [...prev, newQuiz]);
     } catch (err: any) {
       setError(err.message);
@@ -75,6 +85,10 @@ export function useQuizzesByLecture(lectureId?: UUID) {
     quizData: {
       title?: string;
       description?: string;
+      maxAttempts?: number;
+      passingScore?: number;
+      timeLimitMinutes?: number;
+      numberQuizQuestions?: number;
     }
   ) => {
     try {

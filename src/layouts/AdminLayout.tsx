@@ -36,6 +36,24 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </li>
             <li>
               <Link
+                to="/admin/enrollments"
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200"
+              >
+                <i className="fa-solid fa-bookmark text-gray-600"></i>
+                Quản lý tiến độ học viên
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/admin/quiz-assignments"
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200"
+              >
+                <i className="fa-solid fa-clipboard-question text-gray-600"></i>
+                Quản lý Hệ thống Quiz & Bài Tập
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/admin/users"
                 className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200"
               >

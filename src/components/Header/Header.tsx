@@ -36,19 +36,6 @@ const Header: React.FC = () => {
           </button>
         </div>
 
-        {/*nút khóa học của tôi*/}
-        <nav className="flex items-center gap-4">
-          {/* ...existing menu items... */}
-          {user?.role === "INSTRUCTOR" && (
-            <Link
-              to="/instructor/my-courses"
-              className="px-3 py-2 rounded hover:bg-gray-100 font-medium"
-            >
-              Quản lý khóa học
-            </Link>
-          )}
-        </nav>
-
         {/* Nút menu mobile */}
         <button
           className="md:hidden text-2xl"
