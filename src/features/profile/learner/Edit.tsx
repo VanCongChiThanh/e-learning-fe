@@ -8,7 +8,7 @@ import {
   getPresignedUrl,
   uploadFileToS3,
 } from "../../../services/file-service";
-
+import MainLayout from "../../../layouts/MainLayout";
 function LearnerProfileEdit() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -81,6 +81,7 @@ function LearnerProfileEdit() {
   if (loading && !user) return <div className="text-center">Loading...</div>;
 
   return (
+    <MainLayout>
     <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-md relative">
       {!isEditing && (
         <button
@@ -186,6 +187,7 @@ function LearnerProfileEdit() {
         </>
       )}
     </div>
+    </MainLayout>
   );
 }
 

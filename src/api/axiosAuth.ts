@@ -3,11 +3,12 @@ import { logout } from "../features/auth/store/authSlice";
 import { store } from "../app/store";
 
 const axiosAuth = axios.create({
-  baseURL: "/api/v1",
+  baseURL: `${process.env.REACT_APP_API_BASE_URL}/v1`,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
 
 // Thêm token vào header trước khi gửi request
 axiosAuth.interceptors.request.use(
