@@ -21,7 +21,8 @@ const LoginPage: React.FC = () => {
   const handleGoogleLogin = () => {
     const googleClientId =
       "642950847149-dajc38ob05u32telc151jhaj5qfrchtg.apps.googleusercontent.com";
-    const redirectUri = "http://localhost:3000/oauth2/callback/google";
+    const redirectUri =
+      `${process.env.REACT_APP_API_BASE_URL}/oauth2/callback/google`;
     const scope = "openid email profile";
 
     window.location.href =
