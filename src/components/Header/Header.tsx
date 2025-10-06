@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../app/store";
 import { logout, logoutAsync } from "../../features/auth/store/authSlice";
+import { NotificationBell } from "../Notification";
 import Dropdown from "../Dropdown/Dropdown";
 import { useState } from "react";
 import "./Header.scss";
@@ -52,10 +53,7 @@ const Header: React.FC = () => {
 
           {/* Notification bell */}
           <button className="notification-btn relative">
-            <i className="fa-solid fa-bell text-xl"></i>
-            <span className="badge absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">
-              3
-            </span>
+            <NotificationBell />
           </button>
           {/* Dropdown "Xem thêm" */}
 

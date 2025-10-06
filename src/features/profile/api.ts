@@ -28,7 +28,6 @@ export const updateUserInfo = async (
 };
 
 
-
 export async function getInstructorProfile(): Promise<InstructorProfile> {
   const res = await axiosAuth.get("/instructor/profile/me");
   return res.data.data; // tuỳ backend trả

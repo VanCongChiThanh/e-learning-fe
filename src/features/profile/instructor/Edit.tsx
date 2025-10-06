@@ -123,10 +123,9 @@ const InstructorProfileEdit: React.FC = () => {
                   type="button"
                   className="text-blue-600"
                   onClick={() => setIsEditingUser(true)}
-                title="Chỉnh sửa thông tin"
+                  title="Chỉnh sửa thông tin"
                 >
                   <i className="fas fa-pen"></i>
-
                 </button>
               ) : (
                 <div className="flex gap-2">
@@ -141,7 +140,7 @@ const InstructorProfileEdit: React.FC = () => {
                     ) : (
                       <i
                         className="fas fa-save"
-                        style={{ color: "#2600fdff" , fontSize: "1.5rem" }}
+                        style={{ color: "#2600fdff", fontSize: "1.5rem" }}
                       ></i>
                     )}
                   </button>
@@ -253,10 +252,14 @@ const InstructorProfileEdit: React.FC = () => {
                     disabled={loadingInstructor}
                     title="Lưu thay đổi"
                   >
-                    <i
-                      className="fas fa-save"
-                      style={{ color: "#2600fdff", fontSize: "1.5rem" }}
-                    ></i>
+                    {loadingInstructor ? (
+                      <i className="fas fa-spinner fa-spin"></i>
+                    ) : (
+                      <i
+                        className="fas fa-save"
+                        style={{ color: "#2600fdff", fontSize: "1.5rem" }}
+                      ></i>
+                    )}
                   </button>
                   <button
                     type="button"
@@ -324,7 +327,7 @@ const InstructorProfileEdit: React.FC = () => {
                   type="button"
                   className="text-blue-600"
                   onClick={() => setIsEditingInstructor(true)}
-                    title="Chỉnh sửa thông tin"
+                  title="Chỉnh sửa thông tin"
                 >
                   <i className="fas fa-pen"></i>
                 </button>
@@ -336,10 +339,14 @@ const InstructorProfileEdit: React.FC = () => {
                     disabled={loadingInstructor}
                     title="Lưu thay đổi"
                   >
-                    <i
-                      className="fas fa-save"
-                      style={{ color: "#2600fdff", fontSize: "1.5rem" }}
-                    ></i>
+                    {loadingInstructor ? (
+                      <i className="fas fa-spinner fa-spin"></i>
+                    ) : (
+                      <i
+                        className="fas fa-save"
+                        style={{ color: "#2600fdff", fontSize: "1.5rem" }}
+                      ></i>
+                    )}
                   </button>
                   <button
                     type="button"
