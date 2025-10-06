@@ -1,13 +1,17 @@
 import axios from "axios";
 import { logout } from "../features/auth/store/authSlice";
 import { store } from "../app/store";
-
+const baseURL = process.env.REACT_APP_API_BASE_URL
+  ? `${process.env.REACT_APP_API_BASE_URL}/v1`
+  : "/api/v1";
+console.log("REACT_APP_API_BASE_URL =", process.env.REACT_APP_API_BASE_URL);
 const axiosAuth = axios.create({
-  baseURL: "http://localhost:8105/api/v1",
+  baseURL,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
 
 // Thêm token vào header trước khi gửi request
 axiosAuth.interceptors.request.use(
