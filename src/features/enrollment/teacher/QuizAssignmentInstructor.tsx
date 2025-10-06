@@ -1,280 +1,123 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React from 'react';
 import { UUID } from 'crypto';
 import { QuizCard } from '../component/QuizCard';
 import { AssignmentCard } from '../component/AssignmentCard';
 import { QuizFormModal, AssignmentFormModal } from '../component/QuizAssignmentModals';
 import { QuizQuestionManager } from '../component/QuizQuestionManager';
 import { StatsCard } from '../common/Progress';
-import { useQuizzesByLecture } from '../hook/useQuiz';
-import { useAssignmentsByCourse } from '../hook/useAssignment';
-import { useQuizStats, useAssignmentStats } from '../hook/useQuizAssignmentStats';
-import { useInstructorCourses } from '../hook/useInstructorManager';
-import { useSessionsByCourse } from '../hook/useSession';
-import { useLecturesBySession } from '../hook/useSession';
+import { useQuizAssignmentInstructor } from '../hook/useQuizAssignmentInstructor';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../app/store';
+
 export const QuizAssignmentInstructor: React.FC = ({ }) => {
   const { user } = useSelector((state: RootState) => state.auth);
   const instructorId = user?.id as UUID;
-  const [selectedCourseId, setSelectedCourseId] = useState<UUID | null>(null);
-  const [selectedSessionId, setSelectedSessionId] = useState<UUID | null>(null);
-  const [selectedLectureId, setSelectedLectureId] = useState<UUID | null>(null);
-  const [activeTab, setActiveTab] = useState<'quiz' | 'assignment'>('quiz');
-  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
-  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
-  const [isQuizQuestionModalOpen, setIsQuizQuestionModalOpen] = useState(false);
-  const [editingQuiz, setEditingQuiz] = useState<any>(null);
-  const [editingAssignment, setEditingAssignment] = useState<any>(null);
-  const [selectedQuizForQuestions, setSelectedQuizForQuestions] = useState<UUID | null>(null);
-  const {
-    courses,
-    loading: coursesLoading,
-    error: coursesError,
-    refetch: refetchCourses,
-  } = useInstructorCourses(instructorId);
-
-  // Use hooks for sessions and lectures
-  const { sessions, loading: sessionsLoading, error: sessionsError } = useSessionsByCourse(selectedCourseId || undefined);
-  const { lectures, loading: lecturesLoading, error: lecturesError } = useLecturesBySession(selectedSessionId || undefined);
-
-  // Use hooks for quizzes and assignments
-  const { 
-    quizzes, 
-    loading: quizzesLoading, 
-    error: quizzesError, 
-    addQuiz, 
-    updateQuizById, 
-    removeQuiz 
-  } = useQuizzesByLecture(selectedLectureId || undefined);
   
-  const { 
-    assignments, 
-    loading: assignmentsLoading, 
-    error: assignmentsError, 
-    addAssignment, 
-    updateAssignmentById, 
-    removeAssignment 
-  } = useAssignmentsByCourse(selectedCourseId || undefined);
+  const {
+    selectedCourseId,
+    setSelectedCourseId,
+    selectedSessionId,
+    setSelectedSessionId,
+    selectedLectureId,
+    setSelectedLectureId,
+    activeTab,
+    setActiveTab,
+    isQuizModalOpen,
+    isAssignmentModalOpen,
+    isQuizQuestionModalOpen,
+    editingQuiz,
+    editingAssignment,
+    selectedQuizForQuestions,
+    courses,
+    sessions,
+    lectures,
+    quizzes,
+    assignments,
+    quizStats,
+    assignmentStats,
+    loading,
+    coursesLoading,
+    sessionsLoading,
+    lecturesLoading,
+    totalQuizzes,
+    totalAssignments,
+    totalQuizAttempts,
+    totalSubmissions,
+    handleCreateQuiz,
+    handleEditQuiz,
+    handleUpdateQuiz,
+    handleDeleteQuiz,
+    handleManageQuestions,
+    handleViewQuizStats,
+    handleCreateAssignment,
+    handleUpdateAssignment,
+    handleEditAssignment,
+    handleDeleteAssignment,
+    handleViewAssignmentSubmissions,
+    openQuizModal,
+    closeQuizModal,
+    openAssignmentModal,
+    closeAssignmentModal,
+    closeQuizQuestionModal,
+  } = useQuizAssignmentInstructor(instructorId);
 
-  // Use hooks for stats
-  const { quizStats, loading: quizStatsLoading } = useQuizStats(quizzes);
-  const { assignmentStats, loading: assignmentStatsLoading } = useAssignmentStats(assignments);
-
-  const loading = quizzesLoading || assignmentsLoading || quizStatsLoading || assignmentStatsLoading;
-
-  // Reset selections when course changes
-  useEffect(() => {
-    if (selectedCourseId) {
-      setSelectedSessionId(null);
-      setSelectedLectureId(null);
-    }
-  }, [selectedCourseId]);
-
-  // Reset lecture selection when session changes
-  useEffect(() => {
-    if (selectedSessionId) {
-      setSelectedLectureId(null);
-    }
-  }, [selectedSessionId]);
-
-  const handleCreateQuiz = async (data: { 
-    lectureId?: UUID; 
-    title: string; 
-    description?: string;
-    maxAttempts: number;
-    passingScore: number;
-    timeLimitMinutes: number;
-    numberQuizQuestions: number;
-  }) => {
-    if (!selectedCourseId || !selectedSessionId || !selectedLectureId) {
-      alert('Vui lòng chọn đầy đủ khóa học, chương và bài giảng trước khi tạo quiz');
-      return;
-    }
-    
+  const handleCreateQuizWithAlert = async (data: any) => {
     try {
-      await addQuiz({
-        ...data,
-        lectureId: selectedLectureId
-      });
-      alert('Tạo quiz thành công!');
+      const result = await handleCreateQuiz(data);
+      alert(result.message);
     } catch (error) {
-      console.error('Error creating quiz:', error);
-      alert('Có lỗi xảy ra khi tạo quiz');
+      alert((error as Error).message);
     }
   };
 
-  const handleEditQuiz = (quizId: UUID) => {
-    const quiz = quizzes.find(q => q.id === quizId);
-    if (quiz) {
-      setEditingQuiz(quiz);
-      setIsQuizModalOpen(true);
-    }
-  };
-
-  const handleUpdateQuiz = async (data: { 
-    lectureId?: UUID; 
-    title: string; 
-    description?: string;
-    maxAttempts: number;
-    passingScore: number;
-    timeLimitMinutes: number;
-    numberQuizQuestions: number;
-  }) => {
-    if (!editingQuiz) return;
-    
+  const handleUpdateQuizWithAlert = async (data: any) => {
     try {
-      // Chỉ gửi các field thực sự thay đổi
-      const updateData: any = {};
-      
-      if (data.title !== editingQuiz.title) {
-        updateData.title = data.title;
-      }
-      
-      if (data.description !== editingQuiz.description) {
-        updateData.description = data.description;
-      }
-      
-      if (data.maxAttempts !== editingQuiz.maxAttempts) {
-        updateData.maxAttempts = data.maxAttempts;
-      }
-      
-      if (data.passingScore !== editingQuiz.passingScore) {
-        updateData.passingScore = data.passingScore;
-      }
-      
-      if (data.timeLimitMinutes !== editingQuiz.timeLimitMinutes) {
-        updateData.timeLimitMinutes = data.timeLimitMinutes;
-      }
-      
-      if (data.numberQuizQuestions !== editingQuiz.numberQuizQuestions) {
-        updateData.numberQuizQuestions = data.numberQuizQuestions;
-      }
-      
-      // Nếu không có gì thay đổi
-      if (Object.keys(updateData).length === 0) {
-        alert('Không có thay đổi nào để cập nhật');
-        return;
-      }
-      
-      await updateQuizById(editingQuiz.id, updateData);
-      setEditingQuiz(null);
-      alert('Cập nhật quiz thành công!');
+      const result = await handleUpdateQuiz(data);
+      alert(result.message);
     } catch (error) {
-      console.error('Error updating quiz:', error);
-      alert('Có lỗi xảy ra khi cập nhật quiz');
+      alert((error as Error).message);
     }
   };
 
-  const handleDeleteQuiz = async (quizId: UUID) => {
+  const handleDeleteQuizWithAlert = async (quizId: UUID) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa quiz này?')) return;
     
     try {
-      await removeQuiz(quizId);
-      alert('Xóa quiz thành công!');
+      const result = await handleDeleteQuiz(quizId);
+      alert(result.message);
     } catch (error) {
-      console.error('Error deleting quiz:', error);
-      alert('Có lỗi xảy ra khi xóa quiz');
+      alert((error as Error).message);
     }
   };
 
-  const handleManageQuestions = (quizId: UUID) => {
-    setSelectedQuizForQuestions(quizId);
-    setIsQuizQuestionModalOpen(true);
-  };
-
-  const handleCreateAssignment = async (data: { courseId?: UUID; title: string; description?: string; dueDate?: string }) => {
-  if (!selectedCourseId) {
-    alert('Vui lòng chọn khóa học trước khi tạo bài tập');
-    return;
-  }
-
-  try {
-    let formattedDueDate: string | undefined = undefined;
-
-    if (data.dueDate) {
-      formattedDueDate = new Date(data.dueDate).toISOString();
-    }
-
-    await addAssignment({
-      ...data,
-      courseId: selectedCourseId,
-      dueDate: formattedDueDate,
-    });
-
-    alert('Tạo bài tập thành công!');
-  } catch (error) {
-    console.error('Error creating assignment:', error);
-    alert('Có lỗi xảy ra khi tạo bài tập: ' + ((error as any)?.message || 'Unknown error'));
-  }
-};
-
-
-  const handleEditAssignment = async (data: { courseId?: UUID; title: string; description?: string; dueDate?: string }) => {
-    if (!editingAssignment) return;
-
+  const handleCreateAssignmentWithAlert = async (data: any) => {
     try {
-      // Chỉ gửi các field thực sự thay đổi
-      const updateData: any = {};
-      
-      if (data.title !== editingAssignment.title) {
-        updateData.title = data.title;
-      }
-      
-      if (data.description !== editingAssignment.description) {
-        updateData.description = data.description;
-      }
-      
-      // Xử lý dueDate
-      if (data.dueDate) {
-        const formattedDueDate = new Date(data.dueDate).toISOString();
-        if (formattedDueDate !== editingAssignment.dueDate) {
-          updateData.dueDate = formattedDueDate;
-        }
-      } else if (editingAssignment.dueDate) {
-        // Nếu cũ có dueDate nhưng giờ xóa đi
-        updateData.dueDate = null;
-      }
-      
-      // Nếu không có gì thay đổi
-      if (Object.keys(updateData).length === 0) {
-        alert('Không có thay đổi nào để cập nhật');
-        return;
-      }
-      
-      await updateAssignmentById(editingAssignment.id, updateData);
-      setEditingAssignment(null);
-      alert('Cập nhật bài tập thành công!');
+      const result = await handleCreateAssignment(data);
+      alert(result.message);
     } catch (error) {
-      console.error('Error updating assignment:', error);
-      alert('Có lỗi xảy ra khi cập nhật bài tập');
+      alert((error as Error).message);
     }
   };
 
+  const handleUpdateAssignmentWithAlert = async (data: any) => {
+    try {
+      const result = await handleUpdateAssignment(data);
+      alert(result.message);
+    } catch (error) {
+      alert((error as Error).message);
+    }
+  };
 
-  const handleDeleteAssignment = async (assignmentId: UUID) => {
+  const handleDeleteAssignmentWithAlert = async (assignmentId: UUID) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa bài tập này?')) return;
     
     try {
-      await removeAssignment(assignmentId);
-      alert('Xóa bài tập thành công!');
+      const result = await handleDeleteAssignment(assignmentId);
+      alert(result.message);
     } catch (error) {
-      console.error('Error deleting assignment:', error);
-      alert('Có lỗi xảy ra khi xóa bài tập');
+      alert((error as Error).message);
     }
   };
-
-  const handleViewQuizStats = (quizId: UUID) => {
-    console.log('View quiz stats for:', quizId);
-  };
-
-  const handleViewAssignmentSubmissions = (assignmentId: UUID) => {
-    console.log('View assignment submissions for:', assignmentId);
-  };
-  console.log(assignments)
-  const totalQuizzes = quizzes.length;
-  const totalAssignments = assignments.length;
-  const totalQuizAttempts = Object.values(quizStats).reduce((sum: number, stat: any) => sum + (stat.totalAttempts || 0), 0);
-  const totalSubmissions = Object.values(assignmentStats).reduce((sum: number, stat: any) => sum + (stat.totalSubmissions || 0), 0);
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto">
@@ -445,10 +288,7 @@ export const QuizAssignmentInstructor: React.FC = ({ }) => {
                       </div>
                     )}
                     <button
-                      onClick={() => {
-                        setEditingQuiz(null);
-                        setIsQuizModalOpen(true);
-                      }}
+                      onClick={() => openQuizModal()}
                       disabled={!selectedCourseId || !selectedSessionId || !selectedLectureId}
                       className="bg-[#106c54] text-white px-4 py-2 rounded-lg hover:bg-[#0d5942] transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
@@ -483,7 +323,7 @@ export const QuizAssignmentInstructor: React.FC = ({ }) => {
                       }}
                       userRole="INSTRUCTOR"
                       onEdit={handleEditQuiz}
-                      onDelete={handleDeleteQuiz}
+                      onDelete={handleDeleteQuizWithAlert}
                       onViewStats={handleViewQuizStats}
                       onManageQuestions={handleManageQuestions}
                     />
@@ -503,10 +343,7 @@ export const QuizAssignmentInstructor: React.FC = ({ }) => {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Danh sách Bài Tập</h2>
                 <button
-                  onClick={() => {
-                    setEditingAssignment(null);
-                    setIsAssignmentModalOpen(true);
-                  }}
+                  onClick={() => openAssignmentModal()}
                   disabled={!selectedCourseId}
                   className="bg-[#106c54] text-white px-4 py-2 rounded-lg hover:bg-[#0d5942] transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
@@ -531,14 +368,8 @@ export const QuizAssignmentInstructor: React.FC = ({ }) => {
                         averageGrade: assignmentStats[assignment.id]?.averageGrade || 0,
                       }}
                       userRole="INSTRUCTOR"
-                      onEdit={(assignmentId: UUID) => {
-                        const foundAssignment = assignments.find(a => a.id === assignmentId);
-                        if (foundAssignment) {
-                          setEditingAssignment(foundAssignment);
-                          setIsAssignmentModalOpen(true);
-                        }
-                      }}
-                      onDelete={handleDeleteAssignment}
+                      onEdit={handleEditAssignment}
+                      onDelete={handleDeleteAssignmentWithAlert}
                       onViewSubmissions={handleViewAssignmentSubmissions}
                     />
                   ))}
@@ -559,11 +390,8 @@ export const QuizAssignmentInstructor: React.FC = ({ }) => {
       {/* Modals */}
       <QuizFormModal
         isOpen={isQuizModalOpen}
-        onClose={() => {
-          setIsQuizModalOpen(false);
-          setEditingQuiz(null);
-        }}
-        onSubmit={editingQuiz ? handleUpdateQuiz : handleCreateQuiz}
+        onClose={closeQuizModal}
+        onSubmit={editingQuiz ? handleUpdateQuizWithAlert : handleCreateQuizWithAlert}
         initialData={editingQuiz}
         lectureId={selectedLectureId || undefined}
         title={editingQuiz ? 'Chỉnh sửa Quiz' : 'Tạo Quiz Mới'}
@@ -571,11 +399,8 @@ export const QuizAssignmentInstructor: React.FC = ({ }) => {
 
       <AssignmentFormModal
         isOpen={isAssignmentModalOpen}
-        onClose={() => {
-          setIsAssignmentModalOpen(false);
-          setEditingAssignment(null);
-        }}
-        onSubmit={editingAssignment ? handleEditAssignment : handleCreateAssignment}
+        onClose={closeAssignmentModal}
+        onSubmit={editingAssignment ? handleUpdateAssignmentWithAlert : handleCreateAssignmentWithAlert}
         initialData={editingAssignment}
         courseId={selectedCourseId || undefined}
         title={editingAssignment ? 'Chỉnh sửa Bài Tập' : 'Tạo Bài Tập Mới'}
@@ -583,10 +408,7 @@ export const QuizAssignmentInstructor: React.FC = ({ }) => {
 
       <QuizQuestionManager
         isOpen={isQuizQuestionModalOpen}
-        onClose={() => {
-          setIsQuizQuestionModalOpen(false);
-          setSelectedQuizForQuestions(null);
-        }}
+        onClose={closeQuizQuestionModal}
         quizId={selectedQuizForQuestions || ('' as UUID)}
       />
     </div>

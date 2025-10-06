@@ -37,6 +37,7 @@ export function useQuizzesByLecture(lectureId?: UUID) {
     maxAttempts?: number;
     passingScore?: number;
     timeLimitMinutes?: number;
+    numberQuestions?: number;
   }) => {
     try {
       const newQuiz = await createQuiz({
@@ -46,6 +47,7 @@ export function useQuizzesByLecture(lectureId?: UUID) {
         maxAttempts: quizData.maxAttempts ?? 1,
         passingScore: quizData.passingScore ?? 50,
         timeLimitMinutes: quizData.timeLimitMinutes ?? 30,
+        numberQuestions: quizData.numberQuestions ?? 10,
       });
       setQuizzes((prev) => [...prev, newQuiz]);
     } catch (err: any) {

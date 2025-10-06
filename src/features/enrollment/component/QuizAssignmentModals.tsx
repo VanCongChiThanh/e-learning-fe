@@ -12,7 +12,7 @@ interface QuizFormModalProps {
     maxAttempts: number;
     passingScore: number;
     timeLimitMinutes: number;
-    numberQuizQuestions: number;
+    numberQuestions: number;
   }) => void;
   initialData?: {
     lectureId: UUID;
@@ -21,7 +21,7 @@ interface QuizFormModalProps {
     maxAttempts?: number;
     passingScore?: number;
     timeLimitMinutes?: number;
-    numberQuizQuestions?: number;
+    numberQuestions?: number;
   };
   lectureId?: UUID;
   title?: string;
@@ -42,7 +42,7 @@ export const QuizFormModal: React.FC<QuizFormModalProps> = ({
     maxAttempts: initialData?.maxAttempts || 3,
     passingScore: initialData?.passingScore || 70,
     timeLimitMinutes: initialData?.timeLimitMinutes || 30,
-    numberQuizQuestions: initialData?.numberQuizQuestions || 10,
+    numberQuestions: initialData?.numberQuestions || 10,
   });
   // Reset form khi modal đóng/mở
   useEffect(() => {
@@ -54,7 +54,7 @@ export const QuizFormModal: React.FC<QuizFormModalProps> = ({
         maxAttempts: initialData?.maxAttempts || 3,
         passingScore: initialData?.passingScore || 70,
         timeLimitMinutes: initialData?.timeLimitMinutes || 30,
-        numberQuizQuestions: initialData?.numberQuizQuestions || 10,
+        numberQuestions: initialData?.numberQuestions || 10,
       });
     }
   }, [isOpen, initialData]);
@@ -70,7 +70,7 @@ export const QuizFormModal: React.FC<QuizFormModalProps> = ({
       maxAttempts: formData.maxAttempts,
       passingScore: formData.passingScore,
       timeLimitMinutes: formData.timeLimitMinutes,
-      numberQuizQuestions: formData.numberQuizQuestions,
+      numberQuestions: formData.numberQuestions,
     });
     
     onClose();
@@ -189,11 +189,11 @@ export const QuizFormModal: React.FC<QuizFormModalProps> = ({
       type="number"
       min="1"
       max="100"
-      value={formData.numberQuizQuestions}
+      value={formData.numberQuestions}
       onChange={(e) =>
         setFormData((prev) => ({
           ...prev,
-          numberQuizQuestions: parseInt(e.target.value) || 10,
+          numberQuestions: parseInt(e.target.value) || 10,
         }))
       }
       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#106c54] focus:border-transparent"

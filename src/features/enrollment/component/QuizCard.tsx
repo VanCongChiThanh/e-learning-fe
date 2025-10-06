@@ -10,7 +10,7 @@ interface QuizCardProps {
     passingScore?: number;
     timeLimitMinutes?: number;
     createdAt?: string;
-    numberQuestion?: number;
+    numberQuestions?: number;
     averageScore?: number;
   };
   userRole: 'ADMIN' | 'INSTRUCTOR' | 'LEARNER';
@@ -76,7 +76,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
         {(userRole === 'ADMIN' || userRole === 'INSTRUCTOR') && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div className="text-center">
-              <p className="text-lg font-bold text-[#106c54]">{quiz.numberQuestion || 0}</p>
+              <p className="text-lg font-bold text-[#106c54]">{quiz.numberQuestions || 0}</p>
               <p className="text-xs text-gray-500">Câu hỏi</p>
             </div>
             <div className="text-center">

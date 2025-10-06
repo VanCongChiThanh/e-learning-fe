@@ -237,7 +237,7 @@ export const QuizAssignmentAdmin: React.FC<QuizAssignmentAdminProps> = ({ course
     maxAttempts: number; 
     passingScore: number; 
     timeLimitMinutes: number;
-    numberQuizQuestions: number;
+    numberQuestions: number;
   }) => {
     try {
       await createQuiz({
@@ -247,6 +247,7 @@ export const QuizAssignmentAdmin: React.FC<QuizAssignmentAdminProps> = ({ course
         maxAttempts: data.maxAttempts,
         passingScore: data.passingScore,
         timeLimitMinutes: data.timeLimitMinutes,
+        numberQuestions: data.numberQuestions,
       });
       fetchData();
       alert('Tạo quiz thành công!');
@@ -271,7 +272,7 @@ export const QuizAssignmentAdmin: React.FC<QuizAssignmentAdminProps> = ({ course
     maxAttempts: number; 
     passingScore: number; 
     timeLimitMinutes: number;
-    numberQuizQuestions: number;
+    numberQuestions: number;
   }) => {
     if (!editingQuiz) return;
     
@@ -282,7 +283,7 @@ export const QuizAssignmentAdmin: React.FC<QuizAssignmentAdminProps> = ({ course
         maxAttempts: data.maxAttempts,
         passingScore: data.passingScore,
         timeLimitMinutes: data.timeLimitMinutes,
-        numberQuizQuestions: data.numberQuizQuestions,
+        numberQuestions: data.numberQuestions,
       });
       fetchData();
       setEditingQuiz(null);

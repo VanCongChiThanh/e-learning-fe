@@ -28,7 +28,7 @@ const EnrollmentLearn: React.FC = () => {
     setCurrentEnrollmentId(enrollmentId);
     setCurrentCourseId(courseId);
     setShowSessionLearn(true);
-    setSelectedEnrollment(null); // Đóng modal chi tiết
+    setSelectedEnrollment(null); 
   };
   
   const handleBackFromSessions = () => {
