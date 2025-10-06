@@ -2,7 +2,10 @@
 import { Client, IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
-const SOCKET_URL = `${process.env.REACT_APP_API_BASE_URL}/ws-notifications`; 
+const SOCKET_URL = process.env.REACT_APP_API_BASE_URL
+  ? `${process.env.REACT_APP_API_BASE_URL}/ws-notifications`
+  : "/ws-notifications";
+
 let stompClient: Client | null = null;
 
 export const notificationSocket = {
