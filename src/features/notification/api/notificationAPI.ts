@@ -2,7 +2,7 @@ import axiosAuth from "../../../api/axiosAuth";
 import {
   NotificationListResponse,
   NotificationResponse,
-} from "../types/notificationType";
+} from "../types/notificationTypes";
 
 export const notificationAPI = {
   // Lấy danh sách thông báo
@@ -19,15 +19,10 @@ export const notificationAPI = {
 
   // Đánh dấu đã đọc một thông báo
   markAsRead: async (notificationId: string): Promise<NotificationResponse> => {
-    const response = await axiosAuth.put(
+    const response = await axiosAuth.patch(
       `/notifications/${notificationId}/read`
     );
     return response.data.data;
-  },
-
-  // Đánh dấu đã đọc tất cả thông báo
-  markAllAsRead: async (): Promise<void> => {
-    await axiosAuth.put("/notifications/read-all");
   },
 
   // Xóa thông báo

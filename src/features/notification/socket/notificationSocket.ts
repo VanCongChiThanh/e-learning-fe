@@ -1,57 +1,61 @@
-// src/features/notification/socket/notificationSocket.ts
 import { Client, IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
-const SOCKET_URL = process.env.REACT_APP_API_BASE_URL
-  ? `${process.env.REACT_APP_API_BASE_URL}/ws-notifications`
-  : "/ws-notifications";
-
+const SOCKET_URL = `${process.env.REACT_APP_API_BASE_URL}/ws-notifications`;
 let stompClient: Client | null = null;
 
 export const notificationSocket = {
   connect: (userId: string, onNewNotification: (notif: any) => void) => {
-    // Nếu đã có kết nối, bỏ qua
-    if (stompClient && stompClient.connected) {
-      console.log("🔁 WebSocket already connected");
+    const token = localStorage.getItem("token");
+
+    if (stompClient?.active) {
       return;
     }
 
     stompClient = new Client({
       webSocketFactory: () => new SockJS(SOCKET_URL),
-      reconnectDelay: 10000, // tự động reconnect sau 10s nếu disconnect
-      debug: (msg) => console.log("[STOMP]", msg),
-      onConnect: () => {
-        console.log("✅ Connected to WebSocket");
+      reconnectDelay: 5000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+      debug: (msg) => console.log("[STOMP DEBUG]", msg),
 
-        // Lắng nghe queue riêng của user
+      // add token to STOMP headers
+      connectHeaders: {
+        Authorization: token ? `Bearer ${token}` : "",
+      },
+
+      onConnect: (frame) => {
+        const topic = `/user/queue/notifications`;
         stompClient?.subscribe(
-          `/user/${userId}/queue/notifications`,
+          topic,
           (message: IMessage) => {
             try {
               const notif = JSON.parse(message.body);
-              console.log("📩 New notification:", notif);
               onNewNotification(notif);
-            } catch (err) {
-              console.error("Failed to parse notification:", err);
+            } catch (e) {;
             }
           }
         );
       },
-      onStompError: (frame) => {
-        console.error("STOMP error:", frame.headers["message"], frame.body);
-      },
-      onWebSocketClose: () => {
-        console.warn("⚠️ WebSocket disconnected");
-      },
-    });
 
+      onStompError: (frame) => {
+      },
+
+      onWebSocketClose: (evt) => console.warn("⚠️ WebSocket closed:", evt),
+    });
     stompClient.activate();
   },
 
   disconnect: () => {
-    if (stompClient) {
+    if (stompClient?.active) {
       stompClient.deactivate();
-      console.log("❌ WebSocket disconnected");
+      stompClient = null;
+    } else {
     }
+  },
+
+  isConnected: (): boolean => {
+    const connected = !!stompClient?.connected;
+    return connected;
   },
 };

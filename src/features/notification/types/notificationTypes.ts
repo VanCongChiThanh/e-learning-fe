@@ -1,10 +1,12 @@
 export enum NotificationType {
-  SYSTEM = "SYSTEM",
-  COURSE = "COURSE",
-  ENROLLMENT = "ENROLLMENT",
-  ASSIGNMENT = "ASSIGNMENT",
-  QUIZ = "QUIZ",
-  ANNOUNCEMENT = "ANNOUNCEMENT",
+  COURSE_ENROLLMENT = "COURSE_ENROLLMENT",
+  ASSIGNMENT_GRADED = "ASSIGNMENT_GRADED",
+  NEW_COURSE_AVAILABLE = "NEW_COURSE_AVAILABLE",
+  COURSE_COMPLETED = "COURSE_COMPLETED",
+  PASSWORD_RESET  = "PASSWORD_RESET",
+  ACCOUNT_ACTIVATION = "ACCOUNT_ACTIVATION",
+  INSTRUCTOR_MESSAGE = "INSTRUCTOR_MESSAGE",
+  SYSTEM_ALERT = "SYSTEM_ALERT",
 }
 
 export interface NotificationResponse {
@@ -16,7 +18,6 @@ export interface NotificationResponse {
   metadata: string | null;
   is_read: boolean;
   created_at?: string;
-  updated_at?: string;
 }
 
 export interface PageInfo {

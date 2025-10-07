@@ -1,29 +1,35 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { notificationAPI } from "../../features/notification/api/notificationAPI";
-import {
-  NotificationResponse,
-  NotificationType,
-} from "../../features/notification/types/notificationType";
+import { NotificationResponse } from "../../features/notification/types/notificationTypes";
 import "./Notification.scss";
-
+import {
+  getNotificationIcon,
+  formatTime,
+} from "../../features/notification/utils/notificationUtils";
+import { toast } from "react-toastify";
 interface NotificationProps {
   isOpen: boolean;
   onClose: () => void;
+  unreadCount: number;
+  setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const Notification: React.FC<NotificationProps> = ({ isOpen, onClose }) => {
+const Notification: React.FC<NotificationProps> = ({
+  isOpen,
+  onClose,
+  unreadCount,
+  setUnreadCount,
+}) => {
   const [notifications, setNotifications] = useState<NotificationResponse[]>(
     []
   );
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  const [unreadCount, setUnreadCount] = useState(0);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-
-  const pageSize = 10;
+  const pageSize = 6;
 
   // Lấy danh sách thông báo
   const fetchNotifications = async (
@@ -69,7 +75,7 @@ const Notification: React.FC<NotificationProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  // Lấy số lượng thông báo chưa đọc
+  // Fetch unread count - delegate to parent
   const fetchUnreadCount = async () => {
     try {
       const count = await notificationAPI.getUnreadCount();
@@ -101,7 +107,8 @@ const Notification: React.FC<NotificationProps> = ({ isOpen, onClose }) => {
       fetchUnreadCount();
       handleFilterChange("all");
     }
-  }, [isOpen, handleFilterChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   // Đóng menu khi click ra ngoài
   useEffect(() => {
@@ -121,86 +128,75 @@ const Notification: React.FC<NotificationProps> = ({ isOpen, onClose }) => {
     };
   }, [openMenuId]);
 
-  // Đánh dấu đã đọc
   const handleMarkAsRead = async (notificationId: string) => {
-    try {
-      await notificationAPI.markAsRead(notificationId);
-      setOpenMenuId(null);
+    // Tìm notification để kiểm tra xem nó có phải chưa đọc không
+    const notification = notifications.find((n) => n.id === notificationId);
+    const wasUnread = notification && !notification.is_read;
 
-      // Cập nhật local state
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
-      );
+    // Cập nhật local state ngay lập tức
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
+    );
 
-      fetchUnreadCount();
-    } catch (error) {
-      console.error("Failed to mark as read:", error);
+    // Giảm unreadCount nếu notification này chưa đọc
+    if (wasUnread) {
+      setUnreadCount((prev) => Math.max(prev - 1, 0));
     }
-  };
 
-  // Đánh dấu tất cả đã đọc
-  const handleMarkAllAsRead = async () => {
-    try {
-      await notificationAPI.markAllAsRead();
+    // Đóng menu
+    setOpenMenuId(null);
 
-      // Cập nhật local state
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-
-      fetchUnreadCount();
-    } catch (error) {
-      console.error("Failed to mark all as read:", error);
+    try{
+      await notificationAPI.markAsRead(notificationId);
+    }catch(error){
+      // Nếu API thất bại, rollback lại state cũ
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, is_read: false } : n))
+      );
+      if (wasUnread) {
+        setUnreadCount((prev) => prev + 1);
+      }
+      // Hiển thị thông báo lỗi cho user
+      toast.error("Không thể đánh dấu đã đọc. Vui lòng thử lại!");
     }
   };
 
   // Xóa thông báo
   const handleDelete = async (notificationId: string) => {
     try {
-      await notificationAPI.deleteNotification(notificationId);
       setOpenMenuId(null);
 
-      // Xóa khỏi local state
+      const previousNotifications = notifications;
+      const previousUnreadCount = unreadCount; // Lưu unreadCount cũ
+
+      const deletedNotification = previousNotifications.find(
+        (n) => n.id === notificationId
+      );
+      const wasUnread = deletedNotification && !deletedNotification.is_read;
+
+      // Xóa khỏi UI ngay lập tức (optimistic update)
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
 
-      fetchUnreadCount();
+      // Giảm unreadCount nếu notification chưa đọc
+      if (wasUnread) {
+        setUnreadCount((prev) => Math.max(prev - 1, 0));
+      }
+
+      try {
+        // Chờ delete xong
+        await notificationAPI.deleteNotification(notificationId);
+      } catch (error) {
+        console.error("Failed to delete:", error);
+
+        // Rollback
+        setNotifications(previousNotifications);
+        setUnreadCount(previousUnreadCount);
+
+        toast.error("Không thể xóa thông báo!");
+      } 
     } catch (error) {
-      console.error("Failed to delete notification:", error);
+      console.error("Unexpected error:", error);
     }
-  };
-
-  // Lấy icon theo loại thông báo
-  const getNotificationIcon = (type: NotificationType) => {
-    switch (type) {
-      case NotificationType.COURSE:
-        return "📚";
-      case NotificationType.ENROLLMENT:
-        return "✅";
-      case NotificationType.ASSIGNMENT:
-        return "📝";
-      case NotificationType.QUIZ:
-        return "📊";
-      case NotificationType.ANNOUNCEMENT:
-        return "📢";
-      case NotificationType.SYSTEM:
-      default:
-        return "🔔";
-    }
-  };
-
-  // Format thời gian
-  const formatTime = (dateString?: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    return date.toLocaleDateString("vi-VN");
   };
 
   if (!isOpen) return null;
@@ -263,23 +259,23 @@ const Notification: React.FC<NotificationProps> = ({ isOpen, onClose }) => {
                 <div className="notification-menu">
                   <button
                     className="menu-trigger"
-                    onClick={() =>
-                      setOpenMenuId(
-                        openMenuId === notification.id ? null : notification.id
-                      )
-                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId((prev) =>
+                        prev === notification.id ? null : notification.id
+                      );
+                    }}
                   >
                     ⋮
                   </button>
                   {openMenuId === notification.id && (
-                    <div className="menu-dropdown">
-                      {!notification.is_read && (
-                        <button
-                          onClick={() => handleMarkAsRead(notification.id)}
-                        >
-                          Đánh dấu đã đọc
-                        </button>
-                      )}
+                    <div
+                      className="menu-dropdown"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button onClick={() => handleMarkAsRead(notification.id)}>
+                        {notification.is_read ? "Đã đọc" : "Đánh dấu đã đọc"}
+                      </button>
                       <button
                         onClick={() => handleDelete(notification.id)}
                         className="delete-option"
@@ -295,13 +291,13 @@ const Notification: React.FC<NotificationProps> = ({ isOpen, onClose }) => {
         </div>
 
         {hasMore && (
-          <div className="notification-load-more">
+          <div className="notification-load-more mx-auto my-2 text-green-700">
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
               className="load-more-btn"
             >
-              {loadingMore ? "\u0110ang t\u1ea3i..." : "Xem th\u00eam"}
+              {loadingMore ? "\u0110ang t\u1ea3i..." : "Xem thông báo trước đó"}
             </button>
           </div>
         )}

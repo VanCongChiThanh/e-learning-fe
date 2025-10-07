@@ -1,0 +1,119 @@
+/* AdminTable.scss - Modern Admin Style */
+
+// ✅ Container ngoài cùng - giới hạn width
+.admin-table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden; // Ẩn overflow để không ảnh hưởng layout ngoài
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+// ✅ Wrapper với scroll ngang BÊN TRONG
+.admin-table-wrapper {
+  width: 100%;
+  overflow-x: auto; // Scroll ngang CHỈ trong wrapper này
+  overflow-y: visible;
+  background-color: #ffffff;
+
+  // ✅ Custom scrollbar
+  &::-webkit-scrollbar {
+    height: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+}
+
+// ✅ Table - có thể mở rộng không giới hạn
+.admin-table {
+  width: max-content; // Tự động mở rộng theo nội dung
+  min-width: 100%; // Ít nhất bằng container
+  table-layout: auto; // Cho phép cột tự điều chỉnh
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+
+  th,
+  td {
+    border-right: 1px solid #e2e8f0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.75rem 1rem;
+  }
+
+  th:last-child,
+  td:last-child {
+    border-right: none;
+  }
+
+  th {
+    background-color: #f1f5f9; // light blue-gray
+    color: #1e3a8a; // dark blue
+    font-weight: 600;
+    font-size: 0.875rem; // 14px
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    user-select: none;
+
+    .resize-handle {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 8px;
+      height: 100%;
+      cursor: col-resize;
+      z-index: 10;
+
+      &:hover::after {
+        opacity: 1;
+      }
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 25%;
+        bottom: 25%;
+        right: 2px;
+        width: 1px;
+        background-color: #3b82f6; // subtle blue
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+    }
+  }
+
+  td {
+    background-color: #ffffff;
+    font-size: 0.875rem;
+    color: #374151; // gray-700
+  }
+
+  tr:hover td {
+    background-color: #f8fafc; // very light blue-gray
+  }
+
+  tr.clickable-row:hover td {
+    background-color: #e0f2fe; // subtle blue highlight for clickable rows
+  }
+}
+
+// ✅ Cursor khi đang resize
+body.resizing-column {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
