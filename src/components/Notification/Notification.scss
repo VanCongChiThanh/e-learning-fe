@@ -211,7 +211,9 @@
     }
 
     .menu-dropdown {
-      position: fixed;
+      position: absolute; // thay vì fixed
+      top: 25%; 
+      right: 0; 
       z-index: 2000;
       background: white;
       border: 1px solid #c8e6c9;
@@ -219,7 +221,6 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       min-width: 180px;
       overflow: hidden;
-      transform: translate(-150px, 0);
 
       button {
         width: 100%;

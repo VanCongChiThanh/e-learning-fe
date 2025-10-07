@@ -19,7 +19,7 @@ export const notificationAPI = {
 
   // Đánh dấu đã đọc một thông báo
   markAsRead: async (notificationId: string): Promise<NotificationResponse> => {
-    const response = await axiosAuth.put(
+    const response = await axiosAuth.patch(
       `/notifications/${notificationId}/read`
     );
     return response.data.data;

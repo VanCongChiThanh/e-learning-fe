@@ -59,7 +59,6 @@ const NotificationBell: React.FC = () => {
   const handleToggle = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
-      // Mở panel -> có thể load lại danh sách thông báo
       fetchUnreadCount();
     }
   };
@@ -87,7 +86,12 @@ const NotificationBell: React.FC = () => {
           </span>
         )}
       </div>
-      <Notification isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <Notification 
+        isOpen={isOpen} 
+        onClose={() => setIsOpen(false)}
+        unreadCount={unreadCount}
+        setUnreadCount={setUnreadCount}
+      />
     </>
   );
 };
