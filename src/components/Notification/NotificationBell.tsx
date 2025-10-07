@@ -23,7 +23,6 @@ const NotificationBell: React.FC = () => {
   };
 
   useEffect(() => {
-
     fetchUnreadCount();
     const userId = user?.id || localStorage.getItem("userId");
 
@@ -40,7 +39,7 @@ const NotificationBell: React.FC = () => {
         });
         const toastMessage = `🔔 ${notif.title || "Thông báo mới"}: ${
           notif.message || "Bạn có một thông báo mới"
-        }`
+        }`;
 
         toast.info(toastMessage, {
           position: "top-right",
@@ -86,8 +85,8 @@ const NotificationBell: React.FC = () => {
           </span>
         )}
       </div>
-      <Notification 
-        isOpen={isOpen} 
+      <Notification
+        isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         unreadCount={unreadCount}
         setUnreadCount={setUnreadCount}
