@@ -5,15 +5,12 @@ import {
   InstructorCandidateResponse,
   PageInfo,
 } from "../api/instructorManageAPI";
+import { AdminTable, Column } from "../components/AdminTable/AdminTable"; // Adjust path
 
 export default function InstructorApprovalPage() {
-  const [applications, setApplications] = useState<
-    InstructorCandidateResponse[]
-  >([]);
+  const [applications, setApplications] = useState<InstructorCandidateResponse[]>([]);
   const [pageInfo, setPageInfo] = useState<PageInfo | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Lưu trạng thái review inline
   const [reviewState, setReviewState] = useState<{
     [id: string]: { action: "none" | "accept" | "reject"; reason?: string };
   }>({});
@@ -53,6 +50,144 @@ export default function InstructorApprovalPage() {
     console.log("Reject", id, reason);
   };
 
+  // Define columns INSIDE component để có thể access các functions
+  const columns: Column<InstructorCandidateResponse>[] = [
+    {
+      key: 'candidate',
+      header: 'Ứng viên',
+      width: 300,
+      minWidth: 150,
+      render: (app) => (
+        <div className="flex items-center gap-3">
+          <img
+            src={
+              app.user_info?.avatar ||
+              `https://ui-avatars.com/api/?name=${app.user_info?.name}`
+            }
+            alt="avatar"
+            className="h-10 w-10 rounded-full border border-gray-200 object-cover"
+          />
+          <span className="font-medium text-gray-800">
+            {app.user_info?.name}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'cv',
+      header: 'CV',
+      width: 100,
+      minWidth: 80,
+      render: (app) => (
+        <a
+          href={app.cv_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Xem CV
+        </a>
+      )
+    },
+    {
+      key: 'portfolio',
+      header: 'Portfolio',
+      width: 120,
+      minWidth: 100,
+      render: (app) => (
+        <a
+          href={app.portfolio_link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Portfolio
+        </a>
+      )
+    },
+    {
+      key: 'motivation',
+      header: 'Lý do ứng tuyển',
+      width: 180,
+      minWidth: 200,
+      maxWidth: 500,
+      render: (app) => (
+        <div className="text-gray-700">{app.motivation}</div>
+      )
+    },
+    {
+      key: 'review',
+      header: 'Review',
+      width: 200,
+      minWidth: 200,
+      render: (app) => {
+        const review = reviewState[app.user_info?.user_id || ""] || { action: "none" };
+        
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            {review.action === "none" && (
+              <div className="flex justify-center gap-2">
+                <button
+                  onClick={() => handleAccept(app.user_info?.user_id || "")}
+                  className="px-3 py-1 text-xs rounded bg-green-100 text-green-700 hover:bg-green-200"
+                >
+                  Chấp nhận
+                </button>
+                <button
+                  onClick={() => handleReject(app.user_info?.user_id || "")}
+                  className="px-3 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200"
+                >
+                  Từ chối
+                </button>
+              </div>
+            )}
+
+            {review.action === "accept" && (
+              <span className="text-green-600 font-medium">
+                ✔ Đã chấp nhận
+              </span>
+            )}
+
+            {review.action === "reject" && (
+              <div className="flex flex-col gap-2 items-center">
+                <input
+                  type="text"
+                  value={review.reason || ""}
+                  onChange={(e) =>
+                    handleReasonChange(app.user_info?.user_id || "", e.target.value)
+                  }
+                  placeholder="Nhập lý do từ chối"
+                  className="w-full px-2 py-1 border rounded text-sm"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleSubmitReject(app.user_info?.user_id || "")}
+                    className="px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700"
+                  >
+                    Xác nhận từ chối
+                  </button>
+                  <button
+                    onClick={() =>
+                      setReviewState((prev) => ({
+                        ...prev,
+                        [app.user_info?.user_id || ""]: { action: "none" },
+                      }))
+                    }
+                    className="px-3 py-1 text-xs rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  >
+                    Huỷ
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+    }
+  ];
+
   return (
     <AdminLayout>
       <div className="p-6">
@@ -60,160 +195,13 @@ export default function InstructorApprovalPage() {
           Danh sách ứng viên giảng viên
         </h1>
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : applications.length === 0 ? (
-          <p>Không có ứng viên nào.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-gray-200 shadow">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-blue-50">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-blue-700">
-                    Ứng viên
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-blue-700">
-                    CV
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-blue-700">
-                    Portfolio
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-blue-700">
-                    Lý do ứng tuyển
-                  </th>
-                  <th className="px-4 py-3 text-center font-semibold text-blue-700">
-                    Review
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {applications.map((app) => {
-                  const review = reviewState[app.user_info?.user_id || ""] || {
-                    action: "none",
-                  };
-                  return (
-                    <tr
-                      key={app.user_info?.user_id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 py-3 flex items-center gap-3">
-                        <img
-                          src={
-                            app.user_info?.avatar ||
-                            `https://ui-avatars.com/api/?name=${app.user_info?.name}`
-                          }
-                          alt="avatar"
-                          className="h-10 w-10 rounded-full border border-gray-200 object-cover"
-                        />
-                        <span className="font-medium text-gray-800">
-                          {app.user_info?.name}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <a
-                          href={app.cv_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          Xem CV
-                        </a>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <a
-                          href={app.portfolio_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          Portfolio
-                        </a>
-                      </td>
-
-                      <td className="px-4 py-3 text-gray-700">
-                        {app.motivation}
-                      </td>
-
-                      {/* Review actions */}
-                      <td className="px-4 py-3 text-center">
-                        {review.action === "none" && (
-                          <div className="flex justify-center gap-2">
-                            <button
-                              onClick={() =>
-                                handleAccept(app.user_info?.user_id || "")
-                              }
-                              className="px-3 py-1 text-xs rounded bg-green-100 text-green-700 hover:bg-green-200"
-                            >
-                              Chấp nhận
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleReject(app.user_info?.user_id || "")
-                              }
-                              className="px-3 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200"
-                            >
-                              Từ chối
-                            </button>
-                          </div>
-                        )}
-
-                        {review.action === "accept" && (
-                          <span className="text-green-600 font-medium">
-                            ✔ Đã chấp nhận
-                          </span>
-                        )}
-
-                        {review.action === "reject" && (
-                          <div className="flex flex-col gap-2 items-center">
-                            <input
-                              type="text"
-                              value={review.reason || ""}
-                              onChange={(e) =>
-                                handleReasonChange(
-                                  app.user_info?.user_id || "",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Nhập lý do từ chối"
-                              className="w-40 px-2 py-1 border rounded text-sm"
-                            />
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() =>
-                                  handleSubmitReject(
-                                    app.user_info?.user_id || ""
-                                  )
-                                }
-                                className="px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700"
-                              >
-                                Xác nhận từ chối
-                              </button>
-                              <button
-                                onClick={() =>
-                                  setReviewState((prev) => ({
-                                    ...prev,
-                                    [app.user_info?.user_id || ""]: {
-                                      action: "none",
-                                    },
-                                  }))
-                                }
-                                className="px-3 py-1 text-xs rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
-                              >
-                                Huỷ
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <AdminTable
+          columns={columns}
+          data={applications}
+          loading={loading}
+          emptyMessage="Không có ứng viên nào."
+          rowKey={(item) => item.user_info?.user_id || ""}
+        />
 
         {pageInfo && (
           <div className="mt-4 text-sm text-gray-600">
