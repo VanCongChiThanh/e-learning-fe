@@ -2,7 +2,7 @@ import axiosAuth from "../../../api/axiosAuth";
 import {
   NotificationListResponse,
   NotificationResponse,
-} from "../types/notificationType";
+} from "../types/notificationTypes";
 
 export const notificationAPI = {
   // Lấy danh sách thông báo

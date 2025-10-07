@@ -52,9 +52,9 @@ const Header: React.FC = () => {
           </Link>
 
           {/* Notification bell */}
-          <button className="notification-btn relative">
+          <div className="notification-btn relative">
             <NotificationBell />
-          </button>
+          </div>
           {/* Dropdown "Xem thêm" */}
 
           {user?.role === "LEARNER" && (
@@ -142,7 +142,6 @@ const Header: React.FC = () => {
         </nav>
       </div>
 
-      {/* Menu mobile */}
       {/* Menu mobile */}
       {mobileOpen && (
         <div className="md:hidden flex flex-col gap-2 px-4 py-2 bg-gray-50 border-t">

@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { notificationAPI } from "../../features/notification/api/notificationAPI";
 import {
   NotificationResponse,
-  NotificationType,
-} from "../../features/notification/types/notificationType";
+} from "../../features/notification/types/notificationTypes";
 import "./Notification.scss";
-
+import {
+  getNotificationIcon, formatTime
+} from "../../features/notification/utils/notificationUtils";
 interface NotificationProps {
   isOpen: boolean;
   onClose: () => void;
@@ -22,8 +23,7 @@ const Notification: React.FC<NotificationProps> = ({ isOpen, onClose }) => {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-
-  const pageSize = 10;
+  const pageSize = 6;
 
   // Lấy danh sách thông báo
   const fetchNotifications = async (
@@ -167,41 +167,8 @@ const Notification: React.FC<NotificationProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  // Lấy icon theo loại thông báo
-  const getNotificationIcon = (type: NotificationType) => {
-    switch (type) {
-      case NotificationType.COURSE:
-        return "📚";
-      case NotificationType.ENROLLMENT:
-        return "✅";
-      case NotificationType.ASSIGNMENT:
-        return "📝";
-      case NotificationType.QUIZ:
-        return "📊";
-      case NotificationType.ANNOUNCEMENT:
-        return "📢";
-      case NotificationType.SYSTEM:
-      default:
-        return "🔔";
-    }
-  };
 
-  // Format thời gian
-  const formatTime = (dateString?: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    return date.toLocaleDateString("vi-VN");
-  };
 
   if (!isOpen) return null;
 
@@ -295,13 +262,13 @@ const Notification: React.FC<NotificationProps> = ({ isOpen, onClose }) => {
         </div>
 
         {hasMore && (
-          <div className="notification-load-more">
+          <div className="notification-load-more mx-auto my-2 text-green-700">
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
               className="load-more-btn"
             >
-              {loadingMore ? "\u0110ang t\u1ea3i..." : "Xem th\u00eam"}
+              {loadingMore ? "\u0110ang t\u1ea3i..." : "Xem thông báo trước đó"}
             </button>
           </div>
         )}
