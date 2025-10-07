@@ -6,6 +6,7 @@ import {
   getNotificationIcon,
   formatTime,
 } from "../../features/notification/utils/notificationUtils";
+import { toast } from "react-toastify";
 interface NotificationProps {
   isOpen: boolean;
   onClose: () => void;
@@ -127,7 +128,7 @@ const Notification: React.FC<NotificationProps> = ({
     };
   }, [openMenuId]);
 
-  const handleMarkAsRead = (notificationId: string) => {
+  const handleMarkAsRead = async (notificationId: string) => {
     // Tìm notification để kiểm tra xem nó có phải chưa đọc không
     const notification = notifications.find((n) => n.id === notificationId);
     const wasUnread = notification && !notification.is_read;
@@ -145,22 +146,56 @@ const Notification: React.FC<NotificationProps> = ({
     // Đóng menu
     setOpenMenuId(null);
 
-    // Gọi API bất đồng bộ nhưng không chờ kết quả
-    notificationAPI.markAsRead(notificationId).catch((error) => {});
+    try{
+      await notificationAPI.markAsRead(notificationId);
+    }catch(error){
+      // Nếu API thất bại, rollback lại state cũ
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, is_read: false } : n))
+      );
+      if (wasUnread) {
+        setUnreadCount((prev) => prev + 1);
+      }
+      // Hiển thị thông báo lỗi cho user
+      toast.error("Không thể đánh dấu đã đọc. Vui lòng thử lại!");
+    }
   };
 
   // Xóa thông báo
   const handleDelete = async (notificationId: string) => {
     try {
-      await notificationAPI.deleteNotification(notificationId);
       setOpenMenuId(null);
 
-      // Xóa khỏi local state
+      const previousNotifications = notifications;
+      const previousUnreadCount = unreadCount; // Lưu unreadCount cũ
+
+      const deletedNotification = previousNotifications.find(
+        (n) => n.id === notificationId
+      );
+      const wasUnread = deletedNotification && !deletedNotification.is_read;
+
+      // Xóa khỏi UI ngay lập tức (optimistic update)
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
 
-      fetchUnreadCount();
+      // Giảm unreadCount nếu notification chưa đọc
+      if (wasUnread) {
+        setUnreadCount((prev) => Math.max(prev - 1, 0));
+      }
+
+      try {
+        // Chờ delete xong
+        await notificationAPI.deleteNotification(notificationId);
+      } catch (error) {
+        console.error("Failed to delete:", error);
+
+        // Rollback
+        setNotifications(previousNotifications);
+        setUnreadCount(previousUnreadCount);
+
+        toast.error("Không thể xóa thông báo!");
+      } 
     } catch (error) {
-      console.error("Failed to delete notification:", error);
+      console.error("Unexpected error:", error);
     }
   };
 

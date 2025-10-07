@@ -25,11 +25,6 @@ export const notificationAPI = {
     return response.data.data;
   },
 
-  // Đánh dấu đã đọc tất cả thông báo
-  markAllAsRead: async (): Promise<void> => {
-    await axiosAuth.put("/notifications/read-all");
-  },
-
   // Xóa thông báo
   deleteNotification: async (notificationId: string): Promise<void> => {
     await axiosAuth.delete(`/notifications/${notificationId}`);
