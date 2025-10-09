@@ -49,17 +49,6 @@ export const LearnRoutes = [
       </ProtectedRoute>
     ),
   },
-  
-  // {
-  //   path: "/learn/quiz-assignments",
-  //   element: (
-  //     <ProtectedRoute roles={["LEARNER"]}>
-  //       <MainLayout>
-  //         <QuizAssignmentStudent />
-  //       </MainLayout>
-  //     </ProtectedRoute>
-  //   ),
-  // },
   {
     path: "/teacher/enrollments",
     element: (

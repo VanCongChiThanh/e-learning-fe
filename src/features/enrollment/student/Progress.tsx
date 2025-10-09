@@ -42,7 +42,6 @@ const Progress: React.FC<ProgressProps> = ({ selectedLectureId, userId, enrollme
 
     setSelectedQuiz(quiz);
     const questions = await fetchQuestionsByQuiz(quizId);
-    console.log("Fetched questions:", questions);
     setQuizQuestions(questions);
     setIsQuizModalOpen(true);
   };

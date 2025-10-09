@@ -11,7 +11,6 @@ const SessionListPage: React.FC = () => {
   const sessionStats = useSessionStats(courseId as UUID, enrollmentId as UUID);
 
   const handleSessionClick = (sessionId: UUID) => {
-    // Điều hướng đến trang lectures với sessionId
     navigate(`/learn/lectures/${enrollmentId}/${courseId}/${sessionId}`);
   };
 
