@@ -1,7 +1,13 @@
 import axiosClient from "../../api/axiosClient";
 import axiosAuth from "../../api/axiosAuth";
 import axios from "axios";
-export const getAllCourses = async (params?: { order?: string; page?: number; paging?: number; sort?: string }) => {
+
+export const getAllCourses = async (params?: {
+  order?: string;
+  page?: number;
+  paging?: number;
+  sort?: string;
+}) => {
   const response = await axiosClient.get("/courses/page", {
     params: {
       order: params?.order || "desc",
@@ -32,7 +38,10 @@ export const uploadCourseImageToS3 = async (url: string, file: File) => {
 /**
  * Cập nhật url ảnh cho khóa học
  */
-export const updateCourseImageUrl = async (courseId: string, imageUrl: string) => {
+export const updateCourseImageUrl = async (
+  courseId: string,
+  imageUrl: string
+) => {
   const res = await axiosAuth.patch(
     `/courses/${courseId}/image`,
     null, // body rỗng
@@ -56,8 +65,6 @@ export const getLectures = async (sectionId: string) => {
   return res.data.data;
 };
 
-
-
 /// Video lecture upload
 export const getPresignedUrlVideoLecture = async (extension: string) => {
   const res = await axiosAuth.post(`/videos/presigned-url`, null, {
@@ -71,7 +78,10 @@ export const uploadVideoLectureToS3 = async (url: string, file: File) => {
     headers: { "Content-Type": file.type },
   });
 };
-export const updateVideoLecture = async (lectureId: string, videoUrl: string) => {
+export const updateVideoLecture = async (
+  lectureId: string,
+  videoUrl: string
+) => {
   const res = await axiosAuth.patch(
     `/sections/{sectionId}/lectures/${lectureId}/video`,
     null,
@@ -80,7 +90,7 @@ export const updateVideoLecture = async (lectureId: string, videoUrl: string) =>
   return res.data.data;
 };
 
-/// Note 
+/// Note
 export const noteApi = {
   async getNotes(lectureId: string, userId: string) {
     const res = await axiosAuth.get(`/lectures/${lectureId}/notes`, {
@@ -104,7 +114,12 @@ export const noteApi = {
     });
   },
 
-  async updateNote(lectureId: string, noteId: string, userId: string, content: string) {
+  async updateNote(
+    lectureId: string,
+    noteId: string,
+    userId: string,
+    content: string
+  ) {
     const res = await axiosAuth.put(
       `/lectures/${lectureId}/notes/${noteId}`,
       { content },
