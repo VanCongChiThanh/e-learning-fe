@@ -30,6 +30,7 @@ export const searchCourses = async (params?: {
   });
   return response.data;
 };
+
 export const applyInstructor = async (data: ApplyInstructorRequest) => {
   const response = await axiosAuth.post(
     "/instructor/applications/apply",

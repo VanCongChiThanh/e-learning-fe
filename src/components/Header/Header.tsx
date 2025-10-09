@@ -71,10 +71,12 @@ const Header: React.FC = () => {
             <i className="fa-solid fa-shopping-cart text-xl"></i>
           </Link>
 
-          {/* Notification bell */}
-          <div className="notification-btn relative">
-            <NotificationBell />
-          </div>
+          {/* Notification bell - chỉ hiển thị khi đã đăng nhập */}
+          {user && (
+            <div className="notification-btn relative">
+              <NotificationBell />
+            </div>
+          )}
           {/* Dropdown "Xem thêm" */}
 
           {user?.role === "LEARNER" && (
