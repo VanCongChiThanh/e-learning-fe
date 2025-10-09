@@ -1,13 +1,12 @@
 import ProtectedRoute from "../../routes/ProtectedRoute";
-import AdminLayout from "../../layouts/AdminLayout";
 import MainLayout from "../../layouts/MainLayout";
-import EnrollmentManager from "./admin/EnrollmentManager";
 import EnrollmentLearn from "./student/EnrollmentLearn";
 import SessionListPage from "./student/SessionListPage";
+import LectureListPage from "./student/LectureListPage";
+import ProgressPage from "./student/ProgressPage";
 import EnrollmentInstructor from "./teacher/EnrollmentInstructor";
 // import { QuizAssignmentStudent } from "./student/QuizAssignmentStudent";
 import { QuizAssignmentInstructor } from "./teacher/QuizAssignmentInstructor";
-import { QuizAssignmentAdmin } from "./admin/QuizAssignmentAdmin";
 
 export const LearnRoutes = [
   {
@@ -26,6 +25,26 @@ export const LearnRoutes = [
       <ProtectedRoute roles={["LEARNER"]}>
         <MainLayout>
           <SessionListPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/learn/lectures/:enrollmentId/:courseId/:sessionId",
+    element: (
+      <ProtectedRoute roles={["LEARNER"]}>
+        <MainLayout>
+          <LectureListPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/learn/progress/:enrollmentId/:courseId/:sessionId/:lectureId",
+    element: (
+      <ProtectedRoute roles={["LEARNER"]}>
+        <MainLayout>
+          <ProgressPage />
         </MainLayout>
       </ProtectedRoute>
     ),
