@@ -19,6 +19,7 @@
     "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.7",
     "axios": "^1.11.0",
+    "gsap": "^3.13.0",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

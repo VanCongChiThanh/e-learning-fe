@@ -1,7 +1,50 @@
 import "./LandingPage.scss";
 import MainLayout from "../../../../layouts/MainLayout";
 import { Link } from "react-router-dom";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useEffect, useState } from "react";
+gsap.registerPlugin(ScrollTrigger);
 export default function LandingPage() {
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  useEffect(() => {
+    const benefitsSection = document.querySelector(
+      ".benefits-section"
+    ) as HTMLElement | null;
+    const benefitsWrapper = document.querySelector(
+      ".benefits-wrapper"
+    ) as HTMLElement | null;
+    const items = gsap.utils.toArray<HTMLElement>(".benefit-item");
+
+    if (!benefitsSection || !benefitsWrapper || items.length === 0) return;
+
+    // Tính toán khoảng cách scroll chính xác dựa trên width thực tế của wrapper
+    const totalWidth = benefitsWrapper.scrollWidth;
+    const viewportWidth = window.innerWidth;
+    const scrollDistance = totalWidth - viewportWidth;
+
+    gsap.to(benefitsWrapper, {
+      x: () => -scrollDistance,
+      ease: "none",
+      scrollTrigger: {
+        trigger: benefitsSection,
+        pin: true,
+        scrub: 1,
+        end: `+=${scrollDistance}`,
+        onUpdate: (self) => {
+          // Tính toán slide hiện tại dựa trên progress
+          const progress = self.progress;
+          const currentSlide = Math.round(progress * (items.length - 1));
+          setActiveSlide(currentSlide);
+        },
+      },
+    });
+
+    return () => {
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, []);
   return (
     <MainLayout>
       <div className="landing-page">
@@ -58,7 +101,7 @@ export default function LandingPage() {
               </p>
 
               <div className="hero-buttons">
-                <Link to="/course" className="btn-primary">
+                <Link to="/courses/search" className="btn-primary">
                   Xem khoá học
                 </Link>
                 <button className="btn-outline">TƯ VẤN & ĐĂNG KÝ</button>
@@ -97,209 +140,159 @@ export default function LandingPage() {
         </section>
         {/* Benefits Section */}
         <section className="benefits-section">
-          <h2 className="section-title">
-            6 Điểm Khác Biệt Tại Coursevo Giúp Bạn Thăng Tiến Trong Sự Nghiệp
-          </h2>
-
-          <div
-            className="benefit-item"
-            style={{
-              backgroundImage:
-                "url(https://cyberlearn.vn/wp-content/uploads/2020/03/cyberlearn-bg-flexitime.png)",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center center",
-              backgroundSize: "contain",
-              backgroundAttachment: "scroll",
-            }}
-          >
-            <div className="benefit-image">
-              <img
-                src="https://cybersoft.edu.vn/wp-content/uploads/2025/02/olumuyiwa-sobowale-kQIdjLbCghA-unsplash.jpg"
-                alt="Project Learning"
-              />
-            </div>
-            <div className="benefit-content">
-              <h3 className="benefit-title">
-                1. Kết nối với giảng viên chất lượng hàng đầu
-              </h3>
-              <p className="benefit-text">
-                Coursevo tự hào kết nối bạn với đội ngũ giảng viên chuyên
-                nghiệp, giàu kinh nghiệm thực chiến từ các công ty công nghệ
-                hàng đầu. Mỗi giảng viên đều được tuyển chọn kỹ lưỡng, có khả
-                năng truyền đạt xuất sắc và luôn sẵn sàng hỗ trợ học viên trong
-                suốt quá trình học tập. Bạn sẽ học được không chỉ kiến thức mà
-                còn cả kinh nghiệm thực tế và tư duy chuyên nghiệp từ những
-                người đã thành công.
-              </p>
-              <ul className="benefit-list">
-                <li>Giảng viên từ các công ty công nghệ hàng đầu</li>
-                <li>Kinh nghiệm thực chiến 5-10 năm trong ngành</li>
-                <li>Được đào tạo chuyên sâu về kỹ năng giảng dạy</li>
-                <li>Hỗ trợ tận tình, giải đáp thắc mắc nhanh chóng</li>
-                <li>
-                  Chia sẻ kinh nghiệm thực tế và xu hướng công nghệ mới nhất
-                </li>
-              </ul>
+          <div className="section-title">
+            <h2 className="benefits-main-title">
+              6 Điểm Khác Biệt Tại Coursevo Giúp Bạn Thăng Tiến Trong Sự Nghiệp
+            </h2>
+            <div className="benefits-progress">
+              <div
+                className={`progress-line ${activeSlide === 0 ? "active" : ""}`}
+              ></div>
+              <div
+                className={`progress-line ${activeSlide === 1 ? "active" : ""}`}
+              ></div>
+              <div
+                className={`progress-line ${activeSlide === 2 ? "active" : ""}`}
+              ></div>
+              <div
+                className={`progress-line ${activeSlide === 3 ? "active" : ""}`}
+              ></div>
+              <div
+                className={`progress-line ${activeSlide === 4 ? "active" : ""}`}
+              ></div>
+              <div
+                className={`progress-line ${activeSlide === 5 ? "active" : ""}`}
+              ></div>
             </div>
           </div>
-
-          <div className="benefit-item reverse">
-            <div className="benefit-image">
-              <img
-                src="https://cyberlearn.vn/wp-content/uploads/2020/04/cyberlearn-support.gif"
-                alt="Learning Path"
-              />
-            </div>
-            <div className="benefit-content">
-              <h3 className="benefit-title">
-                2. Hệ thống thực hành code tích hợp AI Feedback
-              </h3>
-              <p className="benefit-text">
-                Học lập trình không chỉ là xem video và ghi nhớ lý thuyết.
-                Coursevo cung cấp hệ thống thực hành code trực tuyến với công
-                nghệ AI tiên tiến. Mỗi khi bạn code, trợ lý AI sẽ ngay lập tức
-                phân tích, đưa ra nhận xét về chất lượng code, phát hiện lỗi và
-                gợi ý cách tối ưu. Bạn sẽ được rèn luyện và cải thiện kỹ năng
-                coding một cách nhanh chóng và hiệu quả.
-              </p>
-              <ul className="benefit-list">
-                <li>Thực hành code ngay trên nền tảng học tập</li>
-                <li>AI phân tích và feedback code tức thì</li>
-                <li>Phát hiện lỗi sai và đưa ra gợi ý sửa chữa</li>
-                <li>Đánh giá chất lượng code và đề xuất cách tối ưu</li>
-                <li>Học tập liên tục 24/7 với sự hỗ trợ của AI thông minh</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="benefit-item">
-            <div className="benefit-image">
-              <img
-                src="https://cyberlearn.vn/wp-content/uploads/2020/04/0e8358a4-guidedlearningpath.gif"
-                alt="Mentorship"
-              />
-            </div>
-            <div className="benefit-content">
-              <h3 className="benefit-title">
-                3. Học qua dự án thực tế với lộ trình bài bản
-              </h3>
-              <p className="benefit-text">
-                Mỗi khóa học tại Coursevo được thiết kế theo lộ trình từ cơ bản
-                đến nâng cao, tập trung vào các dự án thực tế. Bạn sẽ không chỉ
-                học lý thuyết mà còn được thực hành xây dựng các sản phẩm hoàn
-                chỉnh. Từ những bài tập nhỏ đến các dự án lớn, tất cả đều được
-                giảng viên và AI hỗ trợ sát sao, giúp bạn tự tin áp dụng kiến
-                thức vào công việc thực tế ngay sau khi hoàn thành khóa học.
-              </p>
-              <ul className="benefit-list">
-                <li>
-                  Lộ trình học tập bài bản, khoa học từ cơ bản đến nâng cao
-                </li>
-                <li>Học qua các dự án thực tế, sát với yêu cầu doanh nghiệp</li>
-                <li>Giảng viên review code và góp ý cải thiện trực tiếp</li>
-                <li>Hệ thống AI hỗ trợ feedback tức thì khi thực hành</li>
-                <li>Tích lũy portfolio dự án để tăng cơ hội xin việc</li>
-              </ul>
-            </div>
-          </div>
-          {/* About Section */}
-          <section className="about-section">
-            <div className="about-container">
-              <div className="about-content">
-                <h2 className="section-title">
-                  Chọn đúng lộ trình cho bạn và Thăng tiến sự nghiệp cùng
-                  Coursevo
-                </h2>
-                <p className="section-description">
-                  Học Thật, Dự Án Thật, Việc Làm Thật, Học Mọi Lúc, Mọi Nơi
-                </p>
-                <div className="about-buttons">
-                  <button className="btn-primary">ĐĂNG KÝ HỌC THỬ</button>
-                  <button className="btn-secondary">INBOX TƯ VẤN 1-1</button>
-                </div>
+          <div className="benefits-wrapper">
+            <div className="benefit-item">
+              <div className="benefit-content">
+                <h3 className="benefit-title">
+                  Kết nối với giảng viên chất lượng
+                </h3>
+                <ul className="benefit-list">
+                  <li>
+                    Giảng viên từ công ty công nghệ hàng đầu, 5-10 năm kinh
+                    nghiệm
+                  </li>
+                  <li>Hỗ trợ tận tình, review code trực tiếp từ chuyên gia</li>
+                </ul>
+              </div>
+              <div className="benefit-image">
+                <img
+                  src="/svg/undraw_problem-solving_1kpx.svg"
+                  alt="Project Learning"
+                />
               </div>
             </div>
-          </section>
-          <div className="benefit-item">
-            <div className="benefit-content">
-              <h3 className="benefit-title">
-                4. Cộng đồng học tập năng động và hỗ trợ tận tâm
-              </h3>
-              <p className="benefit-text">
-                Tại Coursevo, bạn không học một mình. Bạn sẽ được tham gia vào
-                một cộng đồng học viên năng động, nơi mọi người cùng nhau học
-                hỏi, chia sẻ kinh nghiệm và hỗ trợ lẫn nhau. Giảng viên và
-                mentor luôn sẵn sàng giải đáp thắc mắc, review code và hướng dẫn
-                bạn vượt qua mọi khó khăn. Hệ thống thông báo thông minh giúp
-                bạn không bỏ lỡ bất kỳ cập nhật quan trọng nào.
-              </p>
-              <ul className="benefit-list">
-                <li>Cộng đồng học viên tích cực, nhiệt tình hỗ trợ</li>
-                <li>Giảng viên và mentor phản hồi nhanh chóng</li>
-                <li>Diễn đàn thảo luận để trao đổi kinh nghiệm</li>
-                <li>Hệ thống thông báo real-time cập nhật liên tục</li>
-                <li>Networking với các học viên và chuyên gia trong ngành</li>
-              </ul>
-            </div>
-            <div className="benefit-image">
-              <img
-                src="https://cyberlearn.vn/wp-content/uploads/2020/04/cyberlearn-support.gif"
-                alt="Mentorship"
-              />
-            </div>
-          </div>
-          <div className="benefit-item reverse">
-            <div className="benefit-content">
-              <h3 className="benefit-title">
-                5. Học trực tuyến linh hoạt với công nghệ hiện đại
-              </h3>
-              <p className="benefit-text">
-                Nền tảng học tập của Coursevo được thiết kế tối ưu cho việc học
-                online, cho phép bạn học mọi lúc mọi nơi trên mọi thiết bị. Hệ
-                thống tự động theo dõi tiến độ học tập, lưu lại các bài code bạn
-                đã thực hành, và đồng bộ dữ liệu liền mạch. Bạn có thể học theo
-                tốc độ riêng của mình, xem lại bài giảng bất cứ khi nào cần, và
-                nhận được sự hỗ trợ từ AI và giảng viên ngay cả khi học ở nhà.
-              </p>
-              <ul className="benefit-list">
-                <li>Học mọi lúc mọi nơi trên máy tính, tablet, smartphone</li>
-                <li>Hệ thống lưu trữ và đồng bộ tiến độ học tập tự động</li>
-                <li>Xem lại bài giảng không giới hạn số lần</li>
-                <li>AI hỗ trợ 24/7 khi bạn thực hành code</li>
-                <li>
-                  Giao diện thân thiện, dễ sử dụng với trải nghiệm mượt mà
-                </li>
-              </ul>
-            </div>
-            <div className="benefit-image">
-              <img
-                src="https://cyberlearn.vn/wp-content/uploads/2021/02/coding__img.gif"
-                alt="Online Learning"
-              />
-            </div>
-          </div>
 
-          <div className="benefit-item">
-            <div className="benefit-content">
-              <h3 className="benefit-title">6. Chứng nhận và Việc làm</h3>
-              <p className="benefit-text">
-                Đối với các lộ trình nghề chuyên sâu, sau khi bạn hoàn thành tất
-                cả bài tập và dự án, chúng tôi sẽ chấm bài và đánh giá tuyển
-                dụng. Nếu bạn đạt điểm tốt, bạn sẽ được cấp chứng nhận trực
-                tuyến. Hệ thống của chúng tôi cũng tạo ra cho bạn một CV trực
-                tuyến độc đáo, bạn có thể apply sử dụng CV này hay hoặc chúng
-                tôi sẽ kết nối CV của bạn đến với các đối tác của Coursevo.
-              </p>
+            <div className="benefit-item">
+              <div className="benefit-content">
+                <h3 className="benefit-title">Thực hành với AI Feedback</h3>
+                <ul className="benefit-list">
+                  <li>Thực hành code trực tiếp trên nền tảng học tập</li>
+                  <li>
+                    AI phân tích và feedback code tức thì, phát hiện lỗi và gợi
+                    ý tối ưu 24/7
+                  </li>
+                </ul>
+              </div>
+              <div className="benefit-image">
+                <img
+                  src="https://cyberlearn.vn/wp-content/uploads/2020/04/cyberlearn-support.gif"
+                  alt="Learning Path"
+                />
+              </div>
             </div>
-            <div className="benefit-image">
-              <img
-                src="https://cyberlearn.vn/wp-content/uploads/2021/02/certificate__img-1.gif"
-                alt="Certification"
-              />
+
+            <div className="benefit-item">
+              <div className="benefit-content">
+                <h3 className="benefit-title">Học qua dự án thực tế</h3>
+                <ul className="benefit-list">
+                  <li>
+                    Lộ trình bài bản từ cơ bản đến nâng cao, sát với yêu cầu
+                    doanh nghiệp
+                  </li>
+                  <li>Xây dựng portfolio dự án để tăng cơ hội xin việc</li>
+                </ul>
+              </div>
+              <div className="benefit-image">
+                <img
+                  src="https://cyberlearn.vn/wp-content/uploads/2020/04/0e8358a4-guidedlearningpath.gif"
+                  alt="Mentorship"
+                />
+              </div>
+            </div>
+            <div className="benefit-item">
+              <div className="benefit-content">
+                <h3 className="benefit-title">Cộng đồng năng động</h3>
+                <ul className="benefit-list">
+                  <li>
+                    Cộng đồng học viên tích cực hỗ trợ lẫn nhau, giảng viên phản
+                    hồi nhanh
+                  </li>
+                  <li>Networking với chuyên gia và học viên trong ngành</li>
+                </ul>
+              </div>
+              <div className="benefit-image">
+                <img src="/svg/connect-instructor.svg" alt="Mentorship" />
+              </div>
+            </div>
+            <div className="benefit-item">
+              <div className="benefit-content">
+                <h3 className="benefit-title">
+                  5. Học trực tuyến linh hoạt với công nghệ hiện đại
+                </h3>
+                <ul className="benefit-list">
+                  <li>Học mọi lúc mọi nơi trên mọi thiết bị</li>
+                  <li>Xem lại bài giảng không giới hạn</li>
+                  <li>Hệ thống đồng bộ tiến độ tự động</li>
+                </ul>
+              </div>
+              <div className="benefit-image">
+                <img
+                  src="https://cyberlearn.vn/wp-content/uploads/2021/02/coding__img.gif"
+                  alt="Online Learning"
+                />
+              </div>
+            </div>
+
+            <div className="benefit-item">
+              <div className="benefit-content">
+                <h3 className="benefit-title">6. Chứng nhận và Việc làm</h3>
+                <ul className="benefit-list">
+                  <li>Cấp chứng nhận trực tuyến sau khi hoàn thành</li>
+                  <li>Tạo CV trực tuyến độc đáo</li>
+                  <li>Kết nối với các đối tác tuyển dụng</li>
+                </ul>
+              </div>
+              <div className="benefit-image">
+                <img
+                  src="https://cyberlearn.vn/wp-content/uploads/2021/02/certificate__img-1.gif"
+                  alt="Certification"
+                />
+              </div>
             </div>
           </div>
         </section>
-
+        {/* About Section */}
+        <section className="about-section">
+          <div className="about-container">
+            <div className="about-content">
+              <h2 className="section-title">
+                Chọn đúng lộ trình cho bạn và Thăng tiến sự nghiệp cùng Coursevo
+              </h2>
+              <p className="section-description">
+                Học Thật, Dự Án Thật, Việc Làm Thật, Học Mọi Lúc, Mọi Nơi
+              </p>
+              <div className="about-buttons">
+                <button className="btn-primary">ĐĂNG KÝ HỌC THỬ</button>
+                <button className="btn-secondary">INBOX TƯ VẤN 1-1</button>
+              </div>
+            </div>
+          </div>
+        </section>
         {/* Mission Section */}
         <section className="mission-section">
           <div className="mission-tabs">
