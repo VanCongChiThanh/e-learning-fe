@@ -3,6 +3,7 @@ import AdminLayout from "../../layouts/AdminLayout";
 import MainLayout from "../../layouts/MainLayout";
 import EnrollmentManager from "./admin/EnrollmentManager";
 import EnrollmentLearn from "./student/EnrollmentLearn";
+import SessionListPage from "./student/SessionListPage";
 import EnrollmentInstructor from "./teacher/EnrollmentInstructor";
 // import { QuizAssignmentStudent } from "./student/QuizAssignmentStudent";
 import { QuizAssignmentInstructor } from "./teacher/QuizAssignmentInstructor";
@@ -19,6 +20,17 @@ export const LearnRoutes = [
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/learn/sessions/:enrollmentId/:courseId",
+    element: (
+      <ProtectedRoute roles={["LEARNER"]}>
+        <MainLayout>
+          <SessionListPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  
   // {
   //   path: "/learn/quiz-assignments",
   //   element: (
@@ -47,26 +59,6 @@ export const LearnRoutes = [
           <QuizAssignmentInstructor />
         </MainLayout>
       </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/enrollments",
-    element: (
-      // <ProtectedRoute roles={["ADMIN"]}>
-        <AdminLayout>
-          <EnrollmentManager />
-        </AdminLayout>
-      //  </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin/quiz-assignments",
-    element: (
-      // <ProtectedRoute roles={["ADMIN"]}>
-        <AdminLayout>
-          <QuizAssignmentAdmin />
-        </AdminLayout>
-      //  </ProtectedRoute>
     ),
   },
 ]

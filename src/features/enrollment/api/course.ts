@@ -18,9 +18,3 @@ export const getCourseStatistics = async (courseId: UUID) => {
     const response = await axiosAuth.get(`/courses/${courseId}/statistics`);
     return response.data;
 }
-
-// Update course information
-export const updateCourse = async (courseId: UUID, data: any) => {
-    const response = await axiosAuth.put(`/courses/${courseId}`, data);
-    return response.data;
-}
