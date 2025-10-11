@@ -4,10 +4,7 @@ import { useProgressByLecture } from "../hook/useProgress";
 import { useQuizzesByLecture } from "../hook/useQuiz";
 import { StatsCard } from "../common/Progress";
 import { LoadingSpinner, ErrorMessage, EmptyState } from "../common/States";
-import { QuizCard } from "../component/QuizCard";
-import { QuizTakeModal } from "../component/QuizAssignmentLearning";
-import { getQuizQuestionsByQuizId } from "../api/quizQA";
-import { createQuizAttempt } from "../api/quizAttempt";
+import { QuizCardWithNavigation } from "../component/QuizCardWithNavigation";
 interface ProgressProps {
   selectedLectureId: UUID;
   userId: UUID;
@@ -15,10 +12,6 @@ interface ProgressProps {
 }
 
 const Progress: React.FC<ProgressProps> = ({ selectedLectureId, userId, enrollmentId}) => {
-  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
-  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
-  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
-
   const {
     progress: progressList,
     loading: progressLoading,
@@ -26,63 +19,6 @@ const Progress: React.FC<ProgressProps> = ({ selectedLectureId, userId, enrollme
   } = useProgressByLecture(selectedLectureId);
   
   const { quizzes, loading: quizzesLoading } = useQuizzesByLecture(selectedLectureId);
-
-  const fetchQuestionsByQuiz = async (quizId: UUID) => {
-    try {
-      return await getQuizQuestionsByQuizId(quizId);
-    } catch (error) {
-      console.error('Error fetching quiz questions:', error);
-      return [];
-    }
-  };
-
-  const handleTakeQuiz = async (quizId: UUID) => {
-    const quiz = quizzes.find(q => q.id === quizId);
-    if (!quiz) return;
-
-    setSelectedQuiz(quiz);
-    const questions = await fetchQuestionsByQuiz(quizId);
-    setQuizQuestions(questions);
-    setIsQuizModalOpen(true);
-  };
-
-  const handleSubmitQuiz = async (answers: Record<UUID, string>) => {
-    if (!selectedQuiz) return;
-    try {
-      // Calculate score
-      let correctAnswers = 0;
-      const currentTime = new Date().toISOString();
-      
-      // Create quiz attempts for each question
-      for (const question of quizQuestions) {
-        const selectedOption = answers[question.id] || '';
-        const isCorrect = selectedOption === question.correctAnswer;
-        const pointsEarned = isCorrect ?  question.points : 0;
-        await createQuizAttempt({
-          quizId: selectedQuiz.id,
-          userId: userId,
-          enrollmentId: enrollmentId,
-          questionId: question.id,
-          selectedOption: selectedOption,
-          attemptNumber: 1,
-          timeTakenMinutes: 0
-        });
-        
-        if (isCorrect) {
-          correctAnswers++;
-        }
-      }
-      
-      const score = (correctAnswers / quizQuestions.length) * 100;
-      alert(`Bạn đã hoàn thành quiz với điểm số: ${score.toFixed(1)}%`);
-      setIsQuizModalOpen(false);
-      setSelectedQuiz(null);
-      setQuizQuestions([]);
-    } catch (error) {
-      console.error('Error submitting quiz:', error);
-      alert('Có lỗi xảy ra khi nộp bài quiz');
-    }
-  };
   
   if (progressLoading || quizzesLoading) {
     return <LoadingSpinner size="lg" className="min-h-[400px]" />;
@@ -143,11 +79,11 @@ const Progress: React.FC<ProgressProps> = ({ selectedLectureId, userId, enrollme
         {quizzes && quizzes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {quizzes.map((quiz) => (
-              <QuizCard
+              <QuizCardWithNavigation
                 key={quiz.id}
                 quiz={quiz}
                 userRole="LEARNER"
-                onTakeQuiz={handleTakeQuiz}
+                enrollmentId={enrollmentId}
               />
             ))}
           </div>
@@ -160,19 +96,6 @@ const Progress: React.FC<ProgressProps> = ({ selectedLectureId, userId, enrollme
           </div>
         )}
       </div>
-
-      {/* Quiz Modal */}
-      <QuizTakeModal
-        isOpen={isQuizModalOpen}
-        onClose={() => {
-          setIsQuizModalOpen(false);
-          setSelectedQuiz(null);
-          setQuizQuestions([]);
-        }}
-        quiz={selectedQuiz || { id: '' as UUID, title: '', description: '' }}
-        questions={quizQuestions}
-        onSubmit={handleSubmitQuiz}
-      />
     </div>
 )};
 

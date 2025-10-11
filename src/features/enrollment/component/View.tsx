@@ -12,37 +12,47 @@ interface ViewProps {
 
 const View: React.FC<ViewProps> = ({ enrollment, course, fetchCourseById, fetchEnrollmentById }) => {
   const navigate = useNavigate();
-  
   const handleContinue = () => {
     fetchEnrollmentById(enrollment.id);
-    // Điều hướng đến trang sessions với enrollmentId và courseId
     navigate(`/learn/sessions/${enrollment.id}/${enrollment.courseId}`);
   };
   return (
     <div key={enrollment.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
       {/* Course Image Header */}
-      <div className="relative h-40 bg-gradient-to-br from-[#106c54] to-[#0d5643] overflow-hidden">
+      <div
+        className="relative h-40 overflow-hidden bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${course?.image || "/default-course.jpg"})`,
+        }}
+      >
         <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all"></div>
+
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
           <h3 className="text-white font-semibold text-lg line-clamp-2">
-            Khóa học: {enrollment.id}
+            Khóa học: {course?.title || "Không có tiêu đề"}
           </h3>
         </div>
-        
+
         {/* Status Badge */}
         <div className="absolute top-3 right-3">
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${
-            enrollment.status === "COMPLETED" 
-              ? "bg-white text-[#106c54]"
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${
+              enrollment.status === "COMPLETED"
+                ? "bg-white text-[#106c54]"
+                : enrollment.status === "ACTIVE"
+                ? "bg-[#106c54] text-white"
+                : "bg-gray-800 text-white"
+            }`}
+          >
+            {enrollment.status === "COMPLETED"
+              ? "Hoàn thành"
               : enrollment.status === "ACTIVE"
-              ? "bg-[#106c54] text-white"
-              : "bg-gray-800 text-white"
-          }`}>
-            {enrollment.status === "COMPLETED" ? "Hoàn thành" :
-             enrollment.status === "ACTIVE" ? "Đang học" : "Chưa bắt đầu"}
+              ? "Đang học"
+              : "Chưa bắt đầu"}
           </span>
         </div>
       </div>
+
 
       {/* Content */}
       <div className="p-5">

@@ -4,6 +4,8 @@ import EnrollmentLearn from "./student/EnrollmentLearn";
 import SessionListPage from "./student/SessionListPage";
 import LectureListPage from "./student/LectureListPage";
 import ProgressPage from "./student/ProgressPage";
+import QuizTakingPage from "./student/QuizTakingPage";
+import QuizResultPage from "./student/QuizResultPage";
 import EnrollmentInstructor from "./teacher/EnrollmentInstructor";
 // import { QuizAssignmentStudent } from "./student/QuizAssignmentStudent";
 import { QuizAssignmentInstructor } from "./teacher/QuizAssignmentInstructor";
@@ -45,6 +47,24 @@ export const LearnRoutes = [
       <ProtectedRoute roles={["LEARNER"]}>
         <MainLayout>
           <ProgressPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/learn/quiz/:quizId/:enrollmentId",
+    element: (
+      <ProtectedRoute roles={["LEARNER"]}>
+        <QuizTakingPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/learn/quiz/:quizId/:enrollmentId/result/:submissionId",
+    element: (
+      <ProtectedRoute roles={["LEARNER"]}>
+        <MainLayout>
+          <QuizResultPage />
         </MainLayout>
       </ProtectedRoute>
     ),

@@ -7,8 +7,8 @@ import {
   getEnrollmentById,
   createEnrollment,
   updateEnrollment,
-} from "../api/enrollment"; // Adjust import path
-import { getCourseById } from "../api/course"; // Adjust import path
+} from "../api/enrollment";
+import { getCourseById } from "../api/course";
 
 export function useEnrollments(userId?: UUID, courseId?: UUID) {
   const [enrollments, setEnrollments] = useState<any[]>([]);
@@ -16,10 +16,8 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Thay đổi: Lưu nhiều courses thay vì 1 course
   const [coursesMap, setCoursesMap] = useState<Record<string, any>>({});
 
-  // Load danh sách enrollments
   const fetchEnrollments = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -43,7 +41,6 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
     }
   }, [userId, courseId]);
 
-  // Lấy enrollment theo id
   const fetchEnrollmentById = useCallback(async (id: UUID) => {
     setLoading(true);
     setError(null);
@@ -59,9 +56,7 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
     }
   }, []);
 
-  // Lấy course theo id và lưu vào map
   const fetchCourseById = useCallback(async (id: UUID) => {
-    // Kiểm tra xem đã có trong map chưa
     if (coursesMap[id]) {
       return coursesMap[id];
     }
@@ -80,7 +75,6 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
     }
   }, [coursesMap]);
 
-  // Fetch nhiều courses cùng lúc
   const fetchCoursesByIds = useCallback(async (courseIds: UUID[]) => {
     const promises = courseIds.map(id => fetchCourseById(id));
     const results = await Promise.allSettled(promises);
@@ -96,12 +90,10 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
     return newCoursesMap;
   }, [coursesMap]);
 
-  // Lấy course từ map
   const getCourseFromMap = useCallback((courseId: UUID) => {
     return coursesMap[courseId] || null;
   }, [coursesMap]);
 
-  // Tạo enrollment
   const addEnrollment = useCallback(
     async (courseId: UUID) => {
       if (!userId) {

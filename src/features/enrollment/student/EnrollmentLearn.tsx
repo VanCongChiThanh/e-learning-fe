@@ -37,7 +37,6 @@ const EnrollmentLearn: React.FC = () => {
     
     loadCourses();
   }, [enrollments, coursesMap, fetchCourseById]);
-
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -82,7 +81,7 @@ const EnrollmentLearn: React.FC = () => {
             <View
               key={enrollment.id}
               enrollment={enrollment}
-              course={getCourseFromMap(enrollment.courseId)}
+              course={getCourseFromMap(enrollment.courseId)?.data}
               fetchCourseById={fetchCourseById}
               fetchEnrollmentById={fetchEnrollmentById}
             />

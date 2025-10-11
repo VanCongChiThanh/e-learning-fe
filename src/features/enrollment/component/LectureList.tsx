@@ -34,7 +34,7 @@ const LectureList: React.FC<LectureListProps> = ({
       </div>
     );
   }
-
+  console.log(lectures);
   return (
     <div className="bg-white rounded-lg shadow-sm border">
       <div className="p-6 border-b">

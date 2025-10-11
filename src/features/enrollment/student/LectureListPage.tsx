@@ -16,7 +16,6 @@ const LectureListPage: React.FC = () => {
   const lectureStats = useLectureStats(sessionId as UUID, enrollmentId as UUID);
 
   const handleLectureClick = (lectureId: UUID) => {
-    // Điều hướng đến trang progress với lectureId
     navigate(`/learn/progress/${enrollmentId}/${courseId}/${sessionId}/${lectureId}`);
   };
 

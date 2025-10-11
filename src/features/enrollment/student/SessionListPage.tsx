@@ -36,7 +36,7 @@ const SessionListPage: React.FC = () => {
       </div>
     );
   }
-
+  console.log(sessions);
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
@@ -133,19 +133,6 @@ const SessionListPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">{session.title}</h3>
                     <div className="flex items-center space-x-4 mt-2">
-                      {session.totalDuration && (
-                        <span className="text-xs text-gray-500 flex items-center">
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {session.totalDuration} phút
-                        </span>
-                      )}
-                      {session.lectureCount && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                          {session.lectureCount} bài giảng
-                        </span>
-                      )}
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         session.isCompleted 
                           ? 'bg-green-100 text-green-800' 

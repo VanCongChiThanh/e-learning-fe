@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { UUID } from "crypto";
-import { getQuizAttemptsByQuiz } from "../api/quizAttempt";
+import { getQuizAttempts } from "../api/quizAttempt";
 import { getAssignmentSubmissionsByAssignment } from "../api/assignmentSubmission";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../app/store";
 
 // Interface for quiz stats
 interface QuizStats {
@@ -21,7 +23,8 @@ export function useQuizStats(quizzes: any[]) {
     const [quizStats, setQuizStats] = useState<Record<string, QuizStats>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+    const { user } = useSelector((state: RootState) => state.auth as { user: { id: UUID } | null });
+    const userId = user?.id;
     useEffect(() => {
         if (!quizzes.length) {
             setQuizStats({});
@@ -36,7 +39,7 @@ export function useQuizStats(quizzes: any[]) {
                 await Promise.all(
                     quizzes.map(async (quiz) => {
                         try {
-                            const attempts = await getQuizAttemptsByQuiz(quiz.id);
+                            const attempts = await getQuizAttempts(quiz.id, userId as UUID);
                             stats[quiz.id] = {
                                 totalAttempts: attempts.length,
                                 averageScore: attempts.length > 0
