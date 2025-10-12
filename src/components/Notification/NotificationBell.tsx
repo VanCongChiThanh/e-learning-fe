@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { notificationAPI } from "../../features/notification/api/notificationAPI";
 import Notification from "./Notification";
 import "./NotificationBell.scss";
-import { notificationSocket } from "../../features/notification/socket/notificationSocket"; // ví dụ websocket đã khởi tạo sẵn
+import { notificationSocket } from "../../features/notification/socket/notificationSocket";
+import type { RootState } from "../../app/store";
 
 const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   // Lấy số lượng thông báo chưa đọc lần đầu
   const fetchUnreadCount = async () => {
@@ -20,24 +24,40 @@ const NotificationBell: React.FC = () => {
 
   useEffect(() => {
     fetchUnreadCount();
+    const userId = user?.id || localStorage.getItem("userId");
 
-    const userId = localStorage.getItem("userId"); // hoặc lấy từ context/token
     if (userId) {
       notificationSocket.connect(userId, (notif) => {
-        // Khi có thông báo mới -> tự tăng badge
-        setUnreadCount((prev) => prev + 1);
+        setUnreadCount((prev) => {
+          console.log(
+            "📊 [NotificationBell] unreadCount từ",
+            prev,
+            "thành",
+            prev + 1
+          );
+          return prev + 1;
+        });
+        const toastMessage = `🔔 ${notif.title || "Thông báo mới"}: ${
+          notif.message || "Bạn có một thông báo mới"
+        }`;
+
+        toast.info(toastMessage, {
+          position: "top-right",
+          autoClose: 5000,
+          onClick: () => setIsOpen(true),
+        });
       });
+    } else {
     }
 
     return () => {
       notificationSocket.disconnect();
     };
-  }, []);
+  }, [user]);
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
-      // Mở panel -> có thể load lại danh sách thông báo
       fetchUnreadCount();
     }
   };
@@ -65,7 +85,12 @@ const NotificationBell: React.FC = () => {
           </span>
         )}
       </div>
-      <Notification isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <Notification
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        unreadCount={unreadCount}
+        setUnreadCount={setUnreadCount}
+      />
     </>
   );
 };
