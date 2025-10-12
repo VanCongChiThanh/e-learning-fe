@@ -1,21 +1,33 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../app/store";
-import { logout, logoutAsync } from "../../features/auth/authSlice";
+import { logoutAsync } from "../../features/auth/store/authSlice";
+import { NotificationBell } from "../Notification";
 import Dropdown from "../Dropdown/Dropdown";
 import { useState } from "react";
 import "./Header.scss";
 
 const Header: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.auth);
 
   // State
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleLogout = () => {
     dispatch(logoutAsync());
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/courses/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate("/courses/search");
+    }
   };
 
   return (
@@ -29,17 +41,26 @@ const Header: React.FC = () => {
         </Link>
 
         {/* Search box (desktop only) */}
-        <div className="search-box hidden md:flex items-center">
-          <input type="text" placeholder="Tìm khóa học..." />
-          <button>
+        <form
+          onSubmit={handleSearch}
+          className="search-box hidden md:flex items-center"
+        >
+          <input
+            type="text"
+            placeholder="Tìm khóa học..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button type="submit" aria-label="Tìm kiếm">
             <i className="fa-solid fa-search"></i>
           </button>
-        </div>
+        </form>
 
         {/* Nút menu mobile */}
         <button
           className="md:hidden text-2xl"
           onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Menu"
         >
           <i className="fa-solid fa-bars"></i>
         </button>
@@ -50,26 +71,30 @@ const Header: React.FC = () => {
             <i className="fa-solid fa-shopping-cart text-xl"></i>
           </Link>
 
-          {/* Notification bell */}
-          <button className="notification-btn relative">
-            <i className="fa-solid fa-bell text-xl"></i>
-            <span className="badge absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">
-              3
-            </span>
-          </button>
-
+          {/* Notification bell - chỉ hiển thị khi đã đăng nhập */}
+          {user && (
+            <div className="notification-btn relative">
+              <NotificationBell />
+            </div>
+          )}
           {/* Dropdown "Xem thêm" */}
-          <Dropdown
-            label="Xem thêm"
-            isOpen={openDropdown === "more"}
-            onToggle={() =>
-              setOpenDropdown(openDropdown === "more" ? null : "more")
-            }
-          >
-            <Link to="/reviews">Đánh giá</Link>
-            <Link to="/partner">Trở thành đối tác</Link>
-            <Link to="/instructor">Trở thành giảng viên</Link>
-          </Dropdown>
+
+          {user?.role === "LEARNER" && (
+            <Dropdown
+              label="Xem thêm"
+              isOpen={openDropdown === "more"}
+              onToggle={() =>
+                setOpenDropdown(openDropdown === "more" ? null : "more")
+              }
+            >
+              <>
+                <Link to="/reviews">Đánh giá</Link>
+                <Link to="/partner">Trở thành đối tác</Link>
+                <Link to="/instructor-registration">Trở thành giảng viên</Link>
+              </>
+            </Dropdown>
+          )}
+
           {/* Dropdown user hoặc nút đăng nhập */}
           {user ? (
             <Dropdown
@@ -78,7 +103,7 @@ const Header: React.FC = () => {
                   <img
                     src={
                       user.avatar
-                        ? user.avatar 
+                        ? user.avatar
                         : `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`
                     }
                     alt="avatar"
@@ -92,12 +117,30 @@ const Header: React.FC = () => {
                 setOpenDropdown(openDropdown === "user" ? null : "user")
               }
             >
-              <Link
-                to="/account-profile"
-                className="px-4 py-2 hover:bg-gray-100"
-              >
-                Trang cá nhân
-              </Link>
+              {user.role === "LEARNER" && (
+                <Link
+                  to="/account-profile"
+                  className="px-4 py-2 hover:bg-gray-100"
+                >
+                  Trang cá nhân
+                </Link>
+              )}
+              {user.role === "INSTRUCTOR" && (
+                <>
+                  <Link
+                    to="/instructor-profile"
+                    className="px-4 py-2 hover:bg-gray-100"
+                  >
+                    Hồ sơ giảng viên
+                  </Link>
+                  <Link
+                    to="/instructor/my-courses"
+                    className="px-4 py-2 hover:bg-gray-100"
+                  >
+                    Quản lý khóa học
+                  </Link>
+                </>
+              )}
               {user.role === "ADMIN" && (
                 <Link to="/admin" className="px-4 py-2 hover:bg-gray-100">
                   Quản trị
@@ -124,30 +167,60 @@ const Header: React.FC = () => {
       {/* Menu mobile */}
       {mobileOpen && (
         <div className="md:hidden flex flex-col gap-2 px-4 py-2 bg-gray-50 border-t">
-          {/* Thêm ô search cho mobile */}
-          <div className="search-box flex items-center mx-auto">
-            <input type="text" placeholder="Tìm khóa học..." />
-            <button>
+          {/* Search box mobile */}
+          <form
+            onSubmit={handleSearch}
+            className="search-box flex items-center mb-2"
+          >
+            <input
+              type="text"
+              placeholder="Tìm khóa học..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button type="submit" aria-label="Tìm kiếm">
               <i className="fa-solid fa-search"></i>
             </button>
-          </div>
+          </form>
 
-          <Link to="/reviews">Đánh giá</Link>
-          <Link to="/partner">Trở thành đối tác</Link>
-          <Link to="/instructor">Trở thành giảng viên</Link>
+          {/* Nếu chưa login */}
+          {!user && (
+            <Link to="/login" className="text-blue-600">
+              Tham gia miễn phí
+            </Link>
+          )}
 
-          {user ? (
+          {/* Nếu đã login */}
+          {user && (
             <>
-              <Link to="/account-profile">Trang cá nhân</Link>
+              {/* Learner menu */}
+              {user.role === "LEARNER" && (
+                <>
+                  <Link to="/reviews">Đánh giá</Link>
+                  <Link to="/partner">Trở thành đối tác</Link>
+                  <Link to="/instructor-registration">
+                    Trở thành giảng viên
+                  </Link>
+                  <Link to="/account-profile">Trang cá nhân</Link>
+                </>
+              )}
+
+              {/* Instructor menu */}
+              {user.role === "INSTRUCTOR" && (
+                <>
+                  <Link to="/instructor-profile">Hồ sơ giảng viên</Link>
+                  <Link to="/instructor/my-courses">Quản lý khóa học</Link>
+                </>
+              )}
+
+              {/* Admin menu */}
               {user.role === "ADMIN" && <Link to="/admin">Quản trị</Link>}
+
+              {/* Logout cho mọi user */}
               <button onClick={handleLogout} className="text-left text-red-600">
                 Đăng xuất
               </button>
             </>
-          ) : (
-            <Link to="/login" className="text-blue-600">
-              Tham gia miễn phí
-            </Link>
           )}
         </div>
       )}

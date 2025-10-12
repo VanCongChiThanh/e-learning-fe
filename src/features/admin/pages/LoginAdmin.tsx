@@ -1,9 +1,9 @@
 // src/pages/admin/LoginAdminPage.tsx
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginAdmin } from "../../features/auth/authSlice"; // admin login async
-import { fetchCurrentUser } from "../../features/auth/authSlice"; // dùng chung fetch user
-import type { AppDispatch, RootState } from "../../app/store";
+import { loginAdmin } from "../../auth/store/authSlice"; // admin login async
+import { fetchCurrentUser } from "../../auth/store/authSlice"; // dùng chung fetch user
+import type { AppDispatch, RootState } from "../../../app/store";
 import { useNavigate } from "react-router-dom";
 
 const LoginAdminPage: React.FC = () => {
@@ -20,8 +20,14 @@ const LoginAdminPage: React.FC = () => {
     try {
       const result = await dispatch(loginAdmin({ email, password })).unwrap();
       localStorage.setItem("token", result.access_token);
-      await dispatch(fetchCurrentUser()).unwrap();
-      navigate("/admin");
+
+      // fetch xong user thì mới navigate
+      const user = await dispatch(fetchCurrentUser()).unwrap();
+      if (user.role === "ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       console.error(err);
     }
@@ -53,7 +59,11 @@ const LoginAdminPage: React.FC = () => {
           required
         />
 
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {error && (
+          <p className="mb-4 text-center text-red-600 font-medium">
+            {typeof error === "string" ? error : error.message}
+          </p>
+        )}
 
         <button
           type="submit"

@@ -15,7 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles ,redire
   if (!token) return <Navigate to={redirect || "/login"} replace />;
   if (roles && user && !roles.includes(user.role))
     return <Navigate to="/" replace />;
-
+  
   return <>{children}</>;
 };
 

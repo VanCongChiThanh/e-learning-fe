@@ -1,27 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { LoginRequest } from "../types/authType";
 import {
   loginAdminAPI,
   loginAPI,
   getCurrentUserAPI,
-  LoginRequest,
   logoutAPI,
-} from "./authAPI";
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  role: string;
-  avatar: string;
-}
-
-interface AuthState {
-  token: string | null;
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-}
+  oauth2LoginAPI,
+} from "../api/authAPI";
+import { AuthState } from "../types/authType";
 
 const initialState: AuthState = {
   token: localStorage.getItem("token") || null,
@@ -29,7 +15,6 @@ const initialState: AuthState = {
   loading: false,
   error: null,
 };
-
 // login async action
 export const login = createAsyncThunk(
   "auth/login",
@@ -79,6 +64,22 @@ export const logoutAsync = createAsyncThunk(
     }
   }
 );
+// OAuth2 login async action
+export const oauth2Login = createAsyncThunk(
+  "auth/oauth2Login",
+  async (
+    { provider, code }: { provider: string; code: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await oauth2LoginAPI(provider, code);
+      return res.data; // { access_token, ... }
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data || "OAuth2 login failed");
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -103,7 +104,20 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        if (
+          action.payload &&
+          typeof action.payload === "object" &&
+          "error" in action.payload
+        ) {
+          state.error = {
+            code: (action.payload as any).error.code,
+            message: (action.payload as any).error.message,
+          };
+        } else {
+          state.error = {
+            message: (action.payload as string) || "Login failed",
+          };
+        }
       })
       // fetch user
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
@@ -116,6 +130,15 @@ const authSlice = createSlice({
         localStorage.removeItem("token");
       })
       // login admin
+      .addCase(loginAdmin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginAdmin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload.access_token;
+        localStorage.setItem("token", action.payload.access_token);
+      })
       .addCase(loginAdmin.rejected, (state, action) => {
         state.loading = false;
         if (
@@ -127,6 +150,23 @@ const authSlice = createSlice({
         } else {
           state.error = (action.payload as string) || "Login admin failed";
         }
+      })
+      // OAuth2 login
+      .addCase(oauth2Login.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(oauth2Login.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload.access_token;
+        localStorage.setItem("token", action.payload.access_token);
+      })
+      .addCase(oauth2Login.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          (action.payload as any)?.error?.message ||
+          (action.payload as string) ||
+          "OAuth2 login failed";
       });
   },
 });

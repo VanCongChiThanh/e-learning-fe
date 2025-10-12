@@ -1,14 +1,20 @@
 import ProtectedRoute from "../../routes/ProtectedRoute";
-import HomePage from "./page/HomePage";
-import MyLearningPage from "./page/MyLearningPage";
+import MainPage from "./page/MainPage";
 import OnlineDegreesPage from "./page/OnlineDegreesPage";
 import CareersPage from "./page/CareersPage";
 import MainLayout from "../../layouts/MainLayout";
 import EnrollmentLearn from "../enrollment/student/EnrollmentLearn";
+import InstructorRegistration from "./page/InstructorRegistration/InstructorRegistration";
+import CourseSearchPage from "./page/CourseSearchPage";
+
 export const homeRoutes = [
   {
     path: "/",
-    element: <HomePage />,
+    element: <MainPage />,
+  },
+  {
+    path: "/courses/search",
+    element: <CourseSearchPage />,
   },
   {
     path: "/my-learning",
@@ -16,7 +22,7 @@ export const homeRoutes = [
       <ProtectedRoute roles={["LEARNER", "INSTRUCTOR"]}>
         <MainLayout>
           {/* <MyLearningPage /> */}
-          <EnrollmentLearn/>
+          <EnrollmentLearn />
         </MainLayout>
       </ProtectedRoute>
     ),
@@ -28,5 +34,13 @@ export const homeRoutes = [
   {
     path: "/careers",
     element: <CareersPage />,
-  }
+  },
+  {
+    path: "/instructor-registration",
+    element: (
+      <ProtectedRoute roles={["LEARNER"]}>
+        <InstructorRegistration />
+      </ProtectedRoute>
+    ),
+  },
 ];
