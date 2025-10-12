@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useEnrollments } from './useEnrollment';
 
 export const useEnrollmentManager = () => {
-  // State management
   const [filterUserId, setFilterUserId] = useState('');
   const [filterCourseId, setFilterCourseId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,7 +15,6 @@ export const useEnrollmentManager = () => {
     totalWatchTimeMinutes: '',
   });
 
-  // Get all enrollments (Admin can see all)
   const {
     enrollments,
     loading,
@@ -24,28 +22,25 @@ export const useEnrollmentManager = () => {
     fetchEnrollments,
     editEnrollment,
   } = useEnrollments();
-
-  // Advanced filtering and search functionality
   const filteredEnrollments = useMemo(() => {
     if (!enrollments) return [];
-    
+
     return enrollments.filter((enrollment: any) => {
-      const matchesSearch = searchTerm === '' || 
+      const matchesSearch = searchTerm === '' ||
         enrollment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         enrollment.courseId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         enrollment.userId.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesUserId = activeFilter !== 'user' || 
+      const matchesUserId = activeFilter !== 'user' ||
         (filterUserId === '' || enrollment.userId.toLowerCase().includes(filterUserId.toLowerCase()));
 
-      const matchesCourseId = activeFilter !== 'course' || 
+      const matchesCourseId = activeFilter !== 'course' ||
         (filterCourseId === '' || enrollment.courseId.toLowerCase().includes(filterCourseId.toLowerCase()));
 
       return matchesSearch && matchesUserId && matchesCourseId;
     });
   }, [enrollments, searchTerm, activeFilter, filterUserId, filterCourseId]);
 
-  // System-wide statistics calculation
   const calculateSystemStats = () => {
     if (!enrollments || enrollments.length === 0) {
       return {
@@ -58,7 +53,7 @@ export const useEnrollmentManager = () => {
       };
     }
 
-    const completed = enrollments.filter((e: any) => e.status === "completed").length;
+    const completed = enrollments.filter((e: any) => e.status === "COMPLETED").length;
     const uniqueUsers = new Set(enrollments.map((e: any) => e.userId)).size;
     const uniqueCourses = new Set(enrollments.map((e: any) => e.courseId)).size;
 
@@ -74,7 +69,6 @@ export const useEnrollmentManager = () => {
 
   const stats = calculateSystemStats();
 
-  // Event handlers
   const handleViewDetail = (enrollment: any) => {
     setSelectedEnrollment(enrollment);
     setShowDetailModal(true);
@@ -132,14 +126,14 @@ export const useEnrollmentManager = () => {
     selectedEnrollment,
     editData,
     setEditData,
-    
+
     // Data
     enrollments,
     filteredEnrollments,
     stats,
     loading,
     error,
-    
+
     // Handlers
     handleViewDetail,
     handleEditEnrollment,

@@ -40,15 +40,19 @@ const CATEGORIES = [
   "ALL",
   "PROGRAMMING",
   "DESIGN",
-  "MARKETING",
-  "BUSINESS",
-  "PERSONAL_DEVELOPMENT",
+  "PROJECT_MANAGEMENT",
   "DATA_SCIENCE",
-  "HEALTH_AND_FITNESS",
   "LANGUAGE_LEARNING",
-  "MUSIC_AND_ARTS",
   "DEVELOPMENT",
-  "OTHER",
+  "WEB_DEVELOPMENT",
+  "MOBILE_DEVELOPMENT",
+  "AI_AND_MACHINE_LEARNING",
+  "CYBERSECURITY",
+  "CLOUD_COMPUTING",
+  "DEVOPS",
+  "GAME_DEVELOPMENT",
+  "SOFTWARE_ENGINEERING",
+  "DATABASES",
 ];
 
 const LEVELS = ["ALL", "BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"];
@@ -63,6 +67,16 @@ const CourseSearchPage: React.FC = () => {
   );
   const [selectedLevels, setSelectedLevels] = useState<string[]>(
     searchParams.get("level")?.split(",").filter(Boolean) || []
+  );
+  const [minPrice, setMinPrice] = useState<number | null>(
+    searchParams.get("minPrice")
+      ? parseFloat(searchParams.get("minPrice")!)
+      : null
+  );
+  const [maxPrice, setMaxPrice] = useState<number | null>(
+    searchParams.get("maxPrice")
+      ? parseFloat(searchParams.get("maxPrice")!)
+      : null
   );
   const [sortBy, setSortBy] = useState(
     searchParams.get("sort") || "created_at"
@@ -80,6 +94,8 @@ const CourseSearchPage: React.FC = () => {
     total_pages: 1,
     total_count: 0,
   });
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [showAllLevels, setShowAllLevels] = useState(false);
 
   // Sync state with URL params when URL changes (e.g., from Header search)
   useEffect(() => {
@@ -89,6 +105,16 @@ const CourseSearchPage: React.FC = () => {
     );
     setSelectedLevels(
       searchParams.get("level")?.split(",").filter(Boolean) || []
+    );
+    setMinPrice(
+      searchParams.get("minPrice")
+        ? parseFloat(searchParams.get("minPrice")!)
+        : null
+    );
+    setMaxPrice(
+      searchParams.get("maxPrice")
+        ? parseFloat(searchParams.get("maxPrice")!)
+        : null
     );
     setSortBy(searchParams.get("sort") || "created_at");
     setSortOrder(searchParams.get("order") || "desc");
@@ -120,6 +146,19 @@ const CourseSearchPage: React.FC = () => {
       newParams.delete("level");
     }
 
+    // Update or remove price range
+    if (minPrice !== null) {
+      newParams.set("minPrice", minPrice.toString());
+    } else {
+      newParams.delete("minPrice");
+    }
+
+    if (maxPrice !== null) {
+      newParams.set("maxPrice", maxPrice.toString());
+    } else {
+      newParams.delete("maxPrice");
+    }
+
     // Update or remove sort
     if (sortBy !== "created_at") {
       newParams.set("sort", sortBy);
@@ -147,20 +186,64 @@ const CourseSearchPage: React.FC = () => {
     searchQuery,
     selectedCategories,
     selectedLevels,
+    minPrice,
+    maxPrice,
     sortBy,
     sortOrder,
     currentPage,
   ]);
 
+  // Build Spring Filter string
+  const buildFilterString = () => {
+    const filters: string[] = [];
+
+    // Filter by categories (multiple)
+    if (selectedCategories.length > 0) {
+      const categoryFilter = `category in (${selectedCategories
+        .map((cat) => `'${cat}'`)
+        .join(",")})`;
+      filters.push(categoryFilter);
+    }
+
+    // Filter by levels (multiple)
+    if (selectedLevels.length > 0) {
+      const levelFilter = `level in (${selectedLevels
+        .map((level) => `'${level}'`)
+        .join(",")})`;
+      filters.push(levelFilter);
+    }
+
+    // Filter by price range
+    if (minPrice !== null) {
+      filters.push(`price >: ${minPrice}`);
+    }
+    if (maxPrice !== null) {
+      filters.push(`price <: ${maxPrice}`);
+    }
+
+    // Filter by search query (title contains)
+    if (searchQuery) {
+      // Escape single quotes in search query
+      const escapedQuery = searchQuery.replace(/'/g, "\\'");
+      const searchFilter = `title ~ '*${escapedQuery}*'`;
+      filters.push(searchFilter);
+    }
+
+    // Combine all filters with 'and'
+    return filters.length > 0 ? filters.join(" and ") : undefined;
+  };
+
   const fetchCourses = async () => {
     setLoading(true);
     try {
+      const filterString = buildFilterString();
+
       const response = await searchCourses({
         page: currentPage,
         paging: 12,
         sort: sortBy === "totalStudents" ? "total_students" : sortBy,
         order: sortOrder,
-        // Note: Multiple categories/levels filtered on client-side
+        filter: filterString,
       });
 
       if (response.status === "success") {
@@ -178,30 +261,16 @@ const CourseSearchPage: React.FC = () => {
   useEffect(() => {
     fetchCourses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, sortBy, sortOrder]);
-
-  // Client-side filtering for search query, categories, and levels
-  const filteredCourses = courses.filter((course) => {
-    // Filter by search query
-    if (searchQuery) {
-      const matchesSearch =
-        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      if (!matchesSearch) return false;
-    }
-
-    // Filter by categories (multiple)
-    if (selectedCategories.length > 0) {
-      if (!selectedCategories.includes(course.category)) return false;
-    }
-
-    // Filter by levels (multiple)
-    if (selectedLevels.length > 0) {
-      if (!selectedLevels.includes(course.level)) return false;
-    }
-
-    return true;
-  });
+  }, [
+    currentPage,
+    sortBy,
+    sortOrder,
+    selectedCategories,
+    selectedLevels,
+    minPrice,
+    maxPrice,
+    searchQuery,
+  ]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -219,15 +288,19 @@ const CourseSearchPage: React.FC = () => {
     const labels: Record<string, string> = {
       PROGRAMMING: "Lập trình",
       DESIGN: "Thiết kế",
-      MARKETING: "Marketing",
-      BUSINESS: "Kinh doanh",
-      PERSONAL_DEVELOPMENT: "Phát triển bản thân",
+      PROJECT_MANAGEMENT: "Quản lý dự án",
       DATA_SCIENCE: "Khoa học dữ liệu",
-      HEALTH_AND_FITNESS: "Sức khỏe & Thể hình",
       LANGUAGE_LEARNING: "Học ngôn ngữ",
-      MUSIC_AND_ARTS: "Âm nhạc & Nghệ thuật",
-      DEVELOPMENT: "Phát triển",
-      OTHER: "Khác",
+      DEVELOPMENT: "Phát triển phần mềm",
+      WEB_DEVELOPMENT: "Phát triển Web",
+      MOBILE_DEVELOPMENT: "Phát triển Mobile",
+      AI_AND_MACHINE_LEARNING: "AI & Machine Learning",
+      CYBERSECURITY: "An ninh mạng",
+      CLOUD_COMPUTING: "Điện toán đám mây",
+      DEVOPS: "DevOps",
+      GAME_DEVELOPMENT: "Phát triển Game",
+      SOFTWARE_ENGINEERING: "Kỹ thuật phần mềm",
+      DATABASES: "Cơ sở dữ liệu",
       ALL: "Tất cả",
     };
     return labels[category] || category;
@@ -242,6 +315,24 @@ const CourseSearchPage: React.FC = () => {
       ALL: "Tất cả",
     };
     return labels[level] || level;
+  };
+
+  const getPageTitle = () => {
+    if (searchQuery) {
+      return `Kết quả tìm kiếm cho "${searchQuery}"`;
+    }
+    if (selectedCategories.length === 1) {
+      return `Khóa học ${getCategoryLabel(selectedCategories[0])}`;
+    }
+    if (selectedCategories.length > 1) {
+      return `Khóa học ${selectedCategories
+        .map((cat) => getCategoryLabel(cat))
+        .join(", ")}`;
+    }
+    if (selectedLevels.length > 0) {
+      return `Tất cả khóa học`;
+    }
+    return "Tất cả khóa học";
   };
 
   return (
@@ -259,7 +350,11 @@ const CourseSearchPage: React.FC = () => {
 
                 <div className="filter-section">
                   <h4>Chủ đề</h4>
-                  <div className="filter-options">
+                  <div
+                    className={`filter-options ${
+                      !showAllCategories ? "collapsed" : ""
+                    }`}
+                  >
                     {CATEGORIES.filter((cat) => cat !== "ALL").map((cat) => (
                       <label key={cat} className="checkbox-label">
                         <input
@@ -283,6 +378,24 @@ const CourseSearchPage: React.FC = () => {
                       </label>
                     ))}
                   </div>
+                  {CATEGORIES.filter((cat) => cat !== "ALL").length > 4 && (
+                    <button
+                      className={`show-more-btn ${
+                        showAllCategories ? "expanded" : ""
+                      }`}
+                      onClick={() => setShowAllCategories(!showAllCategories)}
+                    >
+                      {showAllCategories ? "Ẩn bớt" : "Xem thêm"}
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                  )}
                   {selectedCategories.length > 0 && (
                     <button
                       className="clear-filter"
@@ -295,7 +408,11 @@ const CourseSearchPage: React.FC = () => {
 
                 <div className="filter-section">
                   <h4>Cấp độ</h4>
-                  <div className="filter-options">
+                  <div
+                    className={`filter-options ${
+                      !showAllLevels ? "collapsed" : ""
+                    }`}
+                  >
                     {LEVELS.filter((level) => level !== "ALL").map((level) => (
                       <label key={level} className="checkbox-label">
                         <input
@@ -316,6 +433,24 @@ const CourseSearchPage: React.FC = () => {
                       </label>
                     ))}
                   </div>
+                  {LEVELS.filter((level) => level !== "ALL").length > 4 && (
+                    <button
+                      className={`show-more-btn ${
+                        showAllLevels ? "expanded" : ""
+                      }`}
+                      onClick={() => setShowAllLevels(!showAllLevels)}
+                    >
+                      {showAllLevels ? "Ẩn bớt" : "Xem thêm"}
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                  )}
                   {selectedLevels.length > 0 && (
                     <button
                       className="clear-filter"
@@ -325,14 +460,59 @@ const CourseSearchPage: React.FC = () => {
                     </button>
                   )}
                 </div>
+
+                <div className="filter-section">
+                  <h4>Khoảng giá</h4>
+                  <div className="filter-options price-filter">
+                    <div className="price-input-group">
+                      <label htmlFor="min-price">Từ (VNĐ)</label>
+                      <input
+                        id="min-price"
+                        type="number"
+                        placeholder="0"
+                        value={minPrice || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setMinPrice(value ? parseFloat(value) : null);
+                        }}
+                        min="0"
+                      />
+                    </div>
+                    <div className="price-input-group">
+                      <label htmlFor="max-price">Đến (VNĐ)</label>
+                      <input
+                        id="max-price"
+                        type="number"
+                        placeholder="10000000"
+                        value={maxPrice || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setMaxPrice(value ? parseFloat(value) : null);
+                        }}
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  {(minPrice !== null || maxPrice !== null) && (
+                    <button
+                      className="clear-filter"
+                      onClick={() => {
+                        setMinPrice(null);
+                        setMaxPrice(null);
+                      }}
+                    >
+                      Xóa giá
+                    </button>
+                  )}
+                </div>
               </aside>
 
               {/* Right Content - Results */}
               <div className="courses-content">
                 <div className="results-header">
                   <div className="results-info">
-                    <h2>Kết quả cho "{searchQuery || "Tất cả khoá học"}"</h2>
-                    <p>{pageInfo.total_count} kết quả</p>
+                    <h2>{getPageTitle()}</h2>
+                    <p>{pageInfo.total_count || courses.length} kết quả</p>
                   </div>
                   <div className="sort-section">
                     <label htmlFor="sort-select">Sắp xếp theo:</label>
@@ -363,7 +543,7 @@ const CourseSearchPage: React.FC = () => {
                     <div className="spinner"></div>
                     <p>Đang tải khóa học...</p>
                   </div>
-                ) : filteredCourses.length === 0 ? (
+                ) : courses.length === 0 ? (
                   <div className="empty-state">
                     <svg
                       width="120"
@@ -390,7 +570,7 @@ const CourseSearchPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="courses-grid">
-                    {filteredCourses.map((course) => (
+                    {courses.map((course) => (
                       <Link
                         to={`/course/${course.slug}`}
                         key={course.courseId}
@@ -508,7 +688,7 @@ const CourseSearchPage: React.FC = () => {
                 )}
 
                 {/* Pagination */}
-                {!loading && filteredCourses.length > 0 && (
+                {!loading && courses.length > 0 && (
                   <div className="pagination">
                     <button
                       className="pagination-btn"
