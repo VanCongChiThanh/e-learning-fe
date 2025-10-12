@@ -5,13 +5,15 @@ import LearningTabs from "./LearningTabs";
 import LearningVideo, { TimeTrigger } from "./LearningVideo";
 import LearningSidebar from "./LearningSidebar";
 import LearningFooter from "./LearningFooter";
-import { getCourseDetailBySlug, getSections, getLectures } from "../api";
+import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture  } from "../api";
 import OverviewTab from "./OverviewTab";
 import NoteTab from "./NoteTab";
 import ReviewPage from "./ReviewTag";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 import CodingExerciseTab from "./CodingTag";
+import QuizTab from "./QuizTag"; 
+
 
 
 
@@ -28,6 +30,9 @@ const LearningPage: React.FC = () => {
 
   // State mới để theo dõi các section đang tải
   const [loadingSections, setLoadingSections] = useState<Set<string>>(new Set());
+  const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
+
+  
 
   // Tải dữ liệu ban đầu cho khóa học và các section
   useEffect(() => {
@@ -48,27 +53,46 @@ const LearningPage: React.FC = () => {
     fetchCourseAndSections();
   }, [slug]);
   // Reset triggers mỗi khi đổi bài giảng mới
-  useEffect(() => {
-    if (currentLecture) {
-      // Ví dụ: Tạo các điểm trigger giả lập cho bài giảng này
-      // Trong thực tế, bạn có thể lấy dữ liệu này từ API
-      const newTriggers: TimeTrigger[] = [
-        { time: 15, action: 'show_quiz_1', triggered: false },
-        { time: 45, action: 'display_note_highlight', triggered: false },
-        { time: 90, action: 'show_final_quiz', triggered: false },
-      ];
-      setVideoTriggers(newTriggers);
+    useEffect(() => {
+    if (currentLecture?.lectureId) {
+      const fetchEvents = async () => {
+        try {
+          // Lấy toàn bộ response từ API
+          const response = await getEventsForLecture(currentLecture.lectureId);
+          
+          // --- SỬA LỖI Ở ĐÂY ---
+          // Kiểm tra xem response.data có phải là một mảng hay không
+          if (response && Array.isArray(response.data)) {
+            // Gọi .map() trên mảng response.data
+            const newTriggers: TimeTrigger[] = response.data.map((event: any) => ({
+              time: event.triggerTime,
+              action: event.payload,
+              triggered: false,
+              type: event.eventType,
+            }));
+            setVideoTriggers(newTriggers);
+            console.log("Đã tải thành công triggers:", newTriggers); // Thêm log để kiểm tra
+          } else {
+            console.warn("API không trả về mảng event hợp lệ trong thuộc tính 'data'");
+            setVideoTriggers([]);
+          }
+
+        } catch (error) {
+          console.error("Lỗi khi tải events:", error);
+          setVideoTriggers([]); // Reset nếu có lỗi
+        }
+      };
+
+      fetchEvents();
     }
   }, [currentLecture]);
   // Hàm xử lý sự kiện được gửi từ LearningVideo
-  const handleVideoEvent = (action: string) => {
-    console.log("Xử lý sự kiện từ component cha:", action);
-    // Dựa vào action, bạn có thể hiển thị popup, câu hỏi, ghi chú...
-    if (action === 'show_quiz_1') {
-      alert("Đây là câu hỏi ôn tập giữa bài!");
-    }
-    if (action === 'display_note_highlight') {
-      alert("Lưu ý: Đoạn này rất quan trọng cho bài thi cuối kỳ.");
+  const handleVideoEvent = (action: string, type?: string) => {
+    console.log(`Event triggered! Type: ${type}, Payload (quizId): ${action}`);
+    if (type === 'QUIZ') {
+      alert(`Đã đến lúc làm bài tập! Nội dung sẽ xuất hiện ở tab "Quiz".`);
+      setActiveQuizId(action); // Lưu lại quizId
+      setActiveTab("Quiz");   // Tự động chuyển tab
     }
   };
 
@@ -158,6 +182,15 @@ const LearningPage: React.FC = () => {
             {activeTab === "Thông báo" && <div>Chưa có thông báo nào.</div>}
             {activeTab === "Đánh giá" && <ReviewPage />}
             {activeTab === "Coding Exercise" && <CodingExerciseTab />}
+            {activeTab === "Quiz" && (
+              activeQuizId ? (
+                <QuizTab quizId={activeQuizId} />
+              ) : (
+                <div className="text-center p-8 bg-white rounded-lg shadow">
+                  <p>Chưa có bài tập nào được kích hoạt. Hãy tiếp tục xem video nhé!</p>
+                </div>
+              )
+            )}
           </div>
           <LearningFooter />
         </main>

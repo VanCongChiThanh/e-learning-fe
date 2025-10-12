@@ -8,12 +8,13 @@ export interface TimeTrigger {
   time: number;
   action: string;
   triggered: boolean;
+  type?: string; // Thêm type để phân biệt QUIZ, NOTE...
 }
 
 interface LearningVideoProps {
   videoUrl?: string;
   triggers: TimeTrigger[];
-  onTimeTrigger: (action: string) => void;
+  onTimeTrigger: (action: string, type?: string) => void;
   setTriggers: React.Dispatch<React.SetStateAction<TimeTrigger[]>>;
 }
 
@@ -47,7 +48,8 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
             // LOG KHI TRIGGER ĐƯỢC KÍCH HOẠT
             console.log(`%c TRIGGER ACTIVATED at ${currentTime}s for action: ${trigger.action} (trigger time was ${trigger.time}s)`, 'color: lightgreen; font-weight: bold;');
             // highlight-end
-            onTimeTrigger(trigger.action);
+            youtubePlayerRef.current?.pauseVideo();
+            onTimeTrigger(trigger.action, trigger.type);
             const newTriggers = [...triggers];
             newTriggers[index].triggered = true;
             setTriggers(newTriggers);
@@ -81,9 +83,10 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
       if (!trigger.triggered && currentTime >= trigger.time) {
         // highlight-start
         // LOG KHI TRIGGER ĐƯỢC KÍCH HOẠT
+        videoRef.current?.pause();
         console.log(`%c TRIGGER ACTIVATED at ${currentTime}s for action: ${trigger.action} (trigger time was ${trigger.time}s)`, 'color: lightblue; font-weight: bold;');
         // highlight-end
-        onTimeTrigger(trigger.action);
+        onTimeTrigger(trigger.action, trigger.type); 
         const newTriggers = [...triggers];
         newTriggers[index].triggered = true;
         setTriggers(newTriggers);

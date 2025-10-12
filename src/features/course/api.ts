@@ -128,3 +128,22 @@ export const noteApi = {
     return res.data.data;
   },
 };
+
+
+
+export const getEventsForLecture = async (lectureId: string) => {
+  const response = await axiosAuth.get(`/events/lecture/${lectureId}`);
+  return response.data; // Trả về { status: '...', data: [...] }
+};
+
+// API 2: Lấy danh sách câu hỏi của một quiz
+export const getQuestionsForQuiz = async (quizId: string) => {
+  const response = await axiosAuth.get(`/quiz-questions/quiz/${quizId}`);
+  return response.data; // Trả về một mảng các câu hỏi [...]
+};
+
+// --- THÊM MỚI API 3: Lấy chi tiết một câu hỏi ---
+export const getQuestionDetail = async (questionId: string) => {
+    const response = await axiosAuth.get(`/quiz-questions/${questionId}`);
+    return response.data; // Trả về một đối tượng câu hỏi {...}
+};
