@@ -99,11 +99,36 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       position: sticky;
       top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+
+      /* Custom scrollbar for sidebar */
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: #f3f4f6;
+        border-radius: 3px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 3px;
+
+        &:hover {
+          background: #9ca3af;
+        }
+      }
+
+      scrollbar-width: thin;
+      scrollbar-color: #d1d5db #f3f4f6;
 
       @media (max-width: 968px) {
         width: 100%;
         position: relative;
         top: 0;
+        max-height: none;
       }
 
       .filter-header {
@@ -141,6 +166,40 @@
           display: flex;
           flex-direction: column;
           gap: 0.625rem;
+
+          &.collapsed {
+            .checkbox-label:nth-child(n + 5) {
+              display: none;
+            }
+          }
+        }
+
+        .show-more-btn {
+          margin-top: 0.5rem;
+          font-size: 0.75rem;
+          color: #1a5f3f;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+
+          &:hover {
+            text-decoration: underline;
+          }
+
+          svg {
+            width: 14px;
+            height: 14px;
+            transition: transform 0.2s ease;
+          }
+
+          &.expanded svg {
+            transform: rotate(180deg);
+          }
         }
 
         .checkbox-label {
@@ -182,6 +241,51 @@
 
           &:hover {
             text-decoration: underline;
+          }
+        }
+
+        .price-filter {
+          gap: 1rem;
+
+          .price-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+
+            label {
+              font-size: 0.75rem;
+              color: #6b7280;
+              font-weight: 500;
+            }
+
+            input[type="number"] {
+              width: 100%;
+              padding: 0.5rem 0.75rem;
+              border: 1px solid #d1d5db;
+              border-radius: 6px;
+              font-size: 0.875rem;
+              color: #111827;
+              outline: none;
+              transition: all 0.2s ease;
+
+              &:focus {
+                border-color: #1a5f3f;
+                box-shadow: 0 0 0 3px rgba(26, 95, 63, 0.1);
+              }
+
+              &::placeholder {
+                color: #9ca3af;
+              }
+
+              /* Remove spinner */
+              &::-webkit-inner-spin-button,
+              &::-webkit-outer-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+              }
+              -moz-appearance: textfield;
+              appearance: textfield;
+            }
           }
         }
       }
