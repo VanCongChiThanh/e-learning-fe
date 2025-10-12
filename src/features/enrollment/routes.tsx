@@ -1,10 +1,19 @@
 import ProtectedRoute from "../../routes/ProtectedRoute";
-import AdminLayout from "../../layouts/AdminLayout";
 import MainLayout from "../../layouts/MainLayout";
-import EnrollmentManager from "./admin/EnrollmentManager";
-import EnrollmentTeacher from "./teacher/EnrollmentTeacher";
 import EnrollmentLearn from "./student/EnrollmentLearn";
-import Progress from "./student/Progress";
+import SessionListPage from "./student/SessionListPage";
+import LectureListPage from "./student/LectureListPage";
+import ProgressPage from "./student/ProgressPage";
+import QuizTakingPage from "./student/QuizTakingPage";
+import QuizResultPage from "./student/QuizResultPage";
+import EnrollmentInstructor from "./teacher/EnrollmentInstructor";
+import CourseDetailInstructor from "./teacher/CourseDetailInstructor";
+import CourseQuizManagement from "./teacher/CourseQuizManagement";
+import QuizCreateEdit from "./teacher/QuizCreateEdit";
+import CourseStudentList from "./teacher/CourseStudentList";
+import StudentProgressDetail from "./teacher/StudentProgressDetail";
+import QuizQuestionManagementPage from "./teacher/QuizQuestionManagementPage";
+import QuizStatisticsPage from "./teacher/QuizStatisticsPage";
 
 export const LearnRoutes = [
   {
@@ -12,27 +21,55 @@ export const LearnRoutes = [
     element: (
       <ProtectedRoute roles={["LEARNER"]}>
         <MainLayout>
-          <EnrollmentLearn />
+            <EnrollmentLearn />
         </MainLayout>
       </ProtectedRoute>
     ),
   },
   {
-    path: "/learn/enrollments/sessions",
+    path: "/learn/sessions/:enrollmentId/:courseId",
     element: (
       <ProtectedRoute roles={["LEARNER"]}>
         <MainLayout>
-          <EnrollmentLearn />
+          <SessionListPage />
         </MainLayout>
       </ProtectedRoute>
     ),
   },
   {
-    path: "/learn/progress",
+    path: "/learn/lectures/:enrollmentId/:courseId/:sessionId",
     element: (
       <ProtectedRoute roles={["LEARNER"]}>
         <MainLayout>
-          <Progress />
+          <LectureListPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/learn/progress/:enrollmentId/:courseId/:sessionId/:lectureId",
+    element: (
+      <ProtectedRoute roles={["LEARNER"]}>
+        <MainLayout>
+          <ProgressPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/learn/quiz/:quizId/:enrollmentId",
+    element: (
+      <ProtectedRoute roles={["LEARNER"]}>
+        <QuizTakingPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/learn/quiz/:quizId/:enrollmentId/result/:submissionId",
+    element: (
+      <ProtectedRoute roles={["LEARNER"]}>
+        <MainLayout>
+          <QuizResultPage />
         </MainLayout>
       </ProtectedRoute>
     ),
@@ -42,19 +79,89 @@ export const LearnRoutes = [
     element: (
       <ProtectedRoute roles={["INSTRUCTOR"]}>
         <MainLayout>
-          <EnrollmentTeacher courseId="a1c2d3e4-f567-8901-2345-6789abcdef13" />
+          <EnrollmentInstructor  />
         </MainLayout>
       </ProtectedRoute>
     ),
   },
   {
-    path: "/admin/enrollments",
+    path: "/teacher/course/:courseId",
     element: (
-      <ProtectedRoute roles={["ADMIN"]}>
-        <AdminLayout>
-          <EnrollmentManager />
-        </AdminLayout>
-       </ProtectedRoute>
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <CourseDetailInstructor />
+        </MainLayout>
+      </ProtectedRoute>
     ),
   },
-];
+  {
+    path: "/teacher/course/:courseId/quizzes",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <CourseQuizManagement />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/course/:courseId/quiz/create/:lectureId",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <QuizCreateEdit />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/course/:courseId/quiz/:quizId/edit",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <QuizCreateEdit />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/course/:courseId/quiz/:quizId/questions",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <QuizQuestionManagementPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/course/:courseId/quiz/:quizId/statistics",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <QuizStatisticsPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/course/:courseId/students",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <CourseStudentList />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/course/:courseId/student/:studentId/progress",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <StudentProgressDetail />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+]

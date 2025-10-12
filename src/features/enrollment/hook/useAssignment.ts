@@ -8,32 +8,6 @@ import {
   getAssignmentsByCourseId
 } from "../api/index";
 
-export function useAssignment(id?: UUID) {
-  const [assignment, setAssignment] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const data = await getAssignmentById(id);
-        setAssignment(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [id]);
-
-  return { assignment, loading, error };
-}
-
-// Hook for getting assignments by course ID
 export function useAssignmentsByCourse(courseId?: UUID) {
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,7 +40,9 @@ export function useAssignmentsByCourse(courseId?: UUID) {
       const newAssignment = await createAssignment(assignmentData);
       setAssignments((prev) => [...prev, newAssignment]);
     } catch (err: any) {
+      console.error('Hook: Error creating assignment:', err);
       setError(err.message);
+      throw err; // Re-throw để component có thể catch
     }
   };
 
@@ -75,7 +51,7 @@ export function useAssignmentsByCourse(courseId?: UUID) {
     assignmentData: {
       title?: string;
       description?: string;
-      dueDate?: string;
+      dueDate?: string | null;
     }
   ) => {
     try {

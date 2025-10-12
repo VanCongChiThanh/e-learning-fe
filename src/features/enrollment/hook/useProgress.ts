@@ -1,52 +1,14 @@
 import { useEffect, useState } from "react";
 import { UUID } from "../utils/UUID";
-import { getAllSections } from "../api/session";
-import { getAllLectures } from "../api/lectures";
+import { getAllSections, getAllLectures } from "../api/course";
 import {
   getProgressByEnrollmentId,
   createProgress,
   updateProgress,
-  getProgressById
+  getProgressById,
+  getProgressByLectureId
 } from "../api/progress";
-
-export interface Session {
-  id: UUID;
-  courseId: UUID;
-  title: string;
-  duration?: number;
-  position: number;
-  lectureCount?: number;
-  isCompleted?: boolean;
-  completedLectureCount?: number;
-}
-
-export interface Lecture {
-  id: UUID;
-  sessionId: UUID;
-  title: string;
-  duration?: number;
-  position: number;
-  source_url?: string;
-  // Thêm progress fields
-  isCompleted?: boolean; // Mapped from progress
-  watchTimeMinutes?: number; // From progress
-  watchedPercentage?: number; // From progress
-}
-
-export interface Progress {
-  id: UUID;
-  lectureId: UUID;
-  enrollmentId: UUID;
-  isCompleted?: boolean;
-  watchTimeMinutes?: number; // Mapping from backend
-  completionDate?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  // API fields for compatibility
-  watchedDurationMinutes?: number;
-  watchedPercentage?: number;
-  lastWatchedAt?: string;
-}
+import { Session, Lecture, Progress } from "../type";
 
 export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -81,8 +43,7 @@ export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
                 return {
                   ...lecture,
                   isCompleted: progress?.isCompleted || false,
-                  watchTimeMinutes: progress?.watchTimeMinutes || progress?.watchedDurationMinutes || 0,
-                  watchedPercentage: progress?.watchedPercentage || 0,
+                  watchTimeMinutes: progress?.watchTimeMinutes || 0
                 };
               });
 
@@ -150,8 +111,7 @@ export function useLecturesBySession(sessionId?: UUID, enrollmentId?: UUID) {
           return {
             ...lecture,
             isCompleted: progress?.isCompleted || false,
-            watchTimeMinutes: progress?.watchedDurationMinutes || 0,
-            watchedPercentage: progress?.watchedPercentage || 0,
+            watchTimeMinutes: progress?.watchTimeMinutes || 0
           };
         });
 
@@ -177,7 +137,7 @@ export function useSessionStats(courseId?: UUID, enrollmentId?: UUID) {
   const stats = {
     totalSessions: sessions.length,
     completedSessions: sessions.filter(s => s.isCompleted).length,
-    totalDuration: sessions.reduce((sum, s) => sum + (s.duration || 0), 0),
+    totalDuration: sessions.reduce((sum, s) => sum + (s.totalDuration || 0), 0),
     totalLectures: sessions.reduce((sum, s) => sum + (s.lectureCount || 0), 0),
     completionRate: sessions.length > 0
       ? Math.round((sessions.filter(s => s.isCompleted).length / sessions.length) * 100)
@@ -286,4 +246,42 @@ export function useProgressByEnrollment(enrollmentId?: UUID) {
     addProgress,
     updateProgressById,
   };
+}
+
+export function useProgressByLecture(lectureId?: UUID) {
+  const [progress, setProgress] = useState<Progress | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshIndex, setRefreshIndex] = useState(0);
+  useEffect(() => {
+    if (!lectureId) return;
+    const fetchProgress = async () => {
+      setLoading(true);
+      try {
+        const data = await getProgressByLectureId(lectureId as any);
+        if (data) {
+          const mappedProgress = {
+            ...data,
+            watchTimeMinutes: data.watchTimeMinutes || data.watchedDurationMinutes || 0,
+            isCompleted: data.isCompleted || (data.watchedPercentage >= 100),
+          };
+          setProgress(mappedProgress);
+        } else {
+          setProgress(null);
+        }
+      } catch (err: any) {
+        setError(err.message || "Error fetching progress");
+        setProgress(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProgress();
+  }, [lectureId, refreshIndex]);
+
+  const refreshProgress = () => {
+    setRefreshIndex(prev => prev + 1);
+  };
+  return { progress, loading, error, refreshProgress };
 }

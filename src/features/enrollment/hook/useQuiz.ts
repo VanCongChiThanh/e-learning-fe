@@ -8,33 +8,6 @@ import {
   getAllQuizzesByLectureId
 } from "../api/quiz";
 
-// Hook for getting quiz by ID
-export function useQuiz(id?: UUID) {
-  const [quiz, setQuiz] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const data = await getQuizById(id);
-        setQuiz(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [id]);
-
-  return { quiz, loading, error };
-}
-
-// Hook for getting quizzes by lecture ID
 export function useQuizzesByLecture(lectureId?: UUID) {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,9 +34,21 @@ export function useQuizzesByLecture(lectureId?: UUID) {
     lectureId: UUID;
     title: string;
     description?: string;
+    maxAttempts?: number;
+    passingScore?: number;
+    timeLimitMinutes?: number;
+    numberQuestions?: number;
   }) => {
     try {
-      const newQuiz = await createQuiz(quizData);
+      const newQuiz = await createQuiz({
+        lectureId: quizData.lectureId,
+        title: quizData.title,
+        description: quizData.description,
+        maxAttempts: quizData.maxAttempts ?? 1,
+        passingScore: quizData.passingScore ?? 50,
+        timeLimitMinutes: quizData.timeLimitMinutes ?? 30,
+        numberQuestions: quizData.numberQuestions ?? 10,
+      });
       setQuizzes((prev) => [...prev, newQuiz]);
     } catch (err: any) {
       setError(err.message);
@@ -75,6 +60,10 @@ export function useQuizzesByLecture(lectureId?: UUID) {
     quizData: {
       title?: string;
       description?: string;
+      maxAttempts?: number;
+      passingScore?: number;
+      timeLimitMinutes?: number;
+      numberQuizQuestions?: number;
     }
   ) => {
     try {

@@ -1,45 +1,8 @@
 import { useEffect, useState } from "react";
 import { UUID } from "../utils/UUID";
-import { getAllSections } from "../api/session";
-import { getAllLectures } from "../api/lectures";
+import { getAllSections, getAllLectures } from "../api/course";
 import { getProgressByEnrollmentId } from "../api/progress";
-
-// Interface phù hợp với backend Section model
-export interface Session {
-    sectionId: UUID; // Đúng với backend
-    courseId?: UUID; // Có thể không có trong response
-    title: string;
-    position: number;
-    // Calculated fields
-    lectureCount?: number;
-    totalDuration?: number; // Tổng thời lượng của tất cả lectures
-    isCompleted?: boolean;
-    completedLectureCount?: number;
-}
-
-// Interface phù hợp với backend Lecture model  
-export interface Lecture {
-    lectureId: UUID; // Đúng với backend
-    sectionId: UUID;
-    title: string;
-    sourceUrl?: string; // Đúng với backend
-    type?: string; // LectureType enum
-    duration?: number; // minutes
-    position: number;
-    // Progress fields (mapped from Progress model)
-    isCompleted?: boolean;
-    watchTimeMinutes?: number;
-}
-
-// Interface phù hợp với backend Progress model
-export interface Progress {
-    id: UUID;
-    lectureId: UUID;
-    enrollmentId: UUID;
-    isCompleted?: boolean;
-    watchTimeMinutes?: number;
-    completionDate?: string;
-}
+import { Session, Lecture, Progress } from "../type";
 
 export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
     const [sessions, setSessions] = useState<Session[]>([]);
@@ -62,7 +25,7 @@ export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
                         console.warn("Could not fetch progress data:", err);
                     }
                 }
-
+                console.log("Progress Data:", progressData);
                 // Tính toán completion status cho từng session
                 const sessionsWithCompletion = await Promise.all(
                     data.data.map(async (session: any) => {
@@ -115,7 +78,8 @@ export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
     }, [courseId, enrollmentId]);
 
     return { sessions, loading, error };
-} export function useLecturesBySession(sessionId?: UUID, enrollmentId?: UUID) {
+}
+export function useLecturesBySession(sessionId?: UUID, enrollmentId?: UUID) {
     const [lectures, setLectures] = useState<Lecture[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

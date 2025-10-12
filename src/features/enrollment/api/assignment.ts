@@ -25,7 +25,7 @@ export const updateAssignment = async (
   data: {
     title?: string;
     description?: string;
-    dueDate?: string;
+    dueDate?: string | null;
   }
 ): Promise<any> => {
   const res: AxiosResponse = await axiosAuth.put(`/assignments/${id}`, data);
