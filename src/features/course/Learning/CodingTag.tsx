@@ -44,12 +44,9 @@ const CodingExerciseTab: React.FC = () => {
       stdin: stdin,
       expected_output: expectedOutput,
     };
-    const jwtToken = process.env.jwtToken;
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/judge/test", payload,{
-        headers: { Authorization: `Bearer ${jwtToken}` },
-      });
+      const response = await axios.post("https://judge-coursevo.onrender.com/api/judge/test", payload);
       setResult(response.data.judge_result);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
