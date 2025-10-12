@@ -21,7 +21,7 @@ export const LearnRoutes = [
     element: (
       <ProtectedRoute roles={["LEARNER"]}>
         <MainLayout>
-          <EnrollmentLearn />
+            <EnrollmentLearn />
         </MainLayout>
       </ProtectedRoute>
     ),
