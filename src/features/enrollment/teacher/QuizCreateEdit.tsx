@@ -95,8 +95,7 @@ const QuizCreateEdit: React.FC = () => {
         });
         alert('Tạo quiz thành công!');
       }
-      
-      navigate(`/teacher/course/${courseId}/quiz-management`);
+      navigate(`/teacher/course/${courseId}/quizzes`)
     } catch (error) {
       console.error('Error saving quiz:', error);
       alert('Có lỗi xảy ra khi lưu quiz');

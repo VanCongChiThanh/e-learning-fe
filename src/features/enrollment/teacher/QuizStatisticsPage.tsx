@@ -28,7 +28,7 @@ const QuizStatisticsPage: React.FC = () => {
   };
 
   const handleBackToQuizManagement = () => {
-    navigate(`/teacher/course/${courseId}/quiz-management`);
+    navigate(`/teacher/course/${courseId}/quizzes`);
   };
 
   if (loading) {
