@@ -66,7 +66,7 @@ const QuizTab: React.FC<QuizTabProps> = ({ quizId }) => {
             // Giả sử stdin được lưu trong một trường nào đó, nếu không có thì để rỗng
             // Ở đây tạm dùng một placeholder, bạn cần điều chỉnh cho đúng với backend
             stdin: firstQuestion.stdin || "5\n1 2 3 4 5", 
-            answerText: firstQuestion.answerText, // Đây là expectedOutput
+            answerText: firstQuestion.answerText || "1\n2\n3\n4\n5", // Đây là expectedOutput
           });
         }
       } catch (err) {
@@ -93,12 +93,9 @@ const QuizTab: React.FC<QuizTabProps> = ({ quizId }) => {
       stdin: quizData.stdin,                  // Sử dụng stdin từ API
       expected_output: quizData.answerText, // Sử dụng answerText từ API làm output mong muốn
     };
-    const jwtToken = process.env.jwtToken; // Bạn cần cấu hình biến môi trường này
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/judge/test", payload, {
-        headers: { Authorization: `Bearer ${jwtToken}` },
-      });
+      const response = await axios.post("https://judge-coursevo.onrender.com/api/judge/test", payload);
       setResult(response.data.judge_result);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
