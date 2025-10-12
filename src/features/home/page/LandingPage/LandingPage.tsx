@@ -5,8 +5,50 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useState } from "react";
 gsap.registerPlugin(ScrollTrigger);
+
+const TYPING_WORDS = [
+  { text: "skills", color: "#3b82f6" }, // blue
+  { text: "career", color: "#10b981" }, // green
+  { text: "team", color: "#f59e0b" }, // orange
+  { text: "self", color: "#8b5cf6" }, // purple
+  { text: "potential", color: "#ec4899" }, // pink
+];
+
 export default function LandingPage() {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [activeTab, setActiveTab] = useState(0);
+  const [typingText, setTypingText] = useState("");
+  const [typingIndex, setTypingIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Typing animation effect
+  useEffect(() => {
+    const currentWord = TYPING_WORDS[typingIndex];
+    const typingSpeed = isDeleting ? 50 : 150;
+    const pauseTime = 2000;
+
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing
+        if (typingText.length < currentWord.text.length) {
+          setTypingText(currentWord.text.slice(0, typingText.length + 1));
+        } else {
+          // Pause before deleting
+          setTimeout(() => setIsDeleting(true), pauseTime);
+        }
+      } else {
+        // Deleting
+        if (typingText.length > 0) {
+          setTypingText(currentWord.text.slice(0, typingText.length - 1));
+        } else {
+          setIsDeleting(false);
+          setTypingIndex((prev) => (prev + 1) % TYPING_WORDS.length);
+        }
+      }
+    }, typingSpeed);
+
+    return () => clearTimeout(timer);
+  }, [typingText, isDeleting, typingIndex]);
 
   useEffect(() => {
     const benefitsSection = document.querySelector(
@@ -19,10 +61,14 @@ export default function LandingPage() {
 
     if (!benefitsSection || !benefitsWrapper || items.length === 0) return;
 
-    // Tính toán khoảng cách scroll chính xác dựa trên width thực tế của wrapper
-    const totalWidth = benefitsWrapper.scrollWidth;
+    // Tính khoảng cách cần scroll để item cuối hiển thị đầy đủ
     const viewportWidth = window.innerWidth;
-    const scrollDistance = totalWidth - viewportWidth;
+
+    // Khoảng cách scroll = tổng width của wrapper - viewport width
+    const scrollDistance = Math.max(
+      0,
+      benefitsWrapper.scrollWidth - viewportWidth
+    );
 
     gsap.to(benefitsWrapper, {
       x: () => -scrollDistance,
@@ -32,11 +78,26 @@ export default function LandingPage() {
         pin: true,
         scrub: 1,
         end: `+=${scrollDistance}`,
-        onUpdate: (self) => {
-          // Tính toán slide hiện tại dựa trên progress
-          const progress = self.progress;
-          const currentSlide = Math.round(progress * (items.length - 1));
-          setActiveSlide(currentSlide);
+        onUpdate: () => {
+          // Tính active slide dựa trên vị trí thực tế của các items
+          const viewportCenter = viewportWidth / 2;
+
+          // Tìm item nào đang ở gần trung tâm màn hình nhất
+          let closestIndex = 0;
+          let closestDistance = Infinity;
+
+          items.forEach((item, index) => {
+            const itemRect = item.getBoundingClientRect();
+            const itemCenter = itemRect.left + itemRect.width / 2;
+            const distance = Math.abs(itemCenter - viewportCenter);
+
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestIndex = index;
+            }
+          });
+
+          setActiveSlide(closestIndex);
         },
       },
     });
@@ -56,7 +117,10 @@ export default function LandingPage() {
                 <div className="circle-animation circle-1"></div>
                 <div className="circle-animation circle-2"></div>
                 <div className="circle-animation circle-3"></div>
-                <button className="play-button">
+                <button
+                  className="play-button"
+                  aria-label="Xem video giới thiệu"
+                >
                   <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
                     <circle
                       cx="30"
@@ -87,17 +151,20 @@ export default function LandingPage() {
 
             <div className="hero-right">
               <h1 className="hero-title">
-                <span className="title-line">KHỞI ĐẦU</span>
-                <span className="title-line">SỰ NGHIỆP</span>
-                <span className="title-line">CỦA BẠN</span>
+                <span className="title-line">Develop your</span>
+                <span className="title-line typing-line">
+                  <span className="slash">/</span>
+                  <span className={`typing-text typing-color-${typingIndex}`}>
+                    {typingText}
+                  </span>
+                  <span className="typing-cursor">|</span>
+                </span>
               </h1>
 
               <p className="hero-subtitle">
-                Học thật, dự án thật, việc làm thật
-                <br />
-                Trở thành lập trình chuyên nghiệp
-                <br />
-                tại Coursevo
+                Phát triển sự nghiệp của bạn và mở ra những cơ hội mới bằng cách
+                học các kỹ năng đang được săn đón như Trí tuệ nhân tạo, Phân
+                tích dữ liệu, Lập trình, An ninh mạng và nhiều lĩnh vực khác.
               </p>
 
               <div className="hero-buttons">
@@ -108,34 +175,153 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-
-          <div className="sidebar-menu">
-            <button className="sidebar-item">☰</button>
-            <button className="sidebar-item">⊞</button>
-            <button className="sidebar-item">📧</button>
-            <button className="sidebar-item">📞</button>
-          </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="stats-section">
-          <div className="stats-container">
-            <div className="stat-item">
-              <div className="stat-number">5014</div>
-              <div className="stat-label">Khóa học & videos</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">3890</div>
-              <div className="stat-label">Học viên offline</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">15</div>
-              <div className="stat-label">Năm kinh nghiệm</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">54</div>
-              <div className="stat-label">Đối tác</div>
-            </div>
+        {/* Featured Categories Section */}
+        <section className="featured-categories">
+          <div className="categories-header">
+            <h2>Khám phá lộ trình học IT</h2>
+            <p>
+              Chọn lĩnh vực phù hợp với đam mê và mục tiêu nghề nghiệp của bạn
+            </p>
+          </div>
+          <div className="categories-grid">
+            <Link
+              to="/courses/search?category=PROGRAMMING"
+              className="category-card"
+            >
+              <div className="category-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M8 6L4 10L8 14"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M16 6L20 10L16 14"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M14 4L10 20"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <h3>Lập trình</h3>
+              <p>Java, Python, JavaScript, C++</p>
+              <span className="course-count">120+ khóa học</span>
+            </Link>
+
+            <Link
+              to="/courses/search?category=DEVELOPMENT"
+              className="category-card"
+            >
+              <div className="category-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <path d="M3 9H21" stroke="currentColor" strokeWidth="2" />
+                  <path d="M9 3V21" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </div>
+              <h3>Web Development</h3>
+              <p>React, Angular, Node.js, PHP</p>
+              <span className="course-count">95+ khóa học</span>
+            </Link>
+
+            <Link
+              to="/courses/search?category=DATA_SCIENCE"
+              className="category-card"
+            >
+              <div className="category-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 2L2 7L12 12L22 7L12 2Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M2 17L12 22L22 17"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M2 12L12 17L22 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <h3>Data Science & AI</h3>
+              <p>Machine Learning, Deep Learning</p>
+              <span className="course-count">68+ khóa học</span>
+            </Link>
+
+            <Link
+              to="/courses/search?category=DESIGN"
+              className="category-card"
+            >
+              <div className="category-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <rect
+                    x="3"
+                    y="3"
+                    width="7"
+                    height="7"
+                    rx="1"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <rect
+                    x="14"
+                    y="3"
+                    width="7"
+                    height="7"
+                    rx="1"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <rect
+                    x="3"
+                    y="14"
+                    width="7"
+                    height="7"
+                    rx="1"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <rect
+                    x="14"
+                    y="14"
+                    width="7"
+                    height="7"
+                    rx="1"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </div>
+              <h3>UI/UX Design</h3>
+              <p>Figma, Adobe XD, Design System</p>
+              <span className="course-count">45+ khóa học</span>
+            </Link>
           </div>
         </section>
         {/* Benefits Section */}
@@ -169,7 +355,7 @@ export default function LandingPage() {
             <div className="benefit-item">
               <div className="benefit-content">
                 <h3 className="benefit-title">
-                  Kết nối với giảng viên chất lượng
+                  1.Kết nối với giảng viên chất lượng
                 </h3>
                 <ul className="benefit-list">
                   <li>
@@ -189,7 +375,7 @@ export default function LandingPage() {
 
             <div className="benefit-item">
               <div className="benefit-content">
-                <h3 className="benefit-title">Thực hành với AI Feedback</h3>
+                <h3 className="benefit-title">2.Thực hành với AI Feedback</h3>
                 <ul className="benefit-list">
                   <li>Thực hành code trực tiếp trên nền tảng học tập</li>
                   <li>
@@ -208,7 +394,7 @@ export default function LandingPage() {
 
             <div className="benefit-item">
               <div className="benefit-content">
-                <h3 className="benefit-title">Học qua dự án thực tế</h3>
+                <h3 className="benefit-title">3.Học qua dự án thực tế</h3>
                 <ul className="benefit-list">
                   <li>
                     Lộ trình bài bản từ cơ bản đến nâng cao, sát với yêu cầu
@@ -226,7 +412,7 @@ export default function LandingPage() {
             </div>
             <div className="benefit-item">
               <div className="benefit-content">
-                <h3 className="benefit-title">Cộng đồng năng động</h3>
+                <h3 className="benefit-title">4.Cộng đồng năng động</h3>
                 <ul className="benefit-list">
                   <li>
                     Cộng đồng học viên tích cực hỗ trợ lẫn nhau, giảng viên phản
@@ -296,50 +482,264 @@ export default function LandingPage() {
         {/* Mission Section */}
         <section className="mission-section">
           <div className="mission-tabs">
-            <button className="mission-tab active">Coursevo là ai ?</button>
-            <button className="mission-tab">Học viên nhận xét</button>
-            <button className="mission-tab">Cựu học viên</button>
+            <button
+              className={`mission-tab ${activeTab === 0 ? "active" : ""}`}
+              onClick={() => setActiveTab(0)}
+            >
+              Coursevo là gì?
+            </button>
+            <button
+              className={`mission-tab ${activeTab === 1 ? "active" : ""}`}
+              onClick={() => setActiveTab(1)}
+            >
+              Giảng viên
+            </button>
+            <button
+              className={`mission-tab ${activeTab === 2 ? "active" : ""}`}
+              onClick={() => setActiveTab(2)}
+            >
+              Học viên
+            </button>
           </div>
 
-          <div className="mission-container">
-            <div className="mission-left">
-              <h2 className="section-title">
-                Chúng tôi tin vào tiềm năng của con người
-              </h2>
-              <p className="mission-text">
-                Coursevo được xây dựng bởi đội ngũ giảng viên dày dạn kinh
-                nghiệm từ các công ty công nghệ hàng đầu. Chúng tôi được thành
-                lập dựa trên niềm tin rằng bất cứ ai cũng có thể học lập trình.
-              </p>
-              <p className="mission-text">
-                Bất kể ai cũng có thể là một lập trình viên, tham gia trong đội
-                ngũ Tech, bất kể tuổi tác, nền tảng, giới tính hoặc tình trạng
-                tài chính. Chúng tôi không bỏ qua những người mới bắt đầu hoặc
-                chưa có kinh nghiệm. Thay vào đó, chúng tôi chào đón học viên
-                của tất cả các cấp độ kinh nghiệm.
-              </p>
-              <button className="btn-primary">SỨ MỆNH ĐÀO TẠO</button>
-            </div>
-            <div className="mission-right">
-              <div className="video-wrapper">
-                <img
-                  src="https://www.simplilearn.com/ice9/free_resources_article_thumb/Why_E-Learning_Insights_into_the_World_of_Online_Learning_and_Development.jpg"
-                  alt="Students learning in classroom"
-                />
-                <button className="play-button-overlay" aria-label="Play video">
-                  <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="38"
-                      fill="rgba(255,255,255,0.9)"
-                    />
-                    <path d="M32 24L56 40L32 56V24Z" fill="#1a5f3f" />
-                  </svg>
-                </button>
+          {/* Tab 1: Coursevo là gì? */}
+          {activeTab === 0 && (
+            <div className="mission-container">
+              <div className="mission-left">
+                <h2 className="section-title">
+                  Nền tảng kết nối giảng viên IT chuyên nghiệp
+                </h2>
+                <p className="mission-text">
+                  <strong>Coursevo</strong> là nền tảng học trực tuyến tập trung
+                  vào lĩnh vực
+                  <strong> Công nghệ thông tin</strong>, kết nối học viên với
+                  các giảng viên chuyên gia đang làm việc tại các công ty công
+                  nghệ hàng đầu.
+                </p>
+                <p className="mission-text">
+                  Khác với các nền tảng truyền thống, chúng tôi chỉ tuyển chọn
+                  những giảng viên có kinh nghiệm thực tế trong ngành IT - từ
+                  lập trình viên senior, tech lead, đến solution architect. Họ
+                  không chỉ dạy lý thuyết mà còn chia sẻ kinh nghiệm thực chiến
+                  từ các dự án thực tế.Kết hợp với đó là thế mạnh của hệ thống
+                  vừa học và thực hành với trợ giảng AI cho phản hồi code tức
+                  thì 24/7, giúp học viên nắm vững kiến thức và kỹ năng cần
+                  thiết để phát triển sự nghiệp trong ngành IT.
+                </p>
+                <div className="mission-stats">
+                  <div className="stat-item">
+                    <h3>500+</h3>
+                    <p>Giảng viên IT</p>
+                  </div>
+                  <div className="stat-item">
+                    <h3>10,000+</h3>
+                    <p>Học viên</p>
+                  </div>
+                  <div className="stat-item">
+                    <h3>200+</h3>
+                    <p>Khóa học</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mission-right">
+                <div className="video-wrapper">
+                  <img
+                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800"
+                    alt="Online learning platform"
+                  />
+                  <button
+                    className="play-button-overlay"
+                    aria-label="Play video"
+                  >
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r="38"
+                        fill="rgba(255,255,255,0.9)"
+                      />
+                      <path d="M32 24L56 40L32 56V24Z" fill="#1a5f3f" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Tab 2: Giảng viên */}
+          {activeTab === 1 && (
+            <div className="mission-container">
+              <div className="mission-left">
+                <h2 className="section-title">
+                  Giảng viên từ các công ty công nghệ hàng đầu
+                </h2>
+                <p className="mission-text">
+                  Tất cả giảng viên trên Coursevo đều là những chuyên gia đang
+                  làm việc thực tế trong ngành IT với tối thiểu 5 năm kinh
+                  nghiệm.
+                </p>
+
+                <div className="instructor-examples">
+                  <div className="instructor-card">
+                    <div className="instructor-avatar">
+                      <img
+                        src="https://cdn-images.vtv.vn/zoom/554_346/66349b6076cb4dee98746cf1/2025/10/01/68c1e77d57d362d375e7ee50-55079870634772221646868-35600809372372531539111.webp"
+                        alt="Instructor"
+                      />
+                    </div>
+                    <div className="instructor-info">
+                      <h4>Nguyễn Văn A</h4>
+                      <p className="instructor-role">
+                        Senior Backend Developer @VNG
+                      </p>
+                      <p className="instructor-exp">
+                        8 năm kinh nghiệm • Java, Spring Boot, Microservices
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="instructor-card">
+                    <div className="instructor-avatar">
+                      <img
+                        src="https://vcdn1-vnexpress.vnecdn.net/2025/06/29/Zillow-CEO-JeremyWacksman-tron-6191-3318-1751136149.jpg?w=460&h=0&q=100&dpr=2&fit=crop&s=Z-oZwtUO-Ohm49OR24dgDA"
+                        alt="Instructor"
+                      />
+                    </div>
+                    <div className="instructor-info">
+                      <h4>Trần Thị B</h4>
+                      <p className="instructor-role">Tech Lead @FPT Software</p>
+                      <p className="instructor-exp">
+                        10 năm kinh nghiệm • React, Node.js, AWS
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="instructor-card">
+                    <div className="instructor-avatar">
+                      <img
+                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZaf7GOS7_0Oe8TsSYuDYjQq_J-rnpaKmDhA&s"
+                        alt="Instructor"
+                      />
+                    </div>
+                    <div className="instructor-info">
+                      <h4>Lê Thị C</h4>
+                      <p className="instructor-role">
+                        Solution Architect @Viettel
+                      </p>
+                      <p className="instructor-exp">
+                        12 năm kinh nghiệm • System Design, Kubernetes, DevOps
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <Link to="/instructor-registration" className="btn-primary">
+                  ĐĂNG KÝ GIẢNG VIÊN
+                </Link>
+              </div>
+              <div className="mission-right">
+                <div className="video-wrapper">
+                  <img
+                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800"
+                    alt="Professional instructor"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Học viên */}
+          {activeTab === 2 && (
+            <div className="mission-container">
+              <div className="mission-left">
+                <h2 className="section-title">
+                  Học viên thành công sau khóa học
+                </h2>
+                <p className="mission-text">
+                  Hơn 85% học viên hoàn thành khóa học tìm được việc làm trong
+                  vòng 3 tháng với mức lương khởi điểm từ 10-15 triệu/tháng.
+                </p>
+
+                <div className="student-testimonials">
+                  <div className="testimonial-card">
+                    <div className="testimonial-header">
+                      <img
+                        src="https://ui-avatars.com/api/?name=Pham+Van+D&size=60&background=random"
+                        alt="Student"
+                      />
+                      <div>
+                        <h4>Phạm Văn D</h4>
+                        <p className="student-role">
+                          Junior Developer @TMA Solutions
+                        </p>
+                      </div>
+                    </div>
+                    <p className="testimonial-text">
+                      "Từ sinh viên mới ra trường, sau 6 tháng học Spring Boot
+                      với anh A, mình đã có việc làm với mức lương 12 triệu.
+                      Kiến thức thực tế và dự án thực chiến giúp mình tự tin
+                      trong phỏng vấn."
+                    </p>
+                    <div className="testimonial-course">
+                      <span>Khóa học: Spring Boot Microservices</span>
+                    </div>
+                  </div>
+
+                  <div className="testimonial-card">
+                    <div className="testimonial-header">
+                      <img
+                        src="https://ui-avatars.com/api/?name=Hoang+Thi+E&size=60&background=random"
+                        alt="Student"
+                      />
+                      <div>
+                        <h4>Hoàng Thị E</h4>
+                        <p className="student-role">
+                          Frontend Developer @Sendo
+                        </p>
+                      </div>
+                    </div>
+                    <p className="testimonial-text">
+                      "Chuyển nghề từ marketing sang lập trình. Các khóa React
+                      và TypeScript rất chi tiết và dễ hiểu. Giảng viên support
+                      nhiệt tình, giờ mình đã làm được 1 năm rồi!"
+                    </p>
+                    <div className="testimonial-course">
+                      <span>Khóa học: React & TypeScript Advanced</span>
+                    </div>
+                  </div>
+
+                  <div className="testimonial-card">
+                    <div className="testimonial-header">
+                      <img
+                        src="https://ui-avatars.com/api/?name=Do+Van+F&size=60&background=random"
+                        alt="Student"
+                      />
+                      <div>
+                        <h4>Đỗ Văn F</h4>
+                        <p className="student-role">DevOps Engineer @Shopee</p>
+                      </div>
+                    </div>
+                    <p className="testimonial-text">
+                      "Khóa DevOps & Kubernetes thực sự chất lượng. Từ junior
+                      backend, mình chuyển sang DevOps với mức lương tăng gấp
+                      đôi. Cảm ơn anh C đã hướng dẫn tận tình!"
+                    </p>
+                    <div className="testimonial-course">
+                      <span>Khóa học: DevOps & Kubernetes in Production</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mission-right">
+                <div className="video-wrapper">
+                  <img
+                    src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=800"
+                    alt="Successful students"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Partners Section */}
