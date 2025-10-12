@@ -2,7 +2,6 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { UUID } from "crypto";
 import axiosAuth from "../../../api/axiosAuth";
 
-// Example: gọi GET users
 export const getEnrollmentById = async (id: UUID): Promise<any> => {
   const res: AxiosResponse = await axiosAuth.get(`/enrollments/${id}`);
   return res.data;

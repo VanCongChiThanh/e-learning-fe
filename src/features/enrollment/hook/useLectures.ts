@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { UUID } from "crypto";
-import { getAllSections } from "../api/session";
-import { getAllLectures } from "../api/lectures";
+import { getAllSections, getAllLectures } from "../api/course";
 
 export interface LectureOption {
     lectureId: UUID;

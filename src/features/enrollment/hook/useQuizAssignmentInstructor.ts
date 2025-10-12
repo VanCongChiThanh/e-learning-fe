@@ -6,17 +6,7 @@ import { useQuizStats, useAssignmentStats } from './useQuizAssignmentStats';
 import { useInstructorCourses } from './useInstructorManager';
 import { useSessionsByCourse } from './useSession';
 import { useLecturesBySession } from './useSession';
-
-export interface QuizData {
-    lectureId?: UUID;
-    title: string;
-    description?: string;
-    maxAttempts: number;
-    passingScore: number;
-    timeLimitMinutes: number;
-    numberQuestions: number;
-}
-
+import { QuizRequest as QuizData } from '../type';
 export interface AssignmentData {
     courseId?: UUID;
     title: string;
@@ -101,8 +91,12 @@ export const useQuizAssignmentInstructor = (instructorId: UUID) => {
         }
 
         try {
+            if (!data.title) {
+                throw new Error('Quiz phải có tiêu đề (title)');
+            }
             await addQuiz({
                 ...data,
+                title: data.title,
                 lectureId: selectedLectureId
             });
             return { success: true, message: 'Tạo quiz thành công!' };

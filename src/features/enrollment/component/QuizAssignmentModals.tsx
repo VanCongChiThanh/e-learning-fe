@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { UUID } from 'crypto';
-import { useLecturesByCourse } from '../hook/useLectures';
 
 interface QuizFormModalProps {
   isOpen: boolean;

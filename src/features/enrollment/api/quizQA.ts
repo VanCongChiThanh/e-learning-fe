@@ -23,11 +23,7 @@ export const getQuizQuestionById = async (id: UUID): Promise<QuizQuestionAnswerR
 // POST /api/quiz-questions/{id} -> create
 export const createQuizQuestion = async (
   id: UUID,
-  data: {
-    questionText: string;
-    options: string[];
-    correctAnswer: string;
-  }
+  data: any
 ): Promise<QuizQuestionAnswerResponse> => {
   const res: AxiosResponse = await axiosAuth.post(`/quiz-questions/${id}`, data);
   return res.data;

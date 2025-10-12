@@ -1,148 +1,126 @@
 import React from 'react';
-import { UUID } from '../utils/UUID';
 import { Button } from '../common/UI';
+import { Course } from '../type';
 
 interface CourseCardProps {
-  course: {
-    courseId: UUID;
-    title: string;
-    slug: string;
-    description?: string;
-    category: string;
-    level: string;
-    status: string;
-    instructorId: string;
-    createdAt: number; // timestamp
-    image: string;
-  };
-  onSelectCourse: (courseId: UUID) => void;
-  onEditCourse?: (courseId: UUID) => void;
+  course: Course;
+  onCourseClick: (courseId: string) => void;
+  onEdit?: (courseId: string) => void;
+  variant?: 'student' | 'instructor';
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
   course,
-  onSelectCourse,
-  onEditCourse,
+  onCourseClick,
+  onEdit,
+  variant = 'student',
 }) => {
-
-    const getCategoryDisplay = (category: string) => {
-    const categoryMap: Record<string, string> = {
-      'DESIGN': 'Thiết kế',
-      'DEVELOPMENT': 'Lập trình',
-      'BUSINESS': 'Kinh doanh',
-      'MARKETING': 'Marketing',
-      'LANGUAGE': 'Ngôn ngữ'
-    };
-    return categoryMap[category] || category;
-  };
-
-  const getLevelDisplay = (level: string) => {
-    const levelMap: Record<string, string> = {
-      'BEGINNER': 'Cơ bản',
-      'INTERMEDIATE': 'Trung cấp',
-      'ADVANCED': 'Nâng cao'
-    };
-    return levelMap[level] || level;
-  };
-
   const getStatusDisplay = (status: string) => {
     const statusMap: Record<string, { label: string; color: string }> = {
-      'PUBLISHED': { label: 'Đã xuất bản', color: 'bg-green-100 text-green-800' },
-      'DRAFT': { label: 'Bản nháp', color: 'bg-gray-100 text-gray-800' },
-      'ARCHIVED': { label: 'Đã lưu trữ', color: 'bg-red-100 text-red-800' }
+      'active': { label: 'Đang hoạt động', color: 'bg-green-100 text-green-800' },
+      'draft': { label: 'Nháp', color: 'bg-yellow-100 text-yellow-800' },
+      'archived': { label: 'Đã lưu trữ', color: 'bg-gray-100 text-gray-800' }
     };
     return statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800' };
+  };
+
+  const handleClick = () => {
+    console.log("Course clicked:", course);
+    onCourseClick(course.courseId);
+  };
+
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(course.courseId);
+    }
   };
 
   const statusInfo = getStatusDisplay(course.status);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow overflow-hidden">
-      {/* Course Image */}
-      <div className="aspect-video w-full overflow-hidden">
-        <img
-          src={course.image}
-          alt={course.title}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMzUgOTBMMTIwIDc1VjEyNUwxMzUgMTEwTDE1MCA5NUwxODAgMTI1VjE0MEgxNDBIMTIwVjEyNUwxMzUgMTEwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
-          }}
-        />
-      </div>
-
-      <div className="p-6">
-        {/* Header with title and status */}
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 flex-1 mr-2">
-            {course.title || `Khóa học ${course.courseId.slice(-6)}`}
-          </h3>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
+    <div 
+      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer overflow-hidden"
+      onClick={handleClick}
+    >
+      {/* Image */}
+      <div className="aspect-video bg-gray-200 relative overflow-hidden">
+        {course.image ? (
+          <img
+            src={course.image}
+            alt={course.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
+            <div className="text-blue-600 text-4xl font-bold">
+              {course.title.charAt(0).toUpperCase()}
+            </div>
+          </div>
+        )}
+        
+        {/* Status Badge */}
+        <div className="absolute top-2 right-2">
+          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
             {statusInfo.label}
           </span>
         </div>
-        
-        {/* Description */}
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-          {course.description || 'Chưa có mô tả'}
-        </p>
-        
-        {/* Course Info Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500">Danh mục:</span>
-            <span className="font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
-              {getCategoryDisplay(course.category)}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500">Cấp độ:</span>
-            <span className="font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded">
-              {getLevelDisplay(course.level)}
-            </span>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+            {course.title || `Khóa học ${course.courseId.slice(-6)}`}
+          </h3>
+        </div>
+
+        {course.description && (
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+            {course.description}
+          </p>
+        )}
+
+        {/* Course Info */}
+        <div className="space-y-2 mb-4">
+          {course.instructor?.name && (
+            <div className="flex items-center text-sm text-gray-600">
+              <span className="font-medium">Giảng viên:</span>
+              <span className="ml-1">{course.instructor.name}</span>
+            </div>
+          )}
+          
+          {/* {variant === 'instructor' && course.enrollmentCount !== undefined && (
+            <div className="flex items-center text-sm text-gray-600">
+              <span className="font-medium">Học viên:</span>
+              <span className="ml-1">{course.enrollmentCount}</span>
+            </div>
+          )} */}
+
+          <div className="flex items-center text-sm text-gray-600">
+            <span className="font-medium">Tạo:</span>
+            <span className="ml-1">{new Date(course.createdAt).toLocaleDateString('vi-VN')}</span>
           </div>
         </div>
 
-        {/* Course ID (collapsed) */}
-        <details className="mb-4">
-          <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
-            Thông tin kỹ thuật
-          </summary>
-          <div className="mt-2 space-y-1 text-xs text-gray-600 bg-gray-50 p-2 rounded">
-            <div className="flex justify-between">
-              <span>Course ID:</span>
-              <span className="font-mono">{course.courseId}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Slug:</span>
-              <span className="font-mono">{course.slug}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Instructor ID:</span>
-              <span className="font-mono">{course.instructorId}</span>
-            </div>
-          </div>
-        </details>
-        
-        {/* Action Buttons */}
-        <div className="flex gap-2">
+        {/* Actions */}
+        <div className="flex space-x-2">
           <Button
             variant="primary"
             size="sm"
-            onClick={() => onSelectCourse(course.courseId)}
+            onClick={handleClick}
             className="flex-1"
           >
-            Xem học viên
+            {variant === 'instructor' ? 'Quản lý' : 'Xem chi tiết'}
           </Button>
-          {onEditCourse && (
+          
+          {variant === 'instructor' && onEdit && (
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => onEditCourse(course.courseId)}
+              onClick={handleEdit}
+              className="px-3"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
+              Sửa
             </Button>
           )}
         </div>

@@ -1,3 +1,4 @@
+import { AxiosResponse } from "axios";
 import axiosAuth from "../../../api/axiosAuth";
 import { UUID } from "../utils/UUID"
 
@@ -12,9 +13,17 @@ export const getCourseById = async (courseId: UUID) => {
     const response = await axiosAuth.get(`/courses/${courseId}`);
     return response.data;
 }
-
-// Get course statistics
-export const getCourseStatistics = async (courseId: UUID) => {
-    const response = await axiosAuth.get(`/courses/${courseId}/statistics`);
-    return response.data;
-}
+export const getAllSections = async (courseId: UUID): Promise<any> => {
+    const res: AxiosResponse = await axiosAuth.get(`/courses/${courseId}/sections`);
+    return res.data;
+};
+export const getAllLectures = async (sectionId: UUID): Promise<any> => {
+    const res: AxiosResponse = await axiosAuth.get(`/sections/${sectionId}/lectures`);
+    return res.data;
+};
+export const api = {
+    course: {
+        getCoursesByInstructor,
+        getCourseById, getAllSections, getAllLectures
+    }
+};

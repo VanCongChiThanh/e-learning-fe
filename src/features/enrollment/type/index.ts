@@ -4,34 +4,40 @@ export interface Course {
     courseId: UUID;
     title: string;
     description?: string;
-    instructorId: UUID;
+    createdAt: string;
+    updatedAt: string;
     category?: string;
-    level?: string;
-    language?: string;
-    price?: number;
-    discountPrice?: number;
-    isPublished?: boolean;
-    publishedAt?: string;
-    createdAt?: string;
-    updatedAt?: string;
     image?: string;
+    level?: string;
+    slug?: string;
+    status: 'active' | 'draft' | 'archived';
+    instructor?: {
+        id: string;
+        name: string;
+    };
 }
 
-export interface Section {
+export interface Session {
     sectionId: UUID;
-    course: Course;
+    courseId?: UUID;
     title: string;
-    position?: number;
+    position: number;
+    lectureCount?: number;
+    totalDuration?: number;
+    isCompleted?: boolean;
+    completedLectureCount?: number;
 }
 
 export interface Lecture {
     lectureId: UUID;
-    section: Section;
+    sectionId: UUID;
     title: string;
-    type: "video" | "article" | "quiz" | "assignment";
     sourceUrl?: string;
+    type?: string;
     duration?: number;
-    position?: number;
+    position: number;
+    isCompleted?: boolean;
+    watchTimeMinutes?: number;
 }
 
 export interface Enrollment {
@@ -47,7 +53,28 @@ export interface Enrollment {
     createdAt?: string;
     updatedAt?: string;
 }
-
+export interface EnrollmentWithStats {
+    id: UUID;
+    userId: UUID;
+    courseId: UUID;
+    progressPercentage: number;
+    status: string;
+    totalWatchTimeMinutes: number;
+    enrolledAt: string;
+    lastAccessedAt?: string;
+    completionDate?: string;
+}
+export interface CourseStats {
+    courseId: UUID;
+    courseName: string;
+    totalStudents: number;
+    activeStudents: number;
+    completedStudents: number;
+    averageProgress: number;
+    totalWatchTime: number;
+    completionRate: number;
+    enrollments: EnrollmentWithStats[];
+}
 export interface EnrollmentRequest {
     userId?: UUID;
     courseId?: UUID;
@@ -64,6 +91,7 @@ export interface Progress {
     lectureId: UUID;
     isCompleted: boolean;
     watchTimeMinutes?: number;
+    completionDate?: string;
 }
 
 export interface ProgressRequest {

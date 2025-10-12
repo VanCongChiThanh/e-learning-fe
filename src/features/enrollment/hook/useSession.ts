@@ -1,40 +1,8 @@
 import { useEffect, useState } from "react";
 import { UUID } from "../utils/UUID";
-import { getAllSections } from "../api/session";
-import { getAllLectures } from "../api/lectures";
+import { getAllSections, getAllLectures } from "../api/course";
 import { getProgressByEnrollmentId } from "../api/progress";
-
-export interface Session {
-    sectionId: UUID;
-    courseId?: UUID;
-    title: string;
-    position: number;
-    lectureCount?: number;
-    totalDuration?: number;
-    isCompleted?: boolean;
-    completedLectureCount?: number;
-}
-
-export interface Lecture {
-    lectureId: UUID;
-    sectionId: UUID;
-    title: string;
-    sourceUrl?: string;
-    type?: string;
-    duration?: number;
-    position: number;
-    isCompleted?: boolean;
-    watchTimeMinutes?: number;
-}
-
-export interface Progress {
-    id: UUID;
-    lectureId: UUID;
-    enrollmentId: UUID;
-    isCompleted?: boolean;
-    watchTimeMinutes?: number;
-    completionDate?: string;
-}
+import { Session, Lecture, Progress } from "../type";
 
 export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
     const [sessions, setSessions] = useState<Session[]>([]);

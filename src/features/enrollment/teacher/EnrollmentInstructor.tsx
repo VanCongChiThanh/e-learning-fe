@@ -1,212 +1,204 @@
-import React, { useState } from 'react';
-import { UUID } from '../utils/UUID';
-import { useInstructorCourses, useCourseStudents, useStudentDetailStats } from '../hook/useInstructorManager';
-import { CourseCard } from '../component/CourseCard';
-import { StudentCard } from '../component/StudentCard';
-import { InstructorDashboard } from '../component/InstructorDashboard';
-import { CourseStatsDashboard } from '../component/CourseStatsDashboard';
-import { StudentDetailModal } from '../component/StudentDetailModal';
-import { QuizStatisticsModal } from '../component/QuizStatisticsModal';
-import { LoadingSpinner, ErrorMessage, EmptyState } from '../common/States';
-import { Button } from '../common/UI';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../app/store';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Book, Users, Clock, Plus } from "lucide-react";
+import { CourseCard } from "../component/CourseCard";
+import { useInstructorCourses } from "../hook/useInstructorManager";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../app/store";
+import { UUID } from "../utils/UUID";
+import { Course } from "../type";
+import { title } from "process";
 
+
+
+type CourseStatus = 'active' | 'draft' | 'archived';
 
 const EnrollmentInstructor: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
-  const instructorId = user?.id as UUID;
-  
-  // State management
-  const [selectedCourseId, setSelectedCourseId] = useState<UUID | null>(null);
-  const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
-  const [showStudentModal, setShowStudentModal] = useState(false);
-  const [showQuizModal, setShowQuizModal] = useState(false);
-  const [viewMode, setViewMode] = useState<'courses' | 'students'>('courses');
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<CourseStatus | "all">("all");
+  const { user } = useSelector((state: RootState) => state.auth as { user: { id: UUID } | null });
+  const userId = user?.id;
+  const navigate = useNavigate();
+  const { courses, loading, error } = useInstructorCourses(userId);
+  useEffect(() => {
+    filterCourses();
+  }, [courses, searchTerm, statusFilter]);
+  const filterCourses = () => {
+    let filtered = courses;
+    if (searchTerm) {
+      filtered = filtered.filter(course =>
+        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
 
-  const {
-    courses,
-    loading: coursesLoading,
-    error: coursesError,
-    refetch: refetchCourses,
-  } = useInstructorCourses(instructorId);
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(course => course.status === statusFilter);
+    }
 
-  const {
-    courseStats,
-    loading: studentsLoading,
-    error: studentsError,
-    refetch: refetchStudents,
-  } = useCourseStudents(selectedCourseId || undefined);
-
-  const {
-    studentStats,
-    loading: studentStatsLoading,
-    error: studentStatsError,
-  } = useStudentDetailStats(selectedEnrollment?.id);
-
-  const handleSelectCourse = (courseId: UUID) => {
-    setSelectedCourseId(courseId);
-    setViewMode('students');
+    setFilteredCourses(filtered);
+  };
+  const handleCourseClick = (courseId: string) => {
+    navigate(`/teacher/course/${courseId}`);
   };
 
-  const handleBackToCourses = () => {
-    setSelectedCourseId(null);
-    setViewMode('courses');
+  const handleCreateCourse = () => {
+    console.log("Create new course");
   };
 
-  const handleViewStudentDetail = (enrollment: any) => {
-    setSelectedEnrollment(enrollment);
-    setShowStudentModal(true);
-  };
-
-  const handleViewQuizStats = (enrollment: any) => {
-    setSelectedEnrollment(enrollment);
-    setShowQuizModal(true);
-  };
-
-  if (coursesLoading && viewMode === 'courses') {
-    return <LoadingSpinner size="lg" className="min-h-[400px]" />;
-  }
-
-  if (coursesError && viewMode === 'courses') {
+  if (loading) {
     return (
-      <ErrorMessage
-        message={coursesError}
-        onRetry={refetchCourses}
-        className="m-6"
-      />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
     );
   }
-  return (
-    <div className="max-w-7xl mx-auto p-6">
-      {/* Header with Navigation */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              {viewMode === 'courses' ? 'Quản lý khóa học' : 'Quản lý học viên'}
-            </h1>
-            <p className="text-gray-600">
-              {viewMode === 'courses' 
-                ? 'Danh sách khóa học bạn đang hướng dẫn'
-                : `Học viên trong khóa học: ${courseStats?.courseName || 'Đang tải...'}`
-              }
-            </p>
-          </div>
-          {viewMode === 'students' && (
-            <Button
-              variant="secondary"
-              onClick={handleBackToCourses}
-              className="flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Quay lại khóa học
-            </Button>
-          )}
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 mb-4">{error}</div>
+          <button
+            // onClick={fetchInstructorCourses}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Thử lại
+          </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Courses View */}
-      {viewMode === 'courses' && (
-        <>
-          {/* Courses Statistics */}
-          <InstructorDashboard courses={courses} />
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Khóa học của tôi
+            </h1>
+            <p className="text-gray-600">
+              Quản lý và theo dõi các khóa học bạn đang giảng dạy
+            </p>
+          </div>
+          <button
+            onClick={handleCreateCourse}
+            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={20} />
+            <span>Tạo khóa học mới</span>
+          </button>
+        </div>
 
-          {/* Courses List */}
-          {!courses || courses.length === 0 ? (
-            <EmptyState
-              title="Chưa có khóa học nào"
-              description="Bạn chưa tạo hoặc được phân công hướng dẫn khóa học nào."
-              icon={
-                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              }
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.map((course: any) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  onSelectCourse={handleSelectCourse}
-                  onEditCourse={(courseId) => console.log('Edit course:', courseId)}
-                />
-              ))}
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Book className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Tổng khóa học</p>
+                <p className="text-2xl font-bold text-gray-900">{courses.length}</p>
+              </div>
             </div>
-          )}
-        </>
-      )}
+          </div>
 
-      {/* Students View */}
-      {viewMode === 'students' && (
-        <>
-          {studentsLoading ? (
-            <LoadingSpinner size="lg" className="min-h-[400px]" />
-          ) : studentsError ? (
-            <ErrorMessage
-              message={studentsError}
-              onRetry={refetchStudents}
-              className="m-6"
-            />
-          ) : courseStats ? (
-            <>
-              <CourseStatsDashboard 
-                stats={{
-                  totalStudents: courseStats.totalStudents,
-                  activeStudents: courseStats.activeStudents,
-                  completedStudents: courseStats.completedStudents,
-                  averageProgress: courseStats.averageProgress,
-                  completionRate: courseStats.completionRate,
-                }}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Users className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Đang hoạt động</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {courses.filter(course => course.status === 'active').length}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="bg-yellow-100 p-3 rounded-lg">
+                <Clock className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Nháp</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {courses.filter(course => course.status === 'draft').length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Tìm kiếm khóa học..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as CourseStatus | "all")}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="draft">Nháp</option>
+              <option value="archived">Đã lưu trữ</option>
+            </select>
+          </div>
+        </div>
 
-              {/* Students List */}
-              {courseStats.enrollments.length === 0 ? (
-                <EmptyState
-                  title="Chưa có học viên nào"
-                  description="Chưa có học viên nào đăng ký khóa học này."
-                  icon={
-                    <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                    </svg>
-                  }
-                />
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {courseStats.enrollments.map((enrollment: any) => (
-                    <StudentCard
-                      key={enrollment.id}
-                      enrollment={enrollment}
-                      onViewDetail={handleViewStudentDetail}
-                      onViewQuizStats={handleViewQuizStats}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : null}
-        </>
-      )}
-
-      {/* Student Detail Modal */}
-      <StudentDetailModal
-        isOpen={showStudentModal}
-        onClose={() => setShowStudentModal(false)}
-        selectedEnrollment={selectedEnrollment}
-        studentStats={studentStats}
-        studentStatsLoading={studentStatsLoading}
-        studentStatsError={studentStatsError}
-      />
-
-      {/* Quiz Statistics Modal */}
-      <QuizStatisticsModal
-        isOpen={showQuizModal}
-        onClose={() => setShowQuizModal(false)}
-        selectedEnrollment={selectedEnrollment}
-      />
+        {/* Course Grid */}
+        {filteredCourses.length === 0 ? (
+          <div className="text-center py-12">
+            <Book className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              Không có khóa học nào
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {courses.length === 0 
+                ? "Bắt đầu bằng cách tạo khóa học đầu tiên của bạn."
+                : "Không tìm thấy khóa học nào phù hợp với bộ lọc hiện tại."
+              }
+            </p>
+            {courses.length === 0 && (
+              <div className="mt-6">
+                <button
+                  onClick={handleCreateCourse}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tạo khóa học mới
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCourses.map((course) => (
+              <CourseCard
+                key={course.courseId}
+                course={course}
+                onCourseClick={handleCourseClick}
+                variant="instructor"
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { UUID } from '../utils/UUID';
 import { getCoursesByInstructor } from '../api/course';
 import { getEnrollmentByCourseId } from '../api/enrollment';
 import { useProgressByEnrollment } from './useProgress';
-
+import { Course, EnrollmentWithStats, CourseStats } from '../type';
 const generateMockQuizData = (enrollmentId: UUID) => ({
     totalQuizzes: Math.floor(Math.random() * 10) + 5,
     completedQuizzes: Math.floor(Math.random() * 8) + 2,
@@ -21,45 +21,6 @@ const generateMockQuizData = (enrollmentId: UUID) => ({
         timeSpent: Math.floor(Math.random() * 30) + 10, // minutes
     }))
 });
-
-interface Course {
-    id: UUID;
-    title: string;
-    description?: string;
-    createdAt: string;
-    updatedAt: string;
-    category?: string;
-    imageUrl?: string;
-    level?: string;
-    slug?: string;
-}
-
-interface EnrollmentWithStats {
-    id: UUID;
-    userId: UUID;
-    courseId: UUID;
-    progressPercentage: number;
-    status: string;
-    totalWatchTimeMinutes: number;
-    enrolledAt: string;
-    lastAccessedAt?: string;
-    completionDate?: string;
-    // studentName?: string;
-    // studentEmail?: string;
-    // quizStats?: any;
-}
-
-interface CourseStats {
-    courseId: UUID;
-    courseName: string;
-    totalStudents: number;
-    activeStudents: number;
-    completedStudents: number;
-    averageProgress: number;
-    totalWatchTime: number;
-    completionRate: number;
-    enrollments: EnrollmentWithStats[];
-}
 
 export const useInstructorCourses = (instructorId: UUID | undefined) => {
     const [courses, setCourses] = useState<Course[]>([]);

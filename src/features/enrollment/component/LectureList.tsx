@@ -1,5 +1,5 @@
 import React from "react";
-import { Lecture } from "../hook/useSession";
+import { Lecture } from "../type/index";
 import { UUID } from "../utils/UUID";
 
 interface LectureListProps {
