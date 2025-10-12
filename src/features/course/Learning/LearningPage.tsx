@@ -11,6 +11,7 @@ import NoteTab from "./NoteTab";
 import ReviewPage from "./ReviewTag";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
+import CodingExerciseTab from "./CodingTag";
 
 
 const LearningPage: React.FC = () => {
@@ -73,6 +74,7 @@ const LearningPage: React.FC = () => {
             )}
             {activeTab === "Thông báo" && <div>Chưa có thông báo nào.</div>}
             {activeTab === "Đánh giá" && <ReviewPage />}
+            {activeTab === "Coding Exercise" && <CodingExerciseTab />}
           </div>
           <LearningFooter />
         </main>
