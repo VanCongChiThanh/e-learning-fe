@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../app/store";
-import { logout, logoutAsync } from "../../features/auth/store/authSlice";
+import { logoutAsync } from "../../features/auth/store/authSlice";
 import { NotificationBell } from "../Notification";
 import Dropdown from "../Dropdown/Dropdown";
 import { useState } from "react";
@@ -9,14 +9,25 @@ import "./Header.scss";
 
 const Header: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.auth);
 
   // State
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleLogout = () => {
     dispatch(logoutAsync());
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/courses/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate("/courses/search");
+    }
   };
 
   return (
@@ -30,17 +41,26 @@ const Header: React.FC = () => {
         </Link>
 
         {/* Search box (desktop only) */}
-        <div className="search-box hidden md:flex items-center">
-          <input type="text" placeholder="Tìm khóa học..." />
-          <button>
+        <form
+          onSubmit={handleSearch}
+          className="search-box hidden md:flex items-center"
+        >
+          <input
+            type="text"
+            placeholder="Tìm khóa học..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button type="submit" aria-label="Tìm kiếm">
             <i className="fa-solid fa-search"></i>
           </button>
-        </div>
+        </form>
 
         {/* Nút menu mobile */}
         <button
           className="md:hidden text-2xl"
           onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Menu"
         >
           <i className="fa-solid fa-bars"></i>
         </button>
@@ -51,10 +71,12 @@ const Header: React.FC = () => {
             <i className="fa-solid fa-shopping-cart text-xl"></i>
           </Link>
 
-          {/* Notification bell */}
-          <button className="notification-btn relative">
-            <NotificationBell />
-          </button>
+          {/* Notification bell - chỉ hiển thị khi đã đăng nhập */}
+          {user && (
+            <div className="notification-btn relative">
+              <NotificationBell />
+            </div>
+          )}
           {/* Dropdown "Xem thêm" */}
 
           {user?.role === "LEARNER" && (
@@ -143,16 +165,23 @@ const Header: React.FC = () => {
       </div>
 
       {/* Menu mobile */}
-      {/* Menu mobile */}
       {mobileOpen && (
         <div className="md:hidden flex flex-col gap-2 px-4 py-2 bg-gray-50 border-t">
           {/* Search box mobile */}
-          <div className="search-box flex items-center mb-2">
-            <input type="text" placeholder="Tìm khóa học..." />
-            <button>
+          <form
+            onSubmit={handleSearch}
+            className="search-box flex items-center mb-2"
+          >
+            <input
+              type="text"
+              placeholder="Tìm khóa học..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button type="submit" aria-label="Tìm kiếm">
               <i className="fa-solid fa-search"></i>
             </button>
-          </div>
+          </form>
 
           {/* Nếu chưa login */}
           {!user && (

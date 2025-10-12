@@ -7,21 +7,20 @@ import Progress from "./Progress";
 interface SessionLearnProps {
     courseId: UUID;
     enrollmentId: UUID;
+    userId: UUID;
     onBack: () => void;
 }
 
-const SessionLearn: React.FC<SessionLearnProps> = ({ courseId, enrollmentId, onBack }) => {
+const SessionLearn: React.FC<SessionLearnProps> = ({ courseId, enrollmentId, userId, onBack }) => {
   const [selectedSessionId, setSelectedSessionId] = useState<UUID | null>(null);
   const [selectedLectureId, setSelectedLectureId] = useState<UUID | null>(null);
   const [showLectures, setShowLectures] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
   
-  // Sử dụng hooks để lấy sessions và thống kê
   const { sessions, loading: sessionsLoading, error: sessionsError } = useSessionsByCourse(courseId, enrollmentId);
   console.log("Sessions:", sessions);
     const sessionStats = useSessionStats(courseId, enrollmentId);
   
-  // Lấy lectures khi đã chọn session
   const { lectures, loading: lecturesLoading, error: lecturesError } = useLecturesBySession(selectedSessionId || undefined, enrollmentId);
   const lectureStats = useLectureStats(selectedSessionId || undefined, enrollmentId);
 
@@ -59,7 +58,7 @@ const SessionLearn: React.FC<SessionLearnProps> = ({ courseId, enrollmentId, onB
             Quay lại danh sách bài giảng
           </button>
         </div>
-        <Progress />
+        {selectedLectureId && <Progress selectedLectureId={selectedLectureId} userId={userId} enrollmentId={enrollmentId }/>}
       </div>
     );
   }

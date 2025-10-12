@@ -38,3 +38,7 @@ export const getProgressByEnrollmentId = async (enrollmentId: UUID): Promise<any
   return res.data;
 };
 
+export const getProgressByLectureId = async (lectureId: UUID): Promise<any> => {
+  const res: AxiosResponse = await axiosAuth.get(`/progress/lecture/${lectureId}`);
+  return res.data;
+}

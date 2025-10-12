@@ -5,7 +5,9 @@ const tabs = [
   "Ghi chú",
   "Thông báo",
   "Đánh giá",
+  "Coding Exercise",
   "Công cụ học tập",
+  "Quiz",
 ];
 
 const LearningTabs: React.FC<{ active: string; setActive: (tab: string) => void }> = ({ active, setActive }) => (

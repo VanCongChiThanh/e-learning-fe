@@ -1,5 +1,5 @@
 import React from "react";
-import { Lecture } from "../hook/useSession";
+import { Lecture } from "../type/index";
 import { UUID } from "../utils/UUID";
 
 interface LectureListProps {
@@ -34,7 +34,7 @@ const LectureList: React.FC<LectureListProps> = ({
       </div>
     );
   }
-
+  console.log(lectures);
   return (
     <div className="bg-white rounded-lg shadow-sm border">
       <div className="p-6 border-b">

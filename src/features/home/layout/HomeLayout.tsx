@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 
 const HomeLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col px-16" style={{ maxWidth: 1400, margin: "0 auto" }}>
       {/* Sub Header */}
       <header
         className="
@@ -69,7 +69,7 @@ const HomeLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
       </header>
 
       {/* Main */}
-      <main className="flex-1 py-8">{children}</main>
+      <main className="flex-1 py-16">{children}</main>
     </div>
   );
 };
