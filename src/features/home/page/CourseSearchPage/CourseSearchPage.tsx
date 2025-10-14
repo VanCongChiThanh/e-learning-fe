@@ -572,7 +572,7 @@ const CourseSearchPage: React.FC = () => {
                   <div className="courses-grid">
                     {courses.map((course) => (
                       <Link
-                        to={`/course/${course.slug}`}
+                        to={`/courses/${course.slug}`}
                         key={course.courseId}
                         className="course-card"
                       >
