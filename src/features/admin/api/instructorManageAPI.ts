@@ -4,8 +4,10 @@ import axiosAuth from "../../../api/axiosAuth";
 // ---- Request/Response Types ----
 export interface PageInfo {
   current_page: number;
+  next_page: number;
+  prev_page: number;
   total_pages: number;
-  total_items: number;
+  total_count: number;
 }
 
 export interface UserInfoResponse {
@@ -15,14 +17,19 @@ export interface UserInfoResponse {
 }
 
 export interface InstructorCandidateResponse {
+  id: string;
   user_info: UserInfoResponse;
   cv_url: string;
   portfolio_link: string;
   motivation?: string;
+  status: ApplicationStatus;
 }
 
-
-export type ApplicationStatus = "APPROVED" | "REJECTED" | "PENDING" | "CANCELED";
+export type ApplicationStatus =
+  | "APPROVED"
+  | "REJECTED"
+  | "PENDING"
+  | "CANCELED";
 
 export interface ReviewApplicationRequest {
   status: ApplicationStatus;
@@ -42,14 +49,14 @@ export const instructorManageApi = {
     page = 1,
     paging = 5,
     sort = "created_at",
-    order: "asc" | "desc" = "desc"
+    order: "asc" | "desc" = "desc",
+    status?: ApplicationStatus
   ): Promise<ApiResponse<InstructorCandidateResponse[]>> => {
     const res = await axiosAuth.get(`/instructor/applications/all`, {
-      params: { page, paging, sort, order },
+      params: { page, paging, sort, order, ...(status && { status }) },
     });
     return res.data;
   },
-
 
   cancelApplication: async (
     applicationId: string
@@ -65,7 +72,7 @@ export const instructorManageApi = {
     request: ReviewApplicationRequest
   ): Promise<ApiResponse<null>> => {
     const res = await axiosAuth.patch(
-      `/instructor/${applicationId}/review`,
+      `/instructor/applications/${applicationId}/review`,
       request
     );
     return res.data;
