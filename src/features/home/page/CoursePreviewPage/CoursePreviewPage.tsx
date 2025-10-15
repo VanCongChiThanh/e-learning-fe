@@ -38,7 +38,6 @@ export default function CoursePreviewPage() {
           const sectionsResponse = await getSectionsByCourseId(
             courseData.courseId
           );
-          console.log("Fetched sections:", sectionsResponse);
           setSections(sectionsResponse);
         }
       } catch (error) {
@@ -64,9 +63,13 @@ export default function CoursePreviewPage() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="course-preview-loading text-center">
-          <div className="fa fa-spinner mx-auto my-4"></div>
-            <p>Đang tải thông tin khóa học...</p>
+        <div className="course-preview-page">
+          <div className="course-preview-loading">
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>Đang tải thông tin khóa học...</p>
+            </div>
+          </div>
         </div>
       </MainLayout>
     );

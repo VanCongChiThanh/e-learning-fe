@@ -1,3 +1,25 @@
+// Color Variables - Green Theme
+$primary-green: #106c54;
+$primary-green-dark: #0d5643;
+$primary-green-light: #13856a;
+$accent-green: #1a9876;
+$light-green-bg: #f0f9f6;
+$very-light-green: #e8f5f1;
+
+// Neutral Colors
+$text-primary: #1c1d1f;
+$text-secondary: #6a6f73;
+$text-light: #8c9196;
+$border-color: #d1d7dc;
+$white: #ffffff;
+$error-red: #dc3545;
+
+// Spacing
+$container-max-width: 1200px;
+$section-spacing: 3rem;
+
+// Transitions
+$transition-smooth: all 0.3s ease;
 // Course Preview Page - Udemy-inspired Design
 .course-preview-page {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -62,10 +84,16 @@
     }
 
     .container-course-header {
-      max-width: 800px;
+      max-width: 1300px;
+      margin: 0 auto;
       padding: 0 3.5rem;
       position: relative;
       z-index: 1;
+
+      @media (min-width: 1025px) {
+        /* Tạo khoảng trống cho sidebar bên phải nhưng vẫn căn giữa */
+        padding-right: calc(380px + 3.5rem); /* sidebar width + padding */
+      }
     }
 
     .breadcrumb {
@@ -1155,12 +1183,33 @@
     }
   }
 
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
+  .course-preview-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    padding: 2rem;
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+
+      .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid $light-green-bg;
+        border-top-color: $primary-green;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      p {
+        font-size: 1.125rem;
+        color: #6a6f73;
+        font-weight: 500;
+      }
     }
   }
 
@@ -1255,5 +1304,12 @@
         grid-template-columns: 1fr;
       }
     }
+  }
+}
+
+// Loading animation
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
