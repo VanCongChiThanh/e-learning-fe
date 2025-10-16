@@ -30,3 +30,15 @@ export const applyInstructor = async (data: ApplyInstructorRequest) => {
   const response = await axiosAuth.post("/instructor/applications/apply", data);
   return response.data;
 };
+
+
+//course detail
+export const getCourseDetailBySlug = async (slug: string) => {
+  const response = await axiosClient.get(`/courses/slug/${slug}/detail`);
+  return response.data.data;
+};
+
+export const getSectionsByCourseId = async (courseId: string) => {
+  const response = await axiosAuth.get(`/courses/${courseId}/sections`);
+  return response.data.data;
+}

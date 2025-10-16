@@ -1,6 +1,7 @@
 import ProtectedRoute from "../../routes/ProtectedRoute";
 import LearnerProfileEdit from "./learner/Edit";
 import InstructorProfileEdit from "./instructor/Edit";
+import InstructorProfilePage from "./instructor/InstructorProfilePage"; 
 export const profileRoutes = [
   {
     path: "/account-profile",
@@ -16,6 +17,12 @@ export const profileRoutes = [
       <ProtectedRoute roles={["INSTRUCTOR"]} redirect="/login">
           <InstructorProfileEdit />
       </ProtectedRoute>
+    ),
+  },
+  {
+    path:"/instructor/:id",
+    element: (
+          <InstructorProfilePage />
     ),
   }
 ];

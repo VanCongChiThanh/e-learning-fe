@@ -328,7 +328,7 @@ export default function LandingPage() {
         <section className="benefits-section">
           <div className="section-title">
             <h2 className="benefits-main-title">
-              6 Điểm Khác Biệt Tại Coursevo Giúp Bạn Thăng Tiến Trong Sự Nghiệp
+              6 Điểm Khác Biệt Tại <span style={{ color: "#106c54" }}>Coursevo</span> Giúp Bạn Thăng Tiến Trong Sự Nghiệp
             </h2>
             <div className="benefits-progress">
               <div
