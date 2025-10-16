@@ -127,23 +127,73 @@ $text-secondary: #6b7280;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       position: sticky;
       top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+
+      /* Custom scrollbar */
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: #f3f4f6;
+        border-radius: 3px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 3px;
+
+        &:hover {
+          background: #9ca3af;
+        }
+      }
 
       @media (max-width: 968px) {
         width: 100%;
         position: relative;
         top: 0;
+        max-height: none;
+        overflow-y: visible;
       }
 
       .filter-header {
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
         border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
 
         h3 {
           font-size: 1rem;
           font-weight: 700;
           color: #111827;
           margin: 0;
+        }
+
+        .clear-all-filters {
+          padding: 0.4rem 0.75rem;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #dc2626;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+
+          &:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            transform: translateY(-1px);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
         }
       }
 
@@ -198,17 +248,21 @@ $text-secondary: #6b7280;
           }
         }
 
-        .clear-filter {
+        .show-more-btn {
+          display: block;
           margin-top: 0.75rem;
-          font-size: 0.75rem;
-          color: #1a5f3f;
+          padding: 0;
           background: none;
           border: none;
-          cursor: pointer;
-          padding: 0;
+          font-size: 0.8125rem;
           font-weight: 600;
+          color: #1a5f3f;
+          cursor: pointer;
+          text-align: left;
+          transition: all 0.2s ease;
 
           &:hover {
+            color: #2d8659;
             text-decoration: underline;
           }
         }
