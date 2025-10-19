@@ -6,7 +6,7 @@ const tabs = [
   "Thông báo",
   "Đánh giá",
   "Coding Exercise",
-  "Công cụ học tập",
+  "Sự kiện",
   "Quiz",
 ];
 

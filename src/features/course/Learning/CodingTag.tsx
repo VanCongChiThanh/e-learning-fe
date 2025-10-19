@@ -1,190 +1,68 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { getCodeExercisesByLecture, ExerciseListItem } from '../api'; // Import hàm và kiểu dữ liệu mới
 
-// Định nghĩa các ngôn ngữ được hỗ trợ dựa trên file POSTMAN_EXAMPLES.md
-const supportedLanguages = [
-  { id: 71, name: "Python (3.8.1)" },
-  { id: 63, name: "JavaScript (Node.js 12.14.0)" },
-  { id: 62, name: "Java (OpenJDK 13.0.1)" },
-  { id: 54, name: "C++ (GCC 9.2.0)" },
-  { id: 50, name: "C (GCC 9.2.0)" },
-  { id: 74, name: "TypeScript (3.7.4)" },
-];
-
-// Định nghĩa kiểu cho kết quả trả về từ API
-interface JudgeResult {
-  stdout: string | null;
-  time: string;
-  memory: number;
-  stderr: string | null;
-  compile_output: string | null;
-  status: {
-    id: number;
-    description: string;
-  };
+interface CodingExerciseTabProps {
+  lectureId: string;
 }
 
-const CodingExerciseTab: React.FC = () => {
-  const [languageId, setLanguageId] = useState<number>(71); // Mặc định là Python
-  const [sourceCode, setSourceCode] = useState<string>("");
-  const [stdin, setStdin] = useState<string>("");
-  const [expectedOutput, setExpectedOutput] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [result, setResult] = useState<JudgeResult | null>(null);
+const CodingExerciseTab: React.FC<CodingExerciseTabProps> = ({ lectureId }) => {
+  const [exercises, setExercises] = useState<ExerciseListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const handleTestCode = async () => {
-    setIsLoading(true);
-    setResult(null);
-    setError(null);
+  useEffect(() => {
+    if (!lectureId) return;
 
-    const payload = {
-      language_id: languageId,
-      source_code: sourceCode,
-      stdin: stdin,
-      expected_output: expectedOutput,
+    const fetchExercises = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getCodeExercisesByLecture(lectureId);
+        setExercises(data);
+      } catch (err) {
+        setError("Không thể tải danh sách bài tập. Vui lòng thử lại.");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    try {
-      const response = await axios.post("https://judge-coursevo.onrender.com/api/judge/test", payload);
-      setResult(response.data.judge_result);
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError(`Lỗi: ${err.response.status} - ${err.response.data.detail || err.message}`);
-      } else {
-        setError("Không thể kết nối đến máy chủ chấm bài. Vui lòng kiểm tra lại API!");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    fetchExercises();
+  }, [lectureId]);
+
+  if (isLoading) {
+    return <div className="text-center p-8">Đang tải danh sách bài tập...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-8 text-red-500">{error}</div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto py-8">
-      <h2 className="text-2xl font-bold mb-6">Thực hành Code</h2>
-      
-      {/* Khu vực nhập liệu */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Cột trái: Ngôn ngữ và Source Code */}
-        <div>
-          <div className="mb-4">
-            <label htmlFor="language-select" className="block text-sm font-medium text-gray-700 mb-1">
-              Chọn ngôn ngữ
-            </label>
-            <select
-              id="language-select"
-              value={languageId}
-              onChange={(e) => setLanguageId(Number(e.target.value))}
-              className="w-full border rounded px-3 py-2 bg-white"
-            >
-              {supportedLanguages.map((lang) => (
-                <option key={lang.id} value={lang.id}>
-                  {lang.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="source-code" className="block text-sm font-medium text-gray-700 mb-1">
-              Mã nguồn của bạn
-            </label>
-            <textarea
-              id="source-code"
-              rows={15}
-              className="w-full border rounded px-3 py-2 font-mono text-sm"
-              placeholder="Viết code của bạn ở đây..."
-              value={sourceCode}
-              onChange={(e) => setSourceCode(e.target.value)}
-            />
-          </div>
+      <h2 className="text-2xl font-bold mb-6">Danh sách bài tập lập trình</h2>
+      {exercises.length === 0 ? (
+        <div className="bg-white p-6 rounded-lg shadow text-center text-gray-500">
+          Chưa có bài tập nào cho bài giảng này.
         </div>
-        
-        {/* Cột phải: Input và Output */}
-        <div>
-          <div className="mb-4">
-            <label htmlFor="stdin" className="block text-sm font-medium text-gray-700 mb-1">
-              Standard Input (stdin)
-            </label>
-            <textarea
-              id="stdin"
-              rows={5}
-              className="w-full border rounded px-3 py-2 font-mono text-sm"
-              placeholder="Nhập đầu vào cho chương trình (nếu có)"
-              value={stdin}
-              onChange={(e) => setStdin(e.target.value)}
-            />
-          </div>
-          <div>
-            <label htmlFor="expected-output" className="block text-sm font-medium text-gray-700 mb-1">
-              Expected Output (Tùy chọn)
-            </label>
-            <textarea
-              id="expected-output"
-              rows={5}
-              className="w-full border rounded px-3 py-2 font-mono text-sm"
-              placeholder="Nhập kết quả mong đợi để so sánh"
-              value={expectedOutput}
-              onChange={(e) => setExpectedOutput(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Nút thực thi */}
-      <div className="mt-6">
-        <button
-          onClick={handleTestCode}
-          disabled={isLoading}
-          className="px-6 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700 disabled:bg-purple-300"
-        >
-          {isLoading ? "Đang chạy..." : "Chạy thử"}
-        </button>
-      </div>
-
-      {/* Khu vực hiển thị kết quả */}
-      {error && (
-        <div className="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          <p className="font-bold">Đã xảy ra lỗi</p>
-          <p>{error}</p>
-        </div>
-      )}
-
-      {result && (
-        <div className="mt-6 p-4 border rounded bg-gray-50">
-          <h3 className="text-xl font-bold mb-4">Kết quả</h3>
-          <div
-            className={`px-3 py-1 inline-block rounded-full text-white text-sm mb-4 ${
-              result.status.description === "Accepted" ? "bg-green-500" : "bg-red-500"
-            }`}
-          >
-            {result.status.description}
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 text-sm">
-            <div><strong>Thời gian:</strong> {result.time}s</div>
-            <div><strong>Bộ nhớ:</strong> {result.memory} KB</div>
-          </div>
-
-          {result.stdout && (
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-800 mb-1">Output (stdout):</label>
-              <pre className="bg-gray-900 text-white p-3 rounded font-mono text-sm">{result.stdout}</pre>
-            </div>
-          )}
-
-          {result.stderr && (
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-red-600 mb-1">Error (stderr):</label>
-              <pre className="bg-red-100 text-red-800 p-3 rounded font-mono text-sm">{result.stderr}</pre>
-            </div>
-          )}
-
-          {result.compile_output && (
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-yellow-600 mb-1">Compile Output:</label>
-              <pre className="bg-yellow-100 text-yellow-800 p-3 rounded font-mono text-sm">{result.compile_output}</pre>
-            </div>
-          )}
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <ul className="divide-y divide-gray-200">
+            {exercises.map((exercise, index) => (
+              <li key={exercise.id}>
+                <Link
+                  to={`/code-exercise/${exercise.id}`} // Điều hướng đến trang code mới
+                  className="block p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center">
+                    <span className="text-lg font-bold text-purple-600 mr-4">{index + 1}</span>
+                    <span className="font-semibold text-gray-800">{exercise.title}</span>
+                    <i className="fas fa-arrow-right ml-auto text-gray-400"></i>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
