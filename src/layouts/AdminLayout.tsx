@@ -8,9 +8,17 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    dispatch(logoutAsync());
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await dispatch(logoutAsync()).unwrap();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const menuItems = [
@@ -97,12 +105,24 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* Logout */}
         <div className="p-4 border-t border-slate-700/50 bg-slate-800/30">
           <button
-            className="flex items-center gap-3 w-full p-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 group"
+            className="flex items-center gap-3 w-full p-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleLogout}
+            disabled={isLoggingOut}
           >
-            <i className="fa-solid fa-right-from-bracket group-hover:translate-x-1 transition-transform duration-200"></i>
-            {!collapsed && (
-              <span className="text-sm font-medium">Đăng xuất</span>
+            {isLoggingOut ? (
+              <>
+                <i className="fa-solid fa-spinner fa-spin"></i>
+                {!collapsed && (
+                  <span className="text-sm font-medium">Đang đăng xuất...</span>
+                )}
+              </>
+            ) : (
+              <>
+                <i className="fa-solid fa-right-from-bracket group-hover:translate-x-1 transition-transform duration-200"></i>
+                {!collapsed && (
+                  <span className="text-sm font-medium">Đăng xuất</span>
+                )}
+              </>
             )}
           </button>
         </div>
@@ -115,7 +135,8 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div className="flex items-center gap-3">
             <div className="w-1 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-              Admin Dashboard
+              {menuItems.find((item) => item.path === location.pathname)
+                ?.label || "Admin Dashboard"}
             </h1>
           </div>
           <div className="flex items-center gap-3">
