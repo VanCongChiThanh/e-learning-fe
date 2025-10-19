@@ -1,180 +1,168 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { getQuestionsForQuiz, getQuestionDetail } from '../api'; // Sử dụng API đã có
-
-// Định nghĩa các ngôn ngữ được hỗ trợ (giống hệt CodingTag)
-const supportedLanguages = [
-  { id: 71, name: "Python (3.8.1)" },
-  { id: 63, name: "JavaScript (Node.js 12.14.0)" },
-  { id: 62, name: "Java (OpenJDK 13.0.1)" },
-  { id: 54, name: "C++ (GCC 9.2.0)" },
-];
-
-// Kiểu dữ liệu cho một bài quiz coding
-interface CodingQuizQuestion {
-  id: string;
-  questionText: string;
-  stdin: string;         // Input cho bài toán
-  answerText: string;    // Output mong muốn (sử dụng trường answerText)
-}
-
-// Kiểu dữ liệu cho kết quả từ server chấm bài
-interface JudgeResult {
-  stdout: string | null;
-  time: string;
-  memory: number;
-  stderr: string | null;
-  compile_output: string | null;
-  status: {
-    id: number;
-    description: string;
-  };
-}
+import { getQuizDetail, getQuestionsForQuiz, submitQuizAnswers, QuizDetail, QuizQuestion } from '../api';
 
 interface QuizTabProps {
   quizId: string;
 }
 
 const QuizTab: React.FC<QuizTabProps> = ({ quizId }) => {
-  // State để lưu dữ liệu bài toán
-  const [quizData, setQuizData] = useState<CodingQuizQuestion | null>(null);
-  const [isFetchingQuiz, setIsFetchingQuiz] = useState(true);
+  // State quản lý toàn bộ component
+  const [quizState, setQuizState] = useState<'loading' | 'taking' | 'submitting' | 'results'>('loading');
+  
+  // State lưu dữ liệu từ API
+  const [quizDetail, setQuizDetail] = useState<QuizDetail | null>(null);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  
+  // State cho quá trình làm bài
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({}); // { questionId: selectedOptionId }
+  
+  // State cho kết quả
+  const [score, setScore] = useState<number | null>(null);
 
-  // State cho việc lập trình (lấy từ CodingTag.tsx)
-  const [languageId, setLanguageId] = useState<number>(54); // Mặc định là C++
-  const [sourceCode, setSourceCode] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [result, setResult] = useState<JudgeResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  // Tải dữ liệu đề bài khi quizId thay đổi
+  // Fetch dữ liệu quiz và câu hỏi khi component được mount
   useEffect(() => {
-    if (!quizId) return;
-
-    const fetchQuiz = async () => {
-      setIsFetchingQuiz(true);
-      setResult(null); // Xóa kết quả cũ
-      setSourceCode(""); // Xóa code cũ
+    const fetchQuizData = async () => {
+      setQuizState('loading');
       try {
-        // API trả về một mảng, ta lấy phần tử đầu tiên
-        const quizDataArray: any[] = await getQuestionsForQuiz(quizId);
-        if (quizDataArray && quizDataArray.length > 0) {
-          const firstQuestion = quizDataArray[0];
-          setQuizData({
-            id: firstQuestion.id,
-            questionText: firstQuestion.questionText,
-            // Giả sử stdin được lưu trong một trường nào đó, nếu không có thì để rỗng
-            // Ở đây tạm dùng một placeholder, bạn cần điều chỉnh cho đúng với backend
-            stdin: firstQuestion.stdin || "5\n1 2 3 4 5", 
-            answerText: firstQuestion.answerText || "1\n2\n3\n4\n5", // Đây là expectedOutput
-          });
-        }
-      } catch (err) {
-        setError("Không thể tải được đề bài. Vui lòng thử lại.");
-        console.error("Lỗi khi tải câu hỏi quiz:", err);
-      } finally {
-        setIsFetchingQuiz(false);
+        const [detail, questionsData] = await Promise.all([
+          getQuizDetail(quizId),
+          getQuestionsForQuiz(quizId)
+        ]);
+        setQuizDetail(detail);
+        setQuestions(questionsData.sort((a, b) => a.sortOrder - b.sortOrder));
+        setQuizState('taking');
+      } catch (error) {
+        console.error("Không thể tải bài kiểm tra", error);
+        // Có thể thêm state để hiển thị lỗi
       }
     };
-    fetchQuiz();
+    fetchQuizData();
   }, [quizId]);
 
-  // Hàm gửi code đi chấm (giống hệt CodingTag.tsx)
-  const handleTestCode = async () => {
-    if (!quizData) return;
+  // Hàm xử lý khi người dùng chọn một đáp án
+  const handleSelectOption = (questionId: string, optionId: string) => {
+    setUserAnswers(prev => ({
+      ...prev,
+      [questionId]: optionId,
+    }));
+  };
 
-    setIsLoading(true);
-    setResult(null);
-    setError(null);
-
-    const payload = {
-      language_id: languageId,
-      source_code: sourceCode,
-      stdin: quizData.stdin,                  // Sử dụng stdin từ API
-      expected_output: quizData.answerText, // Sử dụng answerText từ API làm output mong muốn
-    };
-
-    try {
-      const response = await axios.post("https://judge-coursevo.onrender.com/api/judge/test", payload);
-      setResult(response.data.judge_result);
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError(`Lỗi: ${err.response.status} - ${err.response.data.detail || err.message}`);
-      } else {
-        setError("Không thể kết nối đến máy chủ chấm bài. Vui lòng kiểm tra lại API!");
+  // Hàm xử lý khi nhấn nút Nộp bài
+  const handleSubmit = async () => {
+    if (Object.keys(userAnswers).length !== questions.length) {
+      if (!window.confirm("Bạn chưa trả lời hết các câu hỏi. Bạn có chắc muốn nộp bài?")) {
+        return;
       }
-    } finally {
-      setIsLoading(false);
+    }
+    setQuizState('submitting');
+    const formattedAnswers = Object.entries(userAnswers).map(([questionId, selectedOptionId]) => ({
+      questionId,
+      selectedOptionId,
+    }));
+    try {
+      const result = await submitQuizAnswers(quizId, formattedAnswers);
+      setScore(result.score);
+      setQuizState('results');
+    } catch (error) {
+      console.error("Lỗi khi nộp bài:", error);
+      setQuizState('taking'); // Quay lại trạng thái làm bài nếu có lỗi
     }
   };
 
-  if (isFetchingQuiz) return <div>Đang tải đề bài...</div>;
-  if (!quizData) return <div>Không tìm thấy đề bài cho bài tập này.</div>;
+  if (quizState === 'loading') {
+    return <div className="text-center p-12">Đang tải bài kiểm tra...</div>;
+  }
+  
+  if (!quizDetail || questions.length === 0) {
+    return <div className="text-center p-12">Không tìm thấy bài kiểm tra.</div>;
+  }
+
+  // Giao diện hiển thị kết quả
+  if (quizState === 'results') {
+    const isPassed = score !== null && score >= quizDetail.passingScore;
+    return (
+      <div className="max-w-2xl mx-auto py-12 text-center">
+        <h2 className="text-3xl font-bold mb-4">Kết quả bài kiểm tra</h2>
+        <p className={`text-5xl font-bold mb-6 ${isPassed ? 'text-green-500' : 'text-red-500'}`}>{score} / 100</p>
+        <p className="text-xl mb-8">{isPassed ? '🎉 Chúc mừng! Bạn đã vượt qua.' : ' Rất tiếc, bạn chưa đạt.'}</p>
+        <button onClick={() => setQuizState('loading')} className="px-6 py-2 bg-purple-600 text-white rounded font-semibold">Làm lại</button>
+      </div>
+    );
+  }
+
+  // Giao diện làm bài
+  const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
-      {/* Phần hiển thị đề bài */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Đề bài: {quizData.questionText}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Đầu vào (Input)</label>
-            <pre className="bg-gray-100 p-3 rounded font-mono text-sm h-32 overflow-auto">{quizData.stdin}</pre>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Đầu ra mong muốn (Expected Output)</label>
-            <pre className="bg-gray-100 p-3 rounded font-mono text-sm h-32 overflow-auto">{quizData.answerText}</pre>
+    <div className="max-w-3xl mx-auto py-8">
+      <div className="bg-white p-8 rounded-lg shadow-md">
+        <div className="mb-6 pb-6 border-b">
+          <h1 className="text-2xl font-bold text-gray-800">{quizDetail.title}</h1>
+          <p className="text-gray-500">{quizDetail.description}</p>
+          <div className="text-sm text-gray-600 mt-2">
+            <span>Thời gian: {quizDetail.timeLimitMinutes} phút</span>
+            <span className="mx-2">•</span>
+            <span>Số câu hỏi: {questions.length}</span>
           </div>
         </div>
-      </div>
-      
-      {/* Khu vực làm bài (giao diện giống CodingTag.tsx) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* Nội dung câu hỏi */}
         <div>
-          <label htmlFor="language-select" className="block text-sm font-medium text-gray-700 mb-1">Chọn ngôn ngữ</label>
-          <select id="language-select" value={languageId} onChange={(e) => setLanguageId(Number(e.target.value))} className="w-full border rounded px-3 py-2 bg-white">
-            {supportedLanguages.map((lang) => <option key={lang.id} value={lang.id}>{lang.name}</option>)}
-          </select>
-        </div>
-        <div className="md:col-span-2">
-          <label htmlFor="source-code" className="block text-sm font-medium text-gray-700 mb-1">Lời giải của bạn</label>
-          <textarea id="source-code" rows={18} className="w-full border rounded px-3 py-2 font-mono text-sm" placeholder="Viết code của bạn ở đây..." value={sourceCode} onChange={(e) => setSourceCode(e.target.value)} />
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <button onClick={handleTestCode} disabled={isLoading} className="px-6 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700 disabled:bg-purple-300">
-          {isLoading ? "Đang chấm..." : "Nộp bài và Chạy thử"}
-        </button>
-      </div>
-
-      {/* Khu vực hiển thị kết quả (giống hệt CodingTag.tsx) */}
-      {error && (
-        <div className="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          <p className="font-bold">Đã xảy ra lỗi</p>
-          <p>{error}</p>
-        </div>
-      )}
-
-      {result && (
-        <div className="mt-6 p-4 border rounded bg-gray-50">
-          <h3 className="text-xl font-bold mb-4">Kết quả</h3>
-          <div className={`px-3 py-1 inline-block rounded-full text-white text-sm mb-4 ${result.status.description === "Accepted" ? "bg-green-500" : "bg-red-500"}`}>
-            {result.status.description}
+          <p className="text-sm font-semibold text-gray-500 mb-2">Câu {currentQuestionIndex + 1} / {questions.length}</p>
+          <h3 className="text-lg font-semibold mb-6">{currentQuestion.questionText}</h3>
+          
+          {/* Các lựa chọn */}
+          <div className="space-y-4">
+            {currentQuestion.options.map(option => (
+              <label 
+                key={option.id}
+                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all 
+                           ${userAnswers[currentQuestion.id] === option.id ? 'bg-purple-100 border-purple-400 ring-2 ring-purple-300' : 'border-gray-300 hover:bg-gray-50'}`}
+              >
+                <input
+                  type="radio"
+                  name={`question-${currentQuestion.id}`}
+                  value={option.id}
+                  checked={userAnswers[currentQuestion.id] === option.id}
+                  onChange={() => handleSelectOption(currentQuestion.id, option.id)}
+                  className="w-5 h-5"
+                />
+                <span className="ml-4 text-gray-700">{option.optionText}</span>
+              </label>
+            ))}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 text-sm">
-            <div><strong>Thời gian:</strong> {result.time}s</div>
-            <div><strong>Bộ nhớ:</strong> {result.memory} KB</div>
-          </div>
-          {result.stdout && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-1">Output của bạn:</label>
-              <pre className="bg-gray-900 text-white p-3 rounded font-mono text-sm">{result.stdout}</pre>
-            </div>
+        </div>
+
+        {/* Thanh điều hướng và nút Nộp bài */}
+        <div className="mt-8 flex justify-between items-center">
+          <button 
+            onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+            disabled={currentQuestionIndex === 0}
+            className="px-6 py-2 bg-gray-200 text-gray-700 rounded font-semibold disabled:opacity-50"
+          >
+            Trước
+          </button>
+          
+          {currentQuestionIndex === questions.length - 1 ? (
+            <button 
+              onClick={handleSubmit} 
+              disabled={quizState === 'submitting'}
+              className="px-8 py-3 bg-green-500 text-white rounded font-bold hover:bg-green-600 disabled:bg-green-300"
+            >
+              {quizState === 'submitting' ? 'Đang nộp...' : 'Nộp bài'}
+            </button>
+          ) : (
+            <button 
+              onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+              disabled={currentQuestionIndex === questions.length - 1}
+              className="px-6 py-2 bg-purple-600 text-white rounded font-semibold disabled:opacity-50"
+            >
+              Tiếp
+            </button>
           )}
-          {/* ... hiển thị stderr và compile_output nếu có ... */}
         </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -1,97 +1,159 @@
 import { Link } from "react-router-dom";
+import "./Footer.scss";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-12">
-      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Logo + Intro */}
-        <div>
-          <h2 className="text-2xl font-bold text-white">Coursevo</h2>
-          <p className="mt-3 text-sm text-gray-400">
-            Nền tảng học trực tuyến giúp bạn nâng cao kỹ năng và phát triển sự
-            nghiệp.
-          </p>
-        </div>
+    <footer className="footer">
+      <div className="footer-content">
+        <div className="footer-grid">
+          {/* Logo + Intro */}
+          <div className="footer-column">
+            <h2 className="footer-logo">Coursevo</h2>
+            <p className="footer-description">
+              Nền tảng học trực tuyến giúp bạn nâng cao kỹ năng và phát triển sự
+              nghiệp với hàng nghìn khóa học chất lượng cao.
+            </p>
+            <div className="footer-social">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                aria-label="Facebook"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+              </a>
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                aria-label="YouTube"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                aria-label="LinkedIn"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                </svg>
+              </a>
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                aria-label="Twitter"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                </svg>
+              </a>
+            </div>
+          </div>
 
-        {/* Links */}
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-3">Khóa học</h3>
-          <ul className="space-y-2 text-sm">
-            <li>
-              <Link to="/khoa-hoc/tatca" className="hover:text-white">
-                Tất cả khóa học
-              </Link>
-            </li>
-            <li>
-              <Link to="/khoa-hoc/noi-bat" className="hover:text-white">
-                Khóa học nổi bật
-              </Link>
-            </li>
-            <li>
-              <Link to="/khoa-hoc/mien-phi" className="hover:text-white">
-                Khóa học miễn phí
-              </Link>
-            </li>
-          </ul>
-        </div>
+          {/* Links */}
+          <div className="footer-column">
+            <h3 className="footer-title">Khóa học</h3>
+            <ul className="footer-links">
+              <li>
+                <Link to="/khoa-hoc/tatca">Tất cả khóa học</Link>
+              </li>
+              <li>
+                <Link to="/khoa-hoc/noi-bat">Khóa học nổi bật</Link>
+              </li>
+              <li>
+                <Link to="/khoa-hoc/mien-phi">Khóa học miễn phí</Link>
+              </li>
+              <li>
+                <Link to="/khoa-hoc/moi-nhat">Khóa học mới nhất</Link>
+              </li>
+            </ul>
+          </div>
 
-        {/* Support */}
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-3">Hỗ trợ</h3>
-          <ul className="space-y-2 text-sm">
-            <li>
-              <Link to="/about" className="hover:text-white">
-                Về chúng tôi
-              </Link>
-            </li>
-            <li>
-              <Link to="/faq" className="hover:text-white">
-                Câu hỏi thường gặp
-              </Link>
-            </li>
-            <li>
-              <Link to="/contact" className="hover:text-white">
-                Liên hệ
-              </Link>
-            </li>
-          </ul>
-        </div>
+          {/* Categories */}
+          <div className="footer-column">
+            <h3 className="footer-title">Danh mục</h3>
+            <ul className="footer-links">
+              <li>
+                <Link to="/danh-muc/lap-trinh">Lập trình</Link>
+              </li>
+              <li>
+                <Link to="/danh-muc/thiet-ke">Thiết kế</Link>
+              </li>
+              <li>
+                <Link to="/danh-muc/kinh-doanh">Kinh doanh</Link>
+              </li>
+              <li>
+                <Link to="/danh-muc/marketing">Marketing</Link>
+              </li>
+            </ul>
+          </div>
 
-        {/* Social */}
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-3">Kết nối</h3>
-          <div className="flex space-x-4">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-white"
-            >
-              Facebook
-            </a>
-            <a
-              href="https://youtube.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-white"
-            >
-              YouTube
-            </a>
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-white"
-            >
-              LinkedIn
-            </a>
+          {/* Support */}
+          <div className="footer-column">
+            <h3 className="footer-title">Hỗ trợ</h3>
+            <ul className="footer-links">
+              <li>
+                <Link to="/about">Về chúng tôi</Link>
+              </li>
+              <li>
+                <Link to="/faq">Câu hỏi thường gặp</Link>
+              </li>
+              <li>
+                <Link to="/contact">Liên hệ</Link>
+              </li>
+              <li>
+                <Link to="/privacy">Chính sách bảo mật</Link>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
 
       {/* Bottom */}
-      <div className="border-t border-gray-700 py-4 text-center text-sm text-gray-500">
-        © {new Date().getFullYear()} E-Learning. All rights reserved.
+      <div className="footer-bottom">
+        <div className="footer-bottom-content">
+          <p>
+            © {new Date().getFullYear()} Coursevo. Tất cả quyền được bảo lưu.
+          </p>
+          <div className="footer-bottom-links">
+            <Link to="/terms">Điều khoản sử dụng</Link>
+            <span className="separator">•</span>
+            <Link to="/privacy">Chính sách bảo mật</Link>
+            <span className="separator">•</span>
+            <Link to="/sitemap">Sơ đồ trang</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

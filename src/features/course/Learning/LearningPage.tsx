@@ -5,14 +5,18 @@ import LearningTabs from "./LearningTabs";
 import LearningVideo, { TimeTrigger } from "./LearningVideo";
 import LearningSidebar from "./LearningSidebar";
 import LearningFooter from "./LearningFooter";
-import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture  } from "../api";
+import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail,  ExerciseListItem, getQuizDetail, QuizDetail } from "../api";
 import OverviewTab from "./OverviewTab";
 import NoteTab from "./NoteTab";
 import ReviewPage from "./ReviewTag";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 import CodingExerciseTab from "./CodingTag";
-import QuizTab from "./QuizTag"; 
+import CodeExercise from "./CodeExercise"; 
+import EventNotification from "./EventNotification";
+import EventTab, { StoredEvent } from "./EventTag";
+import QuizTab from "./QuizTag";
+
 
 
 
@@ -23,13 +27,25 @@ const LearningPage: React.FC = () => {
   const [sections, setSections] = useState<any[]>([]);
   const [lecturesMap, setLecturesMap] = useState<Record<string, any[]>>({});
   const [currentLecture, setCurrentLecture] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("Overview");
   const userId = useSelector((state: RootState) => state.auth.user?.id);
   const [videoTriggers, setVideoTriggers] = useState<TimeTrigger[]>([]);
+  const [activeTab, setActiveTab] = useState("Tổng quan");
   
 
   // State mới để theo dõi các section đang tải
   const [loadingSections, setLoadingSections] = useState<Set<string>>(new Set());
+
+
+  const [notificationVisible, setNotificationVisible] = useState(false);
+  const [notificationContent, setNotificationContent] = useState<{ title: string; exerciseId: string | null }>({ title: '', exerciseId: null });
+
+  const [storedEvents, setStoredEvents] = useState<StoredEvent[]>([]);
+
+  const [codeNotificationVisible, setCodeNotificationVisible] = useState(false);
+  const [codeNotificationContent, setCodeNotificationContent] = useState<{ title: string; exerciseId: string | null }>({ title: '', exerciseId: null });
+
+  const [quizNotificationVisible, setQuizNotificationVisible] = useState(false);
+  const [quizNotificationContent, setQuizNotificationContent] = useState<{ title: string; quizId: string | null }>({ title: '', quizId: null });
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
 
   
@@ -87,13 +103,72 @@ const LearningPage: React.FC = () => {
     }
   }, [currentLecture]);
   // Hàm xử lý sự kiện được gửi từ LearningVideo
-  const handleVideoEvent = (action: string, type?: string) => {
+  const handleVideoEvent = async  (action: string, type?: string) => {
     console.log(`Event triggered! Type: ${type}, Payload (quizId): ${action}`);
-    if (type === 'QUIZ') {
-      alert(`Đã đến lúc làm bài tập! Nội dung sẽ xuất hiện ở tab "Quiz".`);
-      setActiveQuizId(action); // Lưu lại quizId
-      setActiveTab("Quiz");   // Tự động chuyển tab
+    const addEventToList = (newEvent: Omit<StoredEvent, 'id' | 'timestamp'>) => {
+      setStoredEvents(prevEvents => {
+        const eventId = `${newEvent.type}-${newEvent.payload}-${Date.now()}`;
+        // Tránh thêm sự kiện trùng lặp quá nhanh
+        if (prevEvents.some(e => e.payload === newEvent.payload && e.type === newEvent.type)) {
+          console.log("Sự kiện đã tồn tại, không thêm lại.");
+          return prevEvents;
+        }
+        return [...prevEvents, { ...newEvent, id: eventId, timestamp: new Date() }];
+      });
+    };
+    if (type === 'CODE') {
+      try {
+        // Hiển thị thông báo với trạng thái đang tải
+        setCodeNotificationContent({ title: "Đang tải đề bài...", exerciseId: null });
+        setCodeNotificationVisible(true);
+
+        // Gọi API để lấy chi tiết bài tập
+        const exerciseDetails = await getCodeExerciseDetail(action); // action chính là exerciseId
+        
+        // Cập nhật nội dung thông báo với title thực tế
+        setCodeNotificationContent({
+          title: exerciseDetails.title,
+          exerciseId: exerciseDetails.id,
+        });
+        addEventToList({
+          type: 'CODE',
+          payload: exerciseDetails.id,
+          title: exerciseDetails.title,
+        });
+
+      } catch (error) {
+        console.error("Lỗi khi lấy chi tiết bài tập từ event:", error);
+        // Ẩn thông báo nếu có lỗi
+        setNotificationVisible(false);
+      }
+
+    } else if (type === 'QUIZ') {
+      try{
+        // Logic cho QUIZ vẫn có thể giữ lại alert hoặc nâng cấp sau
+      // alert(`Đã đến lúc làm bài tập trắc nghiệm!`);
+      // setActiveQuizId(action); 
+      // setActiveTab("Quiz");
+      setNotificationContent({ title: "Đang tải đề bài...", exerciseId: null });
+      setQuizNotificationVisible(true);
+      const quizDetails: QuizDetail = await getQuizDetail(action);
+      setQuizNotificationContent({ title: quizDetails.title, quizId: quizDetails.id });
+      setStoredEvents(prev => [...prev, {
+            id: `QUIZ-${quizDetails.id}-${Date.now()}`,
+            type: 'QUIZ',
+            payload: quizDetails.id,
+            title: quizDetails.title,
+            timestamp: new Date()
+        }]);
+
+      }catch(error){
+        console.error("Lỗi khi lấy chi tiết bài kiểm tra từ event:", error);
+        setQuizNotificationVisible(false);
+      }
+      
+      
+      
     }
+    
   };
 
 
@@ -158,6 +233,12 @@ const LearningPage: React.FC = () => {
   const handleToggleSection = (sectionId: string) => {
     fetchLecturesForSection(sectionId);
   };
+  const handleQuizNotificationClick = () => {
+    if (quizNotificationContent.quizId) {
+      setActiveQuizId(quizNotificationContent.quizId);
+      setActiveTab("Quiz");
+    }
+  };
 
   if (!course) return <div>Đang tải khóa học...</div>;
 
@@ -181,16 +262,17 @@ const LearningPage: React.FC = () => {
             )}
             {activeTab === "Thông báo" && <div>Chưa có thông báo nào.</div>}
             {activeTab === "Đánh giá" && <ReviewPage />}
-            {activeTab === "Coding Exercise" && <CodingExerciseTab />}
+            {activeTab === "Coding Exercise" && currentLecture && <CodingExerciseTab lectureId={currentLecture.lectureId!} />}
             {activeTab === "Quiz" && (
-              activeQuizId ? (
+                activeQuizId ? (
                 <QuizTab quizId={activeQuizId} />
-              ) : (
-                <div className="text-center p-8 bg-white rounded-lg shadow">
-                  <p>Chưa có bài tập nào được kích hoạt. Hãy tiếp tục xem video nhé!</p>
+                ) : (
+                <div className="text-center p-12 bg-white rounded-lg shadow">
+                    <p className="text-gray-500">Chưa có bài kiểm tra nào được kích hoạt.</p>
                 </div>
-              )
+                )
             )}
+            {activeTab === "Sự kiện" && <EventTab events={storedEvents} />}
           </div>
           <LearningFooter />
         </main>
@@ -204,6 +286,22 @@ const LearningPage: React.FC = () => {
           loadingSections={loadingSections}
         />
       </div>
+      <EventNotification
+        isVisible={codeNotificationVisible}
+        title={codeNotificationContent.title}
+        message="Có bài tập lập trình mới!"
+        // Truyền link vào prop linkTo
+        linkTo={codeNotificationContent.exerciseId ? `/code-exercise/${codeNotificationContent.exerciseId}` : undefined}
+        onClose={() => setCodeNotificationVisible(false)}
+      />
+      <EventNotification
+        isVisible={quizNotificationVisible}
+        title={quizNotificationContent.title}
+        message="Có bài kiểm tra mới!"
+        // Truyền hàm xử lý vào prop onClick
+        onClick={handleQuizNotificationClick}
+        onClose={() => setQuizNotificationVisible(false)}
+      />
     </div>
   );
 };
