@@ -6,6 +6,7 @@ import MainLayout from "../../layouts/MainLayout";
 import EnrollmentLearn from "../enrollment/student/EnrollmentLearn";
 import InstructorRegistration from "./page/InstructorRegistration/InstructorRegistration";
 import CourseSearchPage from "./page/CourseSearchPage";
+import CartPage from "./page/CartPage/CartPage";
 
 export const homeRoutes = [
   {
@@ -43,4 +44,9 @@ export const homeRoutes = [
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/cart",
+    element: <CartPage />,
+  },
+
 ];

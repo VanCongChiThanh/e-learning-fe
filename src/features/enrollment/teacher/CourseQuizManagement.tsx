@@ -9,7 +9,7 @@ import { QuizCard } from '../component/QuizCard';
 import { StatsCard } from '../common/Progress';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../app/store';
-
+import { toast } from 'react-toastify';
 const CourseQuizManagement: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ const CourseQuizManagement: React.FC = () => {
 
   const handleCreateQuiz = () => {
     if (!selectedLectureId) {
-      alert('Vui lòng chọn bài giảng trước khi tạo quiz');
+      toast.error('Vui lòng chọn bài giảng trước khi tạo quiz');
       return;
     }
     navigate(`/teacher/course/${courseId}/quiz/create/${selectedLectureId}`);
@@ -59,9 +59,9 @@ const CourseQuizManagement: React.FC = () => {
     
     try {
       await removeQuiz(quizId);
-      alert('Xóa quiz thành công');
+      toast.success('Xóa quiz thành công');
     } catch (error) {
-      alert('Có lỗi xảy ra khi xóa quiz');
+      toast.error('Có lỗi xảy ra khi xóa quiz');
       console.error('Error deleting quiz:', error);
     }
   };

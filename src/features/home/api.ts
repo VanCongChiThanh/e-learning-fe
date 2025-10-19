@@ -1,3 +1,4 @@
+import { UUID } from "crypto";
 import axiosAuth from "../../api/axiosAuth";
 import axiosClient from "../../api/axiosClient";
 export interface ApplyInstructorRequest {
@@ -30,3 +31,28 @@ export const applyInstructor = async (data: ApplyInstructorRequest) => {
   const response = await axiosAuth.post("/instructor/applications/apply", data);
   return response.data;
 };
+export const fetchCart = async () => {
+  const response = await axiosAuth.get("/cart");
+  return response.data;
+}
+export const addToCart = async (data: {
+  courseId: string;
+  addedPrice: number;
+}) => {
+  const response = await axiosAuth.post(`/cart/add`, data);
+  return response.data;
+}
+export const createOrder = async (data: {
+  clearCartAfterOrder: true,
+  notes: string
+}) => {
+  const response = await axiosAuth.post("/orders/from-cart", data);
+  return response.data;
+}
+export const paymentOrder = async (orderId: string) => {
+  const response = await axiosAuth.post(`/payments/`, {
+    orderId: orderId,
+    description: "Thanh toan don hang"
+  });
+  return response.data;
+}

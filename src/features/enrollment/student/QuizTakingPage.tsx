@@ -8,6 +8,7 @@ import SubmitConfirmationModal from '../component/SubmitConfirmationModal';
 import './QuizTaking.scss';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../app/store';
+import { toast } from 'react-toastify';
 
 const QuizTakingPage: React.FC = () => {
   const { quizId, enrollmentId } = useParams<{ quizId: string; enrollmentId: string }>();
@@ -138,7 +139,7 @@ const QuizTakingPage: React.FC = () => {
       navigate(`/learn/quiz/${quiz.id}/${enrollmentId}/result/${result.id}`);
     } catch (error) {
       console.error('Error submitting quiz:', error);
-      alert('Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.');
+      toast.error('Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.');
     } finally {
       setIsSubmitting(false);
     }
