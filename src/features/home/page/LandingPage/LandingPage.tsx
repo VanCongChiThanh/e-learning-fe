@@ -131,20 +131,22 @@ const LandingPage: React.FC = () => {
         <div className="landing-container">
           <div className="hero-text">
             <h1>
-              Phát triển kỹ năng giúp{" "}
-              <span className="highlight">sự nghiệp của bạn tiến xa</span>
+              Phát triển kỹ năng để{" "}
+              <span className="highlight">thăng tiến trong sự nghiệp</span>
             </h1>
             <p>
-              Nhận hướng dẫn để phát triển các{" "}
-              <strong>kỹ năng quan trọng</strong> mà bạn cần để{" "}
-              <strong>nâng cao sự nghiệp</strong> — từ nền tảng học tập duy nhất
-              được xây dựng dựa trên thị trường nhân tài lớn nhất thế giới.
+              Nhận định hướng và lộ trình học tập để trau dồi những{" "}
+              <strong>kỹ năng thiết yếu</strong> giúp bạn{" "}
+              <strong>tiến xa hơn trong sự nghiệp</strong> — từ nền tảng học tập
+              hot nhất hiện ngay.
             </p>
             <div className="hero-buttons">
-              <button className="btn btn-primary">
+              <Link to="/register" className="btn btn-primary">
                 Bắt đầu dùng thử miễn phí
-              </button>
-              <button className="btn btn-outline">Mua cho đội của tôi</button>
+              </Link>
+              <Link to="/purchase" className="btn btn-outline">
+                Dành cho doanh nghiệp
+              </Link>
             </div>
           </div>
 
@@ -170,10 +172,11 @@ const LandingPage: React.FC = () => {
             </div>
             <div className="learning-content">
               <h2>Cá nhân hóa việc học của bạn</h2>
-              <p>
-                Đặt mục tiêu nghề nghiệp và sử dụng Đánh giá Kỹ năng để kết nối
-                với khóa học phù hợp với vị trí của bạn trong sự nghiệp.
-              </p>
+              Đặt mục tiêu nghề nghiệp và dùng <strong>
+                Đánh giá Kỹ năng
+              </strong>{" "}
+              để xác định năng lực hiện tại, từ đó kết nối nhanh với các khoá
+              học phù hợp với vị trí bạn đang đứng trên hành trình sự nghiệp.
             </div>
           </div>
 
@@ -186,12 +189,12 @@ const LandingPage: React.FC = () => {
               />
             </div>
             <div className="learning-content">
-              <h2>Học tập có hướng dẫn phù hợp với sự nghiệp</h2>
+              <h2>Học theo lộ trình, bám sát vai trò</h2>
               <p>
-                Khám phá Hướng dẫn Vai trò để hỗ trợ thăng tiến nghề nghiệp của
-                bạn với hơn 35 vai trò khác nhau và hơn 1.300+ lộ trình học tập
-                được chọn lọc kỹ lưỡng để học tập có hướng dẫn và nắm vững kỹ
-                năng chuyên sâu.
+                Khám phá <strong>Hướng dẫn theo Vai trò</strong> với hơn{" "}
+                <strong>35</strong> vai trò và <strong>1.300+</strong> lộ trình
+                đã được tuyển chọn, giúp bạn học có định hướng, xây nền vững
+                chắc và nâng cao các kỹ năng chuyên sâu để thăng tiến.
               </p>
             </div>
           </div>
@@ -383,7 +386,7 @@ const LandingPage: React.FC = () => {
       <section className="credentials-section">
         <div className="credentials-container">
           <div className="credentials-content">
-            <h2 className="credentials-title">Chứng chỉ & Xác thực</h2>
+            <h2 className="credentials-title">Chứng chỉ & Chứng nhận</h2>
             <p className="credentials-description">
               Chứng chỉ chuyên nghiệp từ các nhà cung cấp đáng tin cậy như{" "}
               <strong>Microsoft, Zendesk, LambdaTest</strong> và{" "}
@@ -411,7 +414,7 @@ const LandingPage: React.FC = () => {
           <p className="credentials-stats">
             Hơn <strong>2,000 khóa học</strong> để chuẩn bị cho hơn{" "}
             <strong>120 chứng chỉ</strong> nền tảng bao gồm chứng chỉ, đơn vị
-            giáo dục liên tục và <strong>tín chỉ học thuật</strong>.
+            giáo dục và <strong>tín chỉ học thuật</strong>.
           </p>
         </div>
       </section>
