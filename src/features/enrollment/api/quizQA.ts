@@ -28,7 +28,17 @@ export const createQuizQuestion = async (
   const res: AxiosResponse = await axiosAuth.post(`/quiz-questions/${id}`, data);
   return res.data;
 };
-
+export const createBulkQuizQuestions = async (
+  id: UUID,
+  data: any[]
+): Promise<QuizQuestionAnswerResponse[]> => {
+  console.log("Creating bulk quiz questions with data:", data);
+  const res: AxiosResponse = await axiosAuth.post(`/quiz-questions/${id}/bulk`, {
+    questions: data,
+    quizId: id
+  });
+  return res.data;
+}
 // PUT /api/quiz-questions/{id} -> update
 export const updateQuizQuestion = async (
   id: UUID,
