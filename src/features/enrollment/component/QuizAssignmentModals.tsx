@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UUID } from 'crypto';
+import { toast } from 'react-toastify';
 
 interface QuizFormModalProps {
   isOpen: boolean;
@@ -273,7 +274,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim() || !courseId) {
-      alert('Vui lòng nhập đầy đủ thông tin!');
+      toast.info('Vui lòng nhập đầy đủ thông tin!');
       return;
     }
     

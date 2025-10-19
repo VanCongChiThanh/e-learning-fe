@@ -6,7 +6,7 @@ const tabs = [
   "Thông báo",
   "Đánh giá",
   "Coding Exercise",
-  "Công cụ học tập",
+  "Sự kiện",
   "Quiz",
 ];
 
@@ -15,7 +15,7 @@ const LearningTabs: React.FC<{ active: string; setActive: (tab: string) => void 
     {tabs.map(tab => (
       <button
         key={tab}
-        className={`pb-2 font-medium ${active === tab ? "border-b-2 border-purple-600 text-purple-700" : "text-gray-600"}`}
+        className={`pb-2 font-medium ${active === tab ? "border-[#106c54] text-[#106c54]" : "border-transparent text-gray-600 hover:text-[#106c54]"}`}
         onClick={() => setActive(tab)}
       >
         {tab}

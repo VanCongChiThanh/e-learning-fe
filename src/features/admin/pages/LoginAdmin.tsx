@@ -67,9 +67,10 @@ const LoginAdminPage: React.FC = () => {
 
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200"
           disabled={loading}
         >
+          {loading && <i className="fa-solid fa-spinner fa-spin"></i>}
           {loading ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
       </form>

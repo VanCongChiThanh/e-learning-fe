@@ -1,8 +1,137 @@
 import React, { useEffect, useState } from "react";
 import "./CourseSearchPage.scss";
 import MainLayout from "../../../../layouts/MainLayout";
-import { searchCourses } from "../../api";
-import { Link, useSearchParams } from "react-router-dom";
+import { searchCourses, addToCart } from "../../api";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+// Small inline cart button to avoid nested Link issues
+const CartButton: React.FC<{ course: any }> = ({ course }) => {
+  const navigate = useNavigate();
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isAdding) return; // Prevent double clicks
+    
+    try {
+      setIsAdding(true);
+      
+      // Call addToCart API with correct format
+      await addToCart({
+        courseId: course.courseId,
+        addedPrice: course.price || 0
+      });
+      
+      // Show success message (you can replace with toast notification)
+      toast.success(`Đã thêm "${course.title}" vào giỏ hàng!`);
+      
+      // Optional: Navigate to cart page after adding
+      // navigate("/cart");
+      
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại!");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className={`add-to-cart-btn ${isAdding ? 'adding' : ''}`}
+      onClick={handleClick}
+      disabled={isAdding}
+      title={`Thêm ${course.title} vào giỏ hàng`}
+    >
+      {isAdding ? (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          className="animate-spin"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+            fill="none"
+            strokeDasharray="31.416"
+            strokeDashoffset="31.416"
+            strokeLinecap="round"
+          />
+        </svg>
+      ) : (
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="8" cy="21" r="1"></circle>
+          <circle cx="19" cy="21" r="1"></circle>
+          <path d="m2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+        </svg>
+      )}
+    </button>
+  );
+};
+
+// Reusable Filter Section Component
+interface FilterSectionProps {
+  title: string;
+  options: string[];
+  selectedValues: string[];
+  onToggle: (value: string) => void;
+  getLabel: (value: string) => string;
+  maxVisible?: number;
+}
+
+const FilterSection: React.FC<FilterSectionProps> = ({
+  title,
+  options,
+  selectedValues,
+  onToggle,
+  getLabel,
+  maxVisible = 5,
+}) => {
+  const [showAll, setShowAll] = useState(false);
+  const visibleOptions = showAll ? options : options.slice(0, maxVisible);
+  const hasMore = options.length > maxVisible;
+
+  return (
+    <div className="filter-section">
+      <h4>{title}</h4>
+      <div className="filter-options">
+        {visibleOptions.map((value) => (
+          <label key={value} className="checkbox-label">
+            <input
+              type="checkbox"
+              value={value}
+              checked={selectedValues.includes(value)}
+              onChange={() => onToggle(value)}
+            />
+            <span>{getLabel(value)}</span>
+          </label>
+        ))}
+      </div>
+      {hasMore && (
+        <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
+          {showAll ? "Ẩn bớt" : "Xem thêm"}
+        </button>
+      )}
+    </div>
+  );
+};
 
 interface Tag {
   tagId: string;
@@ -94,8 +223,6 @@ const CourseSearchPage: React.FC = () => {
     total_pages: 1,
     total_count: 0,
   });
-  const [showAllCategories, setShowAllCategories] = useState(false);
-  const [showAllLevels, setShowAllLevels] = useState(false);
 
   // Sync state with URL params when URL changes (e.g., from Header search)
   useEffect(() => {
@@ -346,120 +473,55 @@ const CourseSearchPage: React.FC = () => {
               <aside className="sidebar-filters">
                 <div className="filter-header">
                   <h3>Lọc theo</h3>
-                </div>
-
-                <div className="filter-section">
-                  <h4>Chủ đề</h4>
-                  <div
-                    className={`filter-options ${
-                      !showAllCategories ? "collapsed" : ""
-                    }`}
-                  >
-                    {CATEGORIES.filter((cat) => cat !== "ALL").map((cat) => (
-                      <label key={cat} className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          value={cat}
-                          checked={selectedCategories.includes(cat)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedCategories([
-                                ...selectedCategories,
-                                cat,
-                              ]);
-                            } else {
-                              setSelectedCategories(
-                                selectedCategories.filter((c) => c !== cat)
-                              );
-                            }
-                          }}
-                        />
-                        <span>{getCategoryLabel(cat)}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {CATEGORIES.filter((cat) => cat !== "ALL").length > 4 && (
+                  {(selectedCategories.length > 0 ||
+                    selectedLevels.length > 0 ||
+                    minPrice !== null ||
+                    maxPrice !== null) && (
                     <button
-                      className={`show-more-btn ${
-                        showAllCategories ? "expanded" : ""
-                      }`}
-                      onClick={() => setShowAllCategories(!showAllCategories)}
+                      className="clear-all-filters"
+                      onClick={() => {
+                        setSelectedCategories([]);
+                        setSelectedLevels([]);
+                        setMinPrice(null);
+                        setMaxPrice(null);
+                      }}
                     >
-                      {showAllCategories ? "Ẩn bớt" : "Xem thêm"}
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                  )}
-                  {selectedCategories.length > 0 && (
-                    <button
-                      className="clear-filter"
-                      onClick={() => setSelectedCategories([])}
-                    >
-                      Xóa tất cả
+                      Xóa tất cả bộ lọc
                     </button>
                   )}
                 </div>
 
-                <div className="filter-section">
-                  <h4>Cấp độ</h4>
-                  <div
-                    className={`filter-options ${
-                      !showAllLevels ? "collapsed" : ""
-                    }`}
-                  >
-                    {LEVELS.filter((level) => level !== "ALL").map((level) => (
-                      <label key={level} className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          value={level}
-                          checked={selectedLevels.includes(level)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedLevels([...selectedLevels, level]);
-                            } else {
-                              setSelectedLevels(
-                                selectedLevels.filter((l) => l !== level)
-                              );
-                            }
-                          }}
-                        />
-                        <span>{getLevelLabel(level)}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {LEVELS.filter((level) => level !== "ALL").length > 4 && (
-                    <button
-                      className={`show-more-btn ${
-                        showAllLevels ? "expanded" : ""
-                      }`}
-                      onClick={() => setShowAllLevels(!showAllLevels)}
-                    >
-                      {showAllLevels ? "Ẩn bớt" : "Xem thêm"}
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                  )}
-                  {selectedLevels.length > 0 && (
-                    <button
-                      className="clear-filter"
-                      onClick={() => setSelectedLevels([])}
-                    >
-                      Xóa tất cả
-                    </button>
-                  )}
-                </div>
+                <FilterSection
+                  title="Chủ đề"
+                  options={CATEGORIES.filter((cat) => cat !== "ALL")}
+                  selectedValues={selectedCategories}
+                  onToggle={(cat) => {
+                    if (selectedCategories.includes(cat)) {
+                      setSelectedCategories(
+                        selectedCategories.filter((c) => c !== cat)
+                      );
+                    } else {
+                      setSelectedCategories([...selectedCategories, cat]);
+                    }
+                  }}
+                  getLabel={getCategoryLabel}
+                />
+
+                <FilterSection
+                  title="Cấp độ"
+                  options={LEVELS.filter((level) => level !== "ALL")}
+                  selectedValues={selectedLevels}
+                  onToggle={(level) => {
+                    if (selectedLevels.includes(level)) {
+                      setSelectedLevels(
+                        selectedLevels.filter((l) => l !== level)
+                      );
+                    } else {
+                      setSelectedLevels([...selectedLevels, level]);
+                    }
+                  }}
+                  getLabel={getLevelLabel}
+                />
 
                 <div className="filter-section">
                   <h4>Khoảng giá</h4>
@@ -493,17 +555,6 @@ const CourseSearchPage: React.FC = () => {
                       />
                     </div>
                   </div>
-                  {(minPrice !== null || maxPrice !== null) && (
-                    <button
-                      className="clear-filter"
-                      onClick={() => {
-                        setMinPrice(null);
-                        setMaxPrice(null);
-                      }}
-                    >
-                      Xóa giá
-                    </button>
-                  )}
                 </div>
               </aside>
 
@@ -572,7 +623,7 @@ const CourseSearchPage: React.FC = () => {
                   <div className="courses-grid">
                     {courses.map((course) => (
                       <Link
-                        to={`/course/${course.slug}`}
+                        to={`/courses/${course.slug}`}
                         key={course.courseId}
                         className="course-card"
                       >
@@ -673,14 +724,17 @@ const CourseSearchPage: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                            <div className="course-tags">
-                              {course.tags?.slice(0, 2).map((tag) => (
-                                <span key={tag.tagId} className="tag">
-                                  {tag.name}
-                                </span>
-                              ))}
+                              <div className="course-tags">
+                                {course.tags?.slice(0, 2).map((tag) => (
+                                  <span key={tag.tagId} className="tag">
+                                    {tag.name}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="course-cart">
+                                <CartButton course={course} />
+                              </div>
                             </div>
-                          </div>
                         </div>
                       </Link>
                     ))}

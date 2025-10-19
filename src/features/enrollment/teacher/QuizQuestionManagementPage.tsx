@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UUID } from 'crypto';
-import { getQuizQuestionsByQuizId, createQuizQuestion, updateQuizQuestion, deleteQuizQuestion, QuizQuestionAnswerResponse } from '../api/quizQA';
+import { getQuizQuestionsByQuizId, createBulkQuizQuestions, updateQuizQuestion, deleteQuizQuestion, QuizQuestionAnswerResponse } from '../api/quizQA';
 import { getQuizById, QuizResponse } from '../api/quiz';
+import { toast } from 'react-toastify';
 
 const QuizQuestionManagementPage: React.FC = () => {
   const { courseId, quizId } = useParams<{ courseId: string; quizId: string }>();
@@ -13,7 +14,30 @@ const QuizQuestionManagementPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editingQuestion, setEditingQuestion] = useState<QuizQuestionAnswerResponse | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState<{
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [numberOfQuestions, setNumberOfQuestions] = useState(1);
+  const [bulkFormData, setBulkFormData] = useState<{
+    questionText: string;
+    options: string[];
+    correctAnswerIndex: number;
+    points: number;
+    sortOrder: number;
+  }[]>([]);
+
+  // Initialize bulk form data when number of questions changes
+  useEffect(() => {
+    if (isBulkMode) {
+      const newBulkData = Array.from({ length: numberOfQuestions }, (_, index) => ({
+        questionText: '',
+        options: ['', '', '', ''],
+        correctAnswerIndex: 0,
+        points: 1,
+        sortOrder: questions.length + index + 1,
+      }));
+      setBulkFormData(newBulkData);
+    }
+  }, [numberOfQuestions, isBulkMode, questions.length]);
+  const [singleFormData, setSingleFormData] = useState<{
     questionText: string;
     options: string[];
     correctAnswerIndex: number;
@@ -33,8 +57,8 @@ const QuizQuestionManagementPage: React.FC = () => {
     if (quizId) {
       fetchQuizInfo();
       fetchQuestions();
-      // Update quizId in form data when quizId changes
-      setFormData(prev => ({
+      // Update quizId in single form data when quizId changes
+      setSingleFormData(prev => ({
         ...prev,
         quizId: quizId
       }));
@@ -64,7 +88,7 @@ const QuizQuestionManagementPage: React.FC = () => {
   };
 
   const resetForm = () => {
-    setFormData({
+    setSingleFormData({
       questionText: '',
       options: ['', '', '', ''], // Reset to 4 empty options
       correctAnswerIndex: 0,
@@ -72,53 +96,125 @@ const QuizQuestionManagementPage: React.FC = () => {
       sortOrder: questions.length + 1,
       quizId: quizId || '',
     });
+    setBulkFormData([]);
     setEditingQuestion(null);
     setIsFormOpen(false);
+    setIsBulkMode(false);
+    setNumberOfQuestions(1);
   };
 
   const updateOption = (index: number, value: string) => {
-    const newOptions = [...formData.options];
+    const newOptions = [...singleFormData.options];
     newOptions[index] = value;
-    setFormData({ ...formData, options: newOptions });
+    setSingleFormData({ ...singleFormData, options: newOptions });
+  };
+
+  const updateBulkQuestion = (questionIndex: number, field: string, value: any) => {
+    const newBulkData = [...bulkFormData];
+    newBulkData[questionIndex] = {
+      ...newBulkData[questionIndex],
+      [field]: value
+    };
+    setBulkFormData(newBulkData);
+  };
+
+  const updateBulkOption = (questionIndex: number, optionIndex: number, value: string) => {
+    const newBulkData = [...bulkFormData];
+    const newOptions = [...newBulkData[questionIndex].options];
+    newOptions[optionIndex] = value;
+    newBulkData[questionIndex] = {
+      ...newBulkData[questionIndex],
+      options: newOptions
+    };
+    setBulkFormData(newBulkData);
   };
 
   const handleCreateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.questionText.trim()) {
-      alert('Vui lòng nhập nội dung câu hỏi');
+    if (!singleFormData.questionText.trim()) {
+      toast.error('Vui lòng nhập nội dung câu hỏi');
       return;
     }
     
     try {
-      console.log('Creating question with data:', formData);
-      await createQuizQuestion(quizId as UUID, formData);
+      // Create bulk data structure for single question
+      const bulkData = [{
+        questionText: singleFormData.questionText,
+        options: singleFormData.options,
+        correctAnswerIndex: singleFormData.correctAnswerIndex,
+        points: singleFormData.points,
+        sortOrder: singleFormData.sortOrder,
+        quizId: quizId as UUID
+      }
+      ];
+      
+      console.log('Creating question with data:', bulkData);
+      await createBulkQuizQuestions(quizId as UUID, bulkData);
       resetForm();
       fetchQuestions();
-      alert('Tạo câu hỏi thành công!');
+      toast.success('Tạo câu hỏi thành công!');
     } catch (error) {
       console.error('Error creating question:', error);
-      alert('Có lỗi xảy ra khi tạo câu hỏi');
+      toast.error('Có lỗi xảy ra khi tạo câu hỏi');
+    }
+  };
+
+  const handleCreateBulkQuestions = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate all questions
+    for (let i = 0; i < bulkFormData.length; i++) {
+      if (!bulkFormData[i].questionText.trim()) {
+        toast.error(`Vui lòng nhập nội dung cho câu hỏi ${i + 1}`);
+        return;
+      }
+      // Check if at least one option is filled
+      const hasOptions = bulkFormData[i].options.some(option => option.trim() !== '');
+      if (!hasOptions) {
+        toast.error(`Vui lòng nhập ít nhất một đáp án cho câu hỏi ${i + 1}`);
+        return;
+      }
+    }
+    
+    try {
+      const bulkData = bulkFormData.map(question => ({
+        questionText: question.questionText,
+        options: question.options,
+        correctAnswerIndex: question.correctAnswerIndex,
+        points: question.points,
+        sortOrder: question.sortOrder,
+        quizId: quizId as UUID
+      }));
+      
+      console.log('Creating bulk questions with data:', bulkData);
+      await createBulkQuizQuestions(quizId as UUID, bulkData);
+      resetForm();
+      fetchQuestions();
+      toast.success(`Tạo thành công ${bulkFormData.length} câu hỏi!`);
+    } catch (error) {
+      console.error('Error creating bulk questions:', error);
+       toast.error('Có lỗi xảy ra khi tạo câu hỏi');
     }
   };
 
   const handleUpdateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingQuestion || !formData.questionText.trim()) return;
+    if (!editingQuestion || !singleFormData.questionText.trim()) return;
     
     try {
       const questionData = {
-        questionText: formData.questionText,
-        options: formData.options,
-        correctAnswer: formData.correctAnswerIndex.toString(), // Convert index to string for API
+        questionText: singleFormData.questionText,
+        options: singleFormData.options,
+        correctAnswer: singleFormData.correctAnswerIndex.toString(), // Convert index to string for API
       };
       
       await updateQuizQuestion(editingQuestion.id as UUID, questionData);
       resetForm();
       fetchQuestions();
-      alert('Cập nhật câu hỏi thành công!');
+      toast.success('Cập nhật câu hỏi thành công!');
     } catch (error) {
       console.error('Error updating question:', error);
-      alert('Có lỗi xảy ra khi cập nhật câu hỏi');
+       toast.error('Có lỗi xảy ra khi cập nhật câu hỏi');
     }
   };
 
@@ -128,16 +224,16 @@ const QuizQuestionManagementPage: React.FC = () => {
     try {
       await deleteQuizQuestion(questionId as UUID);
       fetchQuestions();
-      alert('Xóa câu hỏi thành công!');
+      toast.success('Xóa câu hỏi thành công!');
     } catch (error) {
       console.error('Error deleting question:', error);
-      alert('Có lỗi xảy ra khi xóa câu hỏi');
+      toast.error('Có lỗi xảy ra khi xóa câu hỏi');
     }
   };
 
   const handleEditQuestion = (question: QuizQuestionAnswerResponse) => {
     setEditingQuestion(question);
-    setFormData({
+    setSingleFormData({
       questionText: question.questionText,
       options: [...question.options], // Create a copy of the options array
       correctAnswerIndex: question.correctAnswerIndex,
@@ -217,114 +313,294 @@ const QuizQuestionManagementPage: React.FC = () => {
 
         {/* Add Question Button */}
         <div className="mb-6">
-          <button
-            onClick={() => {
-              resetForm();
-              setIsFormOpen(true);
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Thêm câu hỏi mới
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => {
+                resetForm();
+                setIsBulkMode(false);
+                setIsFormOpen(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Thêm 1 câu hỏi
+            </button>
+            
+            <button
+              onClick={() => {
+                resetForm();
+                setIsBulkMode(true);
+                setNumberOfQuestions(3);
+                setIsFormOpen(true);
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+              </svg>
+              Tạo nhiều câu hỏi
+            </button>
+          </div>
         </div>
 
         {/* Question Form */}
         {isFormOpen && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {editingQuestion ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}
-            </h3>
-            <form onSubmit={editingQuestion ? handleUpdateQuestion : handleCreateQuestion}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nội dung câu hỏi *
-                  </label>
-                  <textarea
-                    value={formData.questionText}
-                    onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Đáp án A</label>
-                    <input
-                      type="text"
-                      value={formData.options[0] || ''}
-                      onChange={(e) => updateOption(0, e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Đáp án B</label>
-                    <input
-                      type="text"
-                      value={formData.options[1] || ''}
-                      onChange={(e) => updateOption(1, e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Đáp án C</label>
-                    <input
-                      type="text"
-                      value={formData.options[2] || ''}
-                      onChange={(e) => updateOption(2, e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Đáp án D</label>
-                    <input
-                      type="text"
-                      value={formData.options[3] || ''}
-                      onChange={(e) => updateOption(3, e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Đáp án đúng *</label>
-                    <select
-                      value={formData.correctAnswerIndex}
-                      onChange={(e) => setFormData({ ...formData, correctAnswerIndex: parseInt(e.target.value) })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    >
-                      <option value={0}>A</option>
-                      <option value={1}>B</option>
-                      <option value={2}>C</option>
-                      <option value={3}>D</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3">
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8 border border-gray-200">
+            {!isBulkMode ? (
+              /* Single Question Form */
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    </div>
+                    {editingQuestion ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}
+                  </h3>
                   <button
-                    type="button"
                     onClick={resetForm}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    Hủy
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    {editingQuestion ? 'Cập nhật' : 'Thêm câu hỏi'}
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
-              </div>
-            </form>
+                
+                <form onSubmit={editingQuestion ? handleUpdateQuestion : handleCreateQuestion}>
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Nội dung câu hỏi *
+                      </label>
+                      <textarea
+                        value={singleFormData.questionText}
+                        onChange={(e) => setSingleFormData({ ...singleFormData, questionText: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        rows={3}
+                        placeholder="Nhập nội dung câu hỏi..."
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Các đáp án
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {['A', 'B', 'C', 'D'].map((letter, index) => (
+                          <div key={letter} className="relative">
+                            <label className="block text-sm font-medium text-gray-600 mb-2">
+                              Đáp án {letter}
+                            </label>
+                            <input
+                              type="text"
+                              value={singleFormData.options[index] || ''}
+                              onChange={(e) => updateOption(index, e.target.value)}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                              placeholder={`Nhập đáp án ${letter}...`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">
+                          Đáp án đúng *
+                        </label>
+                        <select
+                          value={singleFormData.correctAnswerIndex}
+                          onChange={(e) => setSingleFormData({ ...singleFormData, correctAnswerIndex: parseInt(e.target.value) })}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          required
+                        >
+                          <option value={0}>A</option>
+                          <option value={1}>B</option>
+                          <option value={2}>C</option>
+                          <option value={3}>D</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">
+                          Điểm số
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={singleFormData.points}
+                          onChange={(e) => setSingleFormData({ ...singleFormData, points: parseInt(e.target.value) || 1 })}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+                      <button
+                        type="button"
+                        onClick={resetForm}
+                        className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-lg hover:shadow-xl"
+                      >
+                        {editingQuestion ? 'Cập nhật câu hỏi' : 'Thêm câu hỏi'}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </>
+            ) : (
+              /* Bulk Questions Form */
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                      </svg>
+                    </div>
+                    Tạo nhiều câu hỏi cùng lúc
+                  </h3>
+                  <button
+                    onClick={resetForm}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Number of Questions Selector */}
+                <div className="mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Số lượng câu hỏi muốn tạo
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <select
+                      value={numberOfQuestions}
+                      onChange={(e) => setNumberOfQuestions(parseInt(e.target.value))}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                        <option key={num} value={num}>{num} câu hỏi</option>
+                      ))}
+                    </select>
+                    <span className="text-sm text-gray-600">
+                      Bạn đang tạo <strong className="text-green-600">{numberOfQuestions}</strong> câu hỏi
+                    </span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleCreateBulkQuestions}>
+                  <div className="space-y-8">
+                    {bulkFormData.map((question, questionIndex) => (
+                      <div key={questionIndex} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                          <span className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                            {questionIndex + 1}
+                          </span>
+                          Câu hỏi {questionIndex + 1}
+                        </h4>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Nội dung câu hỏi *
+                            </label>
+                            <textarea
+                              value={question.questionText}
+                              onChange={(e) => updateBulkQuestion(questionIndex, 'questionText', e.target.value)}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
+                              rows={2}
+                              placeholder={`Nhập nội dung câu hỏi ${questionIndex + 1}...`}
+                              required
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {['A', 'B', 'C', 'D'].map((letter, optionIndex) => (
+                              <div key={letter}>
+                                <label className="block text-sm font-medium text-gray-600 mb-2">
+                                  Đáp án {letter}
+                                </label>
+                                <input
+                                  type="text"
+                                  value={question.options[optionIndex] || ''}
+                                  onChange={(e) => updateBulkOption(questionIndex, optionIndex, e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
+                                  placeholder={`Đáp án ${letter}...`}
+                                />
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Đáp án đúng *
+                              </label>
+                              <select
+                                value={question.correctAnswerIndex}
+                                onChange={(e) => updateBulkQuestion(questionIndex, 'correctAnswerIndex', parseInt(e.target.value))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                                required
+                              >
+                                <option value={0}>A</option>
+                                <option value={1}>B</option>
+                                <option value={2}>C</option>
+                                <option value={3}>D</option>
+                              </select>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Điểm số
+                              </label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={question.points}
+                                onChange={(e) => updateBulkQuestion(questionIndex, 'points', parseInt(e.target.value) || 1)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                      <button
+                        type="button"
+                        onClick={resetForm}
+                        className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors shadow-lg hover:shadow-xl flex items-center"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Tạo {numberOfQuestions} câu hỏi
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         )}
 

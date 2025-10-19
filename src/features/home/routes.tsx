@@ -6,6 +6,8 @@ import MainLayout from "../../layouts/MainLayout";
 import EnrollmentLearn from "../enrollment/student/EnrollmentLearn";
 import InstructorRegistration from "./page/InstructorRegistration/InstructorRegistration";
 import CourseSearchPage from "./page/CourseSearchPage";
+import CoursePreviewPage from "./page/CoursePreviewPage/CoursePreviewPage";
+import CartPage from "./page/CartPage/CartPage";
 
 export const homeRoutes = [
   {
@@ -15,6 +17,10 @@ export const homeRoutes = [
   {
     path: "/courses/search",
     element: <CourseSearchPage />,
+  },
+  {
+    path: "/courses/:slug",
+    element: <CoursePreviewPage />,
   },
   {
     path: "/my-learning",
@@ -43,4 +49,9 @@ export const homeRoutes = [
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/cart",
+    element: <CartPage />,
+  },
+
 ];

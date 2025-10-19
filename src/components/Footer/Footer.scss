@@ -1,0 +1,203 @@
+// Variables
+$primary: #106c54;
+$primary-light: #e8f4f0;
+$text-dark: #1a1a1a;
+$text-muted: #64748b;
+$border-color: #e2e8f0;
+$bg-dark: #193124;
+$bg-darker: #0f2a18;
+
+.footer {
+  background: linear-gradient(180deg, $bg-dark 0%, $bg-darker 100%);
+  color: #94a3b8;
+  margin-top: 0;
+
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem 3rem;
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 3rem;
+
+      @media (max-width: 992px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2.5rem;
+      }
+
+      @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .footer-column {
+        .footer-logo {
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: #fff;
+          margin: 0 0 1rem 0;
+          background: linear-gradient(135deg, #fff 0%, $primary-light 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .footer-description {
+          font-size: 0.9375rem;
+          line-height: 1.7;
+          color: #94a3b8;
+          margin: 0 0 1.5rem 0;
+          max-width: 300px;
+        }
+
+        .footer-social {
+          display: flex;
+          gap: 0.75rem;
+          margin-top: 1.5rem;
+
+          .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            transition: all 0.3s ease;
+
+            svg {
+              width: 18px;
+              height: 18px;
+            }
+
+            &:hover {
+              background: $primary;
+              border-color: $primary;
+              color: #fff;
+              transform: translateY(-3px);
+              box-shadow: 0 8px 16px rgba(16, 108, 84, 0.3);
+            }
+          }
+        }
+
+        .footer-title {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #fff;
+          margin: 0 0 1.25rem 0;
+          position: relative;
+          display: inline-block;
+
+          &::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -6px;
+            width: 30px;
+            height: 2px;
+            background: $primary;
+            border-radius: 2px;
+          }
+        }
+
+        .footer-links {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+
+          li {
+            margin-bottom: 0.75rem;
+
+            a {
+              font-size: 0.9375rem;
+              color: #94a3b8;
+              text-decoration: none;
+              transition: all 0.2s ease;
+              display: inline-block;
+              position: relative;
+
+              &::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: -2px;
+                width: 0;
+                height: 1px;
+                background: $primary;
+                transition: width 0.3s ease;
+              }
+
+              &:hover {
+                color: $primary;
+                transform: translateX(4px);
+
+                &::before {
+                  width: 100%;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.2);
+
+    .footer-bottom-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+
+      @media (max-width: 640px) {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+      }
+
+      p {
+        font-size: 0.875rem;
+        color: #64748b;
+        margin: 0;
+      }
+
+      .footer-bottom-links {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+
+        @media (max-width: 640px) {
+          justify-content: center;
+        }
+
+        a {
+          font-size: 0.875rem;
+          color: #64748b;
+          text-decoration: none;
+          transition: color 0.2s ease;
+
+          &:hover {
+            color: $primary;
+          }
+        }
+
+        .separator {
+          color: #475569;
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+}
