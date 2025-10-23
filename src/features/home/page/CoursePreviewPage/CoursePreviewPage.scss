@@ -22,6 +22,8 @@ $section-spacing: 3rem;
 $transition-smooth: all 0.3s ease;
 // Course Preview Page - Udemy-inspired Design
 .course-preview-page {
+  max-width: 1300px;
+  margin: auto;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
   line-height: 1.6;
@@ -84,7 +86,7 @@ $transition-smooth: all 0.3s ease;
     }
 
     .container-course-header {
-      max-width: 1300px;
+      max-width: 1250px;
       margin: 0 auto;
       padding: 0 3.5rem;
       position: relative;
@@ -410,19 +412,17 @@ $transition-smooth: all 0.3s ease;
             i {
               font-size: 0.75rem;
               color: #1c1d1f;
-              transition: transform 0.2s;
+              transition: transform 0.3s ease;
+
+              &.rotated {
+                transform: rotate(90deg);
+              }
             }
           }
 
           .section-meta {
             font-size: 0.875rem;
             color: #6a6f73;
-          }
-
-          &.expanded {
-            .section-title i {
-              transform: rotate(90deg);
-            }
           }
         }
 

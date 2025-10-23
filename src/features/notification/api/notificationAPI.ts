@@ -13,7 +13,7 @@ export const notificationAPI = {
     sort?: string;
     order?: string;
   }): Promise<NotificationListResponse> => {
-    const response = await axiosAuth.get("/notifications/all", { params });
+    const response = await axiosAuth.get("/notifications", { params });
     return response.data;
   },
 

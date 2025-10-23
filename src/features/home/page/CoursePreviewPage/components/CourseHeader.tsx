@@ -7,6 +7,7 @@ interface CourseHeaderProps {
 export default function CourseHeader({ course }: CourseHeaderProps) {
   const getLevelBadge = (level: string) => {
     const levels: Record<string, { label: string; color: string }> = {
+      ALL_LEVEL: { label: "Phù hợp cho mọi trình độ học viên", color: "gray" },
       BEGINNER: { label: "Cơ bản", color: "green" },
       INTERMEDIATE: { label: "Trung cấp", color: "blue" },
       ADVANCED: { label: "Nâng cao", color: "purple" },
