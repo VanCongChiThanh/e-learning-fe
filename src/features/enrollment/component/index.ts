@@ -7,5 +7,4 @@ export { QuizStatsCard } from './QuizStatsCard';
 export { QuizCard } from './QuizCard';
 export { AssignmentCard } from './AssignmentCard';
 export { QuizFormModal, AssignmentFormModal } from './QuizAssignmentModals';
-export { QuizQuestionManager } from './QuizQuestionManager';
 export { AssignmentGradingModal } from './AssignmentGradingModal';

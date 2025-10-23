@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UUID } from 'crypto';
 import { createQuiz, updateQuiz, getQuizById } from '../api/quiz';
+import { toast } from 'react-toastify';
 
 interface QuizFormData {
   title: string;
@@ -59,7 +60,7 @@ const QuizCreateEdit: React.FC = () => {
           });
         } catch (error) {
           console.error('Error loading quiz:', error);
-          alert('Không thể tải thông tin quiz');
+          toast.error('Không thể tải thông tin quiz');
         } finally {
           setLoading(false);
         }
@@ -87,18 +88,18 @@ const QuizCreateEdit: React.FC = () => {
     try {
       if (isEdit && quizId) {
         await updateQuiz(quizId as UUID, formData);
-        alert('Cập nhật quiz thành công!');
+        toast.success('Cập nhật quiz thành công!');
       } else {
         await createQuiz({
           ...formData,
           lectureId: formData.lectureId as UUID
         });
-        alert('Tạo quiz thành công!');
+        toast.success('Tạo quiz thành công!');
       }
       navigate(`/teacher/course/${courseId}/quizzes`)
     } catch (error) {
       console.error('Error saving quiz:', error);
-      alert('Có lỗi xảy ra khi lưu quiz');
+      toast.error('Có lỗi xảy ra khi lưu quiz');
     } finally {
       setSaveLoading(false);
     }

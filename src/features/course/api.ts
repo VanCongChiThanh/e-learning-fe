@@ -137,13 +137,139 @@ export const getEventsForLecture = async (lectureId: string) => {
 };
 
 // API 2: Lấy danh sách câu hỏi của một quiz
-export const getQuestionsForQuiz = async (quizId: string) => {
-  const response = await axiosAuth.get(`/quiz-questions/quiz/${quizId}`);
-  return response.data; // Trả về một mảng các câu hỏi [...]
-};
+// export const getQuestionsForQuiz = async (quizId: string) => {
+//   const response = await axiosAuth.get(`/quiz-questions/quiz/${quizId}`);
+//   return response.data; // Trả về một mảng các câu hỏi [...]
+// };
 
 // --- THÊM MỚI API 3: Lấy chi tiết một câu hỏi ---
 export const getQuestionDetail = async (questionId: string) => {
     const response = await axiosAuth.get(`/quiz-questions/${questionId}`);
     return response.data; // Trả về một đối tượng câu hỏi {...}
+};
+
+
+/// code exercise
+
+// Dữ liệu cho một bài tập trong danh sách
+export interface ExerciseListItem {
+  id: string;
+  title: string;
+}
+
+// Dữ liệu chi tiết cho một Test Case
+export interface TestCase {
+  id: string;
+  inputData: string;
+  expectedOutput: string;
+  points: number;
+  isHidden: boolean;
+  sortOrder: number;
+}
+
+// Dữ liệu chi tiết cho một bài tập code
+export interface ExerciseDetail {
+  id: string;
+  lectureId: string;
+  title: string;
+  problemStatement: string; // Đây là nội dung markdown
+  timeLimitSeconds: number;
+  createdAt: number;
+  testCases: TestCase[];
+}
+
+export const getCodeExercisesByLecture = async (lectureId: string): Promise<ExerciseListItem[]> => {
+  try {
+    const response = await axiosAuth.get(`/code-exercises/by-lecture/${lectureId}`);
+    return response.data.data; // Trả về mảng các bài tập
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách bài tập code:", error);
+    throw error;
+  }
+};
+
+
+export const getCodeExerciseDetail = async (exerciseId: string): Promise<ExerciseDetail> => {
+  try {
+    const response = await axiosAuth.get(`/code-exercises/${exerciseId}`);
+    return response.data.data; // Trả về đối tượng chi tiết bài tập
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết bài tập code:", error);
+    throw error;
+  }
+};
+
+
+// quizz
+
+// Kiểu dữ liệu cho chi tiết một bài Quiz
+export interface QuizDetail {
+  id: string;
+  lectureId: string;
+  title: string;
+  description: string;
+  timeLimitMinutes: number;
+  passingScore: number;
+  maxAttempts: number;
+  numberQuestions: number;
+  isActive: boolean;
+  createdAt: number;
+}
+
+// Kiểu dữ liệu cho một lựa chọn trong câu hỏi trắc nghiệm
+export interface QuizOption {
+  id: string;
+  optionText: string;
+}
+
+// Kiểu dữ liệu cho một câu hỏi trắc nghiệm
+export interface QuizQuestion {
+  id: string;
+  quizId: string;
+  questionText: string;
+  questionType: string; // MULTIPLE_CHOICE, SINGLE_CHOICE
+  sortOrder: number;
+  options: QuizOption[];
+}
+
+/**
+ * Lấy thông tin chi tiết của một bài quiz bằng ID.
+ * @param quizId - ID của bài quiz (từ payload của event)
+ */
+export const getQuizDetail = async (quizId: string): Promise<QuizDetail> => {
+  try {
+    const response = await axiosAuth.get(`/quizzes/${quizId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết quiz:", error);
+    throw error;
+  }
+};
+
+/**
+ * Lấy tất cả các câu hỏi cho một bài quiz.
+ * @param quizId - ID của bài quiz
+ */
+export const getQuestionsForQuiz = async (quizId: string): Promise<QuizQuestion[]> => {
+  try {
+    const response = await axiosAuth.get(`/quiz-questions/quiz/${quizId}`);
+    // Giả sử API trả về mảng trong response.data.data
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy câu hỏi cho quiz:", error);
+    throw error;
+  }
+};
+
+/**
+ * (Placeholder) Gửi kết quả bài làm lên server.
+ * Cần được impl ở backend.
+ */
+export const submitQuizAnswers = async (quizId: string, answers: { questionId: string, selectedOptionId: string }[]) => {
+    console.log("Đang gửi bài làm:", { quizId, answers });
+    // Giả lập API trả về điểm số sau 1 giây
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const score = Math.floor(Math.random() * 101); // Điểm số ngẫu nhiên từ 0-100
+    console.log("Nhận kết quả:", { score });
+    return { score };
 };
