@@ -110,8 +110,8 @@ export default function CourseContent({
               >
                 <div className="section-title">
                   <i
-                    className={`fa-solid fa-chevron-${
-                      isExpanded ? "down" : "right"
+                    className={`fa-solid fa-chevron-right ${
+                      isExpanded ? "rotated" : ""
                     }`}
                   ></i>
                   <span>{section.title}</span>

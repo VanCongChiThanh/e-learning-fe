@@ -189,7 +189,7 @@ const HomePage = () => {
     return (
       <Link
         key={course.courseId}
-        to={`/course/${course.slug}`}
+        to={`/courses/${course.slug}`}
         className="course-card"
         aria-label={course.title}
       >

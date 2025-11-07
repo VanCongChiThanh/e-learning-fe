@@ -29,12 +29,6 @@ const NotificationBell: React.FC = () => {
     if (userId) {
       notificationSocket.connect(userId, (notif) => {
         setUnreadCount((prev) => {
-          console.log(
-            "📊 [NotificationBell] unreadCount từ",
-            prev,
-            "thành",
-            prev + 1
-          );
           return prev + 1;
         });
         const toastMessage = `🔔 ${notif.title || "Thông báo mới"}: ${
