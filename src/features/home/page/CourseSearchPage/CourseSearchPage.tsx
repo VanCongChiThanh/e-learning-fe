@@ -2,35 +2,33 @@ import React, { useEffect, useState } from "react";
 import "./CourseSearchPage.scss";
 import MainLayout from "../../../../layouts/MainLayout";
 import { searchCourses, addToCart } from "../../api";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 // Small inline cart button to avoid nested Link issues
 const CartButton: React.FC<{ course: any }> = ({ course }) => {
-  const navigate = useNavigate();
   const [isAdding, setIsAdding] = useState(false);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (isAdding) return; // Prevent double clicks
-    
+
     try {
       setIsAdding(true);
-      
+
       // Call addToCart API with correct format
       await addToCart({
         courseId: course.courseId,
-        addedPrice: course.price || 0
+        addedPrice: course.price || 0,
       });
-      
+
       // Show success message (you can replace with toast notification)
       toast.success(`Đã thêm "${course.title}" vào giỏ hàng!`);
-      
+
       // Optional: Navigate to cart page after adding
       // navigate("/cart");
-      
     } catch (error) {
       console.error("Error adding to cart:", error);
       toast.error("Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại!");
@@ -42,7 +40,7 @@ const CartButton: React.FC<{ course: any }> = ({ course }) => {
   return (
     <button
       type="button"
-      className={`add-to-cart-btn ${isAdding ? 'adding' : ''}`}
+      className={`add-to-cart-btn ${isAdding ? "adding" : ""}`}
       onClick={handleClick}
       disabled={isAdding}
       title={`Thêm ${course.title} vào giỏ hàng`}
@@ -724,17 +722,17 @@ const CourseSearchPage: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                              <div className="course-tags">
-                                {course.tags?.slice(0, 2).map((tag) => (
-                                  <span key={tag.tagId} className="tag">
-                                    {tag.name}
-                                  </span>
-                                ))}
-                              </div>
-                              <div className="course-cart">
-                                <CartButton course={course} />
-                              </div>
+                            <div className="course-tags">
+                              {course.tags?.slice(0, 2).map((tag) => (
+                                <span key={tag.tagId} className="tag">
+                                  {tag.name}
+                                </span>
+                              ))}
                             </div>
+                            <div className="course-cart">
+                              <CartButton course={course} />
+                            </div>
+                          </div>
                         </div>
                       </Link>
                     ))}

@@ -11,6 +11,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
 
   const handlePayNow = () => {
     window.location.href = checkoutUrl;
+    
   };
 
   return (
