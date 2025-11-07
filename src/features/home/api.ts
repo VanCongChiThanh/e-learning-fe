@@ -1,6 +1,7 @@
 import { UUID } from "crypto";
 import axiosAuth from "../../api/axiosAuth";
 import axiosClient from "../../api/axiosClient";
+import axios from "axios";
 export interface ApplyInstructorRequest {
   cv_url: string; // cv_url trong JSON
   portfolioLink: string; // portfolio_link trong JSON
@@ -32,7 +33,6 @@ export const applyInstructor = async (data: ApplyInstructorRequest) => {
   return response.data;
 };
 
-
 //course detail
 export const getCourseDetailBySlug = async (slug: string) => {
   const response = await axiosClient.get(`/courses/slug/${slug}/detail`);
@@ -42,29 +42,49 @@ export const getCourseDetailBySlug = async (slug: string) => {
 export const getSectionsByCourseId = async (courseId: string) => {
   const response = await axiosAuth.get(`/courses/${courseId}/sections`);
   return response.data.data;
-}
+};
 export const fetchCart = async () => {
   const response = await axiosAuth.get("/cart");
   return response.data;
-}
+};
 export const addToCart = async (data: {
   courseId: string;
   addedPrice: number;
 }) => {
   const response = await axiosAuth.post(`/cart/add`, data);
   return response.data;
-}
+};
 export const createOrder = async (data: {
-  clearCartAfterOrder: true,
-  notes: string
+  clearCartAfterOrder: true;
+  notes: string;
 }) => {
   const response = await axiosAuth.post("/orders/from-cart", data);
   return response.data;
-}
+};
+export const orderDirectly = async (data: {
+  items: [
+    {
+      courseId: string;
+      coursePrice: number;
+    }
+  ];
+  notes: string;
+}) => {
+  const response = await axiosAuth.post("/orders/", data);
+  return response.data;
+};
 export const paymentOrder = async (orderId: string) => {
   const response = await axiosAuth.post(`/payments/`, {
     orderId: orderId,
-    description: "Thanh toan don hang"
+    description: "Thanh toan don hang",
   });
   return response.data;
-}
+};
+export const getCetificateByUserId = async (userId: string) => {
+  const response = await axiosAuth.get(`/certificates/user/${userId}`);
+  return response.data;
+};
+export const getCertificateDetailById = async (certificateId: string) => {
+  const response = await axiosAuth.get(`/certificates/${certificateId}`);
+  return response.data;
+};

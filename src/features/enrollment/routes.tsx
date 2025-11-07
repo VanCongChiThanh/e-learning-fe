@@ -14,7 +14,7 @@ import CourseStudentList from "./teacher/CourseStudentList";
 import StudentProgressDetail from "./teacher/StudentProgressDetail";
 import QuizQuestionManagementPage from "./teacher/QuizQuestionManagementPage";
 import QuizStatisticsPage from "./teacher/QuizStatisticsPage";
-
+import HomeLayout from "../home/layout/HomeLayout";
 export const LearnRoutes = [
   {
     path: "/learn/enrollments",
