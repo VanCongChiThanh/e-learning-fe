@@ -8,6 +8,8 @@ import InstructorRegistration from "./page/InstructorRegistration/InstructorRegi
 import CourseSearchPage from "./page/CourseSearchPage";
 import CoursePreviewPage from "./page/CoursePreviewPage/CoursePreviewPage";
 import CartPage from "./page/CartPage/CartPage";
+import PaymentResult from "./page/CartPage/PaymentResult";
+import CertificateDetailPage from "./page/CertificateDetailPage";
 
 export const homeRoutes = [
   {
@@ -38,6 +40,10 @@ export const homeRoutes = [
     element: <OnlineDegreesPage />,
   },
   {
+    path: "/certificate/:id",
+    element: < CertificateDetailPage/>
+  },
+  {
     path: "/careers",
     element: <CareersPage />,
   },
@@ -53,5 +59,9 @@ export const homeRoutes = [
     path: "/cart",
     element: <CartPage />,
   },
+  {
+    path: "/payment-result",
+    element:  < PaymentResult />
+    }
 
 ];

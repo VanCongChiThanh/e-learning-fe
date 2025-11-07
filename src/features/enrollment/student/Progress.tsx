@@ -36,10 +36,6 @@ const Progress: React.FC<ProgressProps> = ({ selectedLectureId, userId, enrollme
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Tiến độ học tập</h1>
-        <p className="text-gray-600">Theo dõi tiến độ học tập của bạn trong từng bài học</p>
-      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <StatsCard
           title="Đã hoàn thành"
