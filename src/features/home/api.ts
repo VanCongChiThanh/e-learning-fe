@@ -1,7 +1,5 @@
-import { UUID } from "crypto";
 import axiosAuth from "../../api/axiosAuth";
 import axiosClient from "../../api/axiosClient";
-import axios from "axios";
 export interface ApplyInstructorRequest {
   cv_url: string; // cv_url trong JSON
   portfolioLink: string; // portfolio_link trong JSON
