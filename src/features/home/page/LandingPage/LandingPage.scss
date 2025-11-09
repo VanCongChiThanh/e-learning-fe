@@ -22,9 +22,9 @@ $bp-sm: 560px;
     margin: 0 auto;
     padding: 0;
     display: grid;
-    grid-template-columns: 1.3fr 0.7fr; /* Tăng text từ 1.1fr lên 1.3fr, giảm ảnh từ 0.9fr xuống 0.7fr */
+    grid-template-columns: 1.3fr 0.7fr;
     align-items: center;
-    gap: clamp(32px, 5vw, 80px); /* Tăng gap để đẩy ảnh ra xa hơn */
+    gap: clamp(32px, 5vw, 80px);
 
     @media (max-width: $bp-lg) {
       grid-template-columns: 1fr;
@@ -34,7 +34,8 @@ $bp-sm: 560px;
 
   /* Cột chữ */
   .hero-text {
-    padding: 10px 40px 10px 60px;
+    padding: 10px 40px 10px 20px;
+
     h1 {
       font-size: clamp(20px, 4vw, 44px);
       line-height: 1.1;
@@ -47,6 +48,7 @@ $bp-sm: 560px;
       line-height: 1.65;
       max-width: 62ch;
       margin: 0;
+
       strong {
         color: $text;
         font-weight: 700;
@@ -59,21 +61,32 @@ $bp-sm: 560px;
       gap: 14px;
 
       .btn {
-        padding: 14px 24px;
-        font-size: 14px;
-        font-weight: 700;
+        padding: 14px 28px;
+        font-size: 15px;
+        font-weight: 600;
         border-radius: 999px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        white-space: nowrap;
       }
+
       .btn-primary {
         background: $primary;
         color: #fff;
-        border: none;
+        border: 2px solid $primary;
         &:hover {
           background: $primary-dark;
+          border-color: $primary-dark;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(16, 108, 84, 0.3);
         }
       }
+
       .btn-outline {
         background: transparent;
         color: $primary;
@@ -81,32 +94,35 @@ $bp-sm: 560px;
         &:hover {
           background: $primary;
           color: #fff;
+          transform: translateY(-2px);
         }
       }
 
       @media (max-width: $bp-md) {
         justify-content: flex-start;
       }
+
       @media (max-width: $bp-sm) {
         flex-direction: column;
         align-items: stretch;
         .btn {
           width: 100%;
+          padding: 12px 24px;
         }
       }
     }
   }
 
-  /* Ảnh nửa hình tròn bên trái (như ảnh mẫu) */
+  /* Ảnh nửa hình tròn bên trái */
   .hero-image {
     justify-self: end;
-    width: min(48vw, 620px); /* giảm từ 52vw xuống 48vw */
+    width: min(48vw, 620px);
     min-height: clamp(320px, 40vw, 520px);
     position: relative;
-    margin-right: -5%; /* đẩy ảnh sang phải 5% */
+    margin-right: 30px;
+    max-width: calc(100% - 30px);
 
-    /* Bo tròn bên TRÁI thay vì bên phải */
-    clip-path: circle(700px at 0% 50%); /* tâm ở mép trái (0% thay vì 100%) */
+    clip-path: circle(700px at 0% 50%);
     overflow: hidden;
 
     @media (max-width: $bp-lg) {
@@ -119,19 +135,18 @@ $bp-sm: 560px;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center left; /* canh về bên trái */
-      transform: translateX(3%); /* dịch sang phải một chút */
+      object-position: center left;
+      transform: translateX(0);
     }
 
-    /* Nền cong ôm vào phần chữ */
     &::before {
       content: "";
       position: absolute;
-      right: -40%; /* đổi từ left sang right */
+      right: -40%;
       top: -25%;
       width: 140%;
       height: 150%;
-      border-top-right-radius: 9999px; /* đổi từ left sang right */
+      border-top-right-radius: 9999px;
       border-bottom-right-radius: 9999px;
       background: transparent;
       pointer-events: none;
@@ -736,7 +751,7 @@ $bp-sm: 560px;
 /* ====== Credentials & Certifications Section */
 .credentials-section {
   background: linear-gradient(135deg, #faf5f0 0%, #f9f3ee 100%);
-  padding: 5rem 3rem ;
+  padding: 5rem 3rem;
   position: relative;
 
   .credentials-container {
