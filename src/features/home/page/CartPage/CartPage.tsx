@@ -13,7 +13,7 @@ interface CartItem {
   slug: string;
 }
 
-interface CartData {
+export interface CartData {
   items: CartItem[];
   price: number;
   totalItems: number;
@@ -25,13 +25,12 @@ const CartPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const [notes, setNotes] = useState("");
-  const navigator = useNavigate();
   const [paymentData, setPaymentData] = useState<any>(null);
   useEffect(() => {
     const loadCart = async () => {
       try {
         setLoading(true);
-          const response = await fetchCart();
+        const response = await fetchCart();
         if (response.status === "success") {
           setCartData(response.data);
         } else {
@@ -64,43 +63,33 @@ const CartPage: React.FC = () => {
 
     try {
       setIsProcessingOrder(true);
-      
+
       const orderData = {
         clearCartAfterOrder: true as const,
-        notes: notes || "Đặt hàng từ giỏ hàng"
+        notes: notes || "Đặt hàng từ giỏ hàng",
       };
 
       const response = await createOrder(orderData);
-      
-      if (response.status === "success") {
-        // toast.success("Đặt hàng thành công!");
-        // Reload cart để cập nhật trạng thái
-        const cartResponse = await fetchCart();
-        // if (cartResponse.status === "success") {
-        //   setCartData(cartResponse.data);
-        //   console.log("Cart after order:", response.data);
-        //   const res = await paymentOrder(response.data.id);
-        //   navigator(res.data.checkoutUrl);
-        //   toast.success("Đặt hàng thành công!");
-        //   console.log("Payment response:", res);
-        // }
-        if (cartResponse.status === "success") {
-        setCartData(cartResponse.data);
-        console.log("Cart after order:", response.data);
 
-        try {
-          const res = await paymentOrder(response.data.id);
-          if (res.status === "success") {
-            setPaymentData(res.data); // ✅ lưu thông tin thanh toán để hiển thị
-            toast.success("Đặt hàng thành công! Vui lòng thanh toán.");
-          } else {
-            toast.error("Không tạo được thanh toán!");
+      if (response.status === "success") {
+        const cartResponse = await fetchCart();
+        if (cartResponse.status === "success") {
+          setCartData(cartResponse.data);
+          console.log("Cart after order:", response.data);
+
+          try {
+            const res = await paymentOrder(response.data.id);
+            if (res.status === "success") {
+              setPaymentData(res.data); // ✅ lưu thông tin thanh toán để hiển thị
+              toast.success("Đặt hàng thành công! Vui lòng thanh toán.");
+            } else {
+              toast.error("Không tạo được thanh toán!");
+            }
+          } catch (err) {
+            console.error("Payment error:", err);
+            toast.error("Lỗi khi tạo thanh toán!");
           }
-        } catch (err) {
-          console.error("Payment error:", err);
-          toast.error("Lỗi khi tạo thanh toán!");
         }
-      }
         // Reset notes
         setNotes("");
       } else {
@@ -108,11 +97,15 @@ const CartPage: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error creating order:", error);
-      
+
       // Xử lý lỗi authentication
       if (error.response?.status === 401 || error.response?.status === 403) {
-        if (window.confirm("Bạn cần đăng nhập để thanh toán. Chuyển đến trang đăng nhập?")) {
-          window.location.href = '/login';
+        if (
+          window.confirm(
+            "Bạn cần đăng nhập để thanh toán. Chuyển đến trang đăng nhập?"
+          )
+        ) {
+          window.location.href = "/login";
         }
       } else {
         toast.error("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!");
@@ -132,8 +125,12 @@ const CartPage: React.FC = () => {
     return items.length;
   };
 
-  const totalCalculatedPrice = cartData ? calculateTotalPrice(cartData.items) : 0;
-  const totalCalculatedItems = cartData ? calculateTotalItems(cartData.items) : 0;
+  const totalCalculatedPrice = cartData
+    ? calculateTotalPrice(cartData.items)
+    : 0;
+  const totalCalculatedItems = cartData
+    ? calculateTotalItems(cartData.items)
+    : 0;
 
   if (loading) {
     return (
@@ -163,7 +160,7 @@ const CartPage: React.FC = () => {
     <MainLayout>
       <div className="cart-page max-w-4xl mx-auto px-6 py-12">
         <h1 className="text-2xl font-bold mb-6">Giỏ hàng của bạn</h1>
-        
+
         {!cartData || cartData.items.length === 0 ? (
           <div className="text-center py-12">
             <svg
@@ -179,15 +176,22 @@ const CartPage: React.FC = () => {
                 d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 11-4 0v-6m6 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
               />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Giỏ hàng trống</h3>
-            <p className="text-gray-600">Thêm khóa học vào giỏ hàng để bắt đầu mua sắm.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Giỏ hàng trống
+            </h3>
+            <p className="text-gray-600">
+              Thêm khóa học vào giỏ hàng để bắt đầu mua sắm.
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Cart Items */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               {cartData.items.map((item) => (
-                <div key={item.courseId} className="flex items-center p-6 border-b border-gray-200 last:border-b-0">
+                <div
+                  key={item.courseId}
+                  className="flex items-center p-6 border-b border-gray-200 last:border-b-0"
+                >
                   <div className="flex-shrink-0 w-24 h-16 bg-gray-200 rounded-lg overflow-hidden">
                     {item.image ? (
                       <img
@@ -201,15 +205,17 @@ const CartPage: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="ml-6 flex-1">
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">{item.title}</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      {item.title}
+                    </h3>
                     <p className="text-sm text-gray-600">Khóa học</p>
                   </div>
-                  
+
                   <div className="text-right">
                     <p className="text-lg font-semibold text-gray-900">
-                      {formatPrice(item.totalPrice )}
+                      {formatPrice(item.totalPrice)}
                     </p>
                     {/* {item.addedPrice !== item.totalPrice && (
                       <p className="text-sm text-gray-500 line-through">
@@ -230,12 +236,16 @@ const CartPage: React.FC = () => {
                 </span>
               </div>
               <div className="text-sm text-gray-600 mb-6">
-                {cartData.totalItems || totalCalculatedItems} khóa học trong giỏ hàng
+                {cartData.totalItems || totalCalculatedItems} khóa học trong giỏ
+                hàng
               </div>
 
               {/* Notes Section */}
               <div className="mb-6">
-                <label htmlFor="order-notes" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="order-notes"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Ghi chú đơn hàng (tùy chọn)
                 </label>
                 <textarea
@@ -249,21 +259,13 @@ const CartPage: React.FC = () => {
                 />
               </div>
 
-              {/* Debug info - uncomment when needed */}
-              {/* <div className="text-xs text-gray-500 mb-4 p-3 bg-gray-50 rounded">
-                <div>API Price: {cartData.price ? formatPrice(cartData.price) : 'N/A'}</div>
-                <div>Calculated Price: {formatPrice(totalCalculatedPrice)}</div>
-                <div>API Items: {cartData.totalItems || 'N/A'}</div>
-                <div>Calculated Items: {totalCalculatedItems}</div>
-              </div> */}
-              
-              <button 
+              <button
                 onClick={handleCheckout}
                 disabled={isProcessingOrder}
                 className={`w-full py-3 px-6 rounded-lg font-medium transition-colors duration-200 ${
-                  isProcessingOrder 
-                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-                    : 'bg-green-600 text-white hover:bg-green-700'
+                  isProcessingOrder
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-green-600 text-white hover:bg-green-700"
                 }`}
               >
                 {isProcessingOrder ? (
@@ -272,7 +274,7 @@ const CartPage: React.FC = () => {
                     Đang xử lý...
                   </div>
                 ) : (
-                  'Thanh toán'
+                  "Thanh toán"
                 )}
               </button>
             </div>

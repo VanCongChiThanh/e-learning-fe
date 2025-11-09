@@ -1,4 +1,8 @@
+import { useState } from "react";
 import { CourseResponse, SectionResponse } from "../types";
+import { toast } from "react-toastify";
+import { addToCart, orderDirectly, paymentOrder } from "../../../api";
+import PaymentInfo from "../../CartPage/PaymentInfo";
 
 interface CourseSidebarProps {
   course: CourseResponse;
@@ -16,7 +20,6 @@ export default function CourseSidebar({
     }).format(price);
   };
 
-  // Handle null/undefined sections and lectures safely
   const safeSections = sections || [];
 
   const totalDuration = safeSections.reduce(
@@ -38,9 +41,98 @@ export default function CourseSidebar({
     return `${minutes}m`;
   };
 
+  const [isProcessingCart, setIsProcessingCart] = useState(false);
+  const [isProcessingBuyNow, setIsProcessingBuyNow] = useState(false);
+  const [notes, setNotes] = useState("");
+  const [paymentData, setPaymentData] = useState<any>(null);
+  const [showBuyNowFlow, setShowBuyNowFlow] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isProcessingCart) return;
+
+    try {
+      setIsProcessingCart(true);
+
+      await addToCart({
+        courseId: course.courseId,
+        addedPrice: course.price || 0,
+      });
+      toast.success(`Đã thêm "${course.title}" vào giỏ hàng!`);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại!");
+    } finally {
+      setIsProcessingCart(false);
+    }
+  };
+
+  const handleShowBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowBuyNowFlow(true);
+  };
+
+  const handleShowConfirmation = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowConfirmation(true);
+  };
+
+  const handleCancelBuyNow = () => {
+    setShowBuyNowFlow(false);
+    setShowConfirmation(false);
+    setNotes("");
+  };
+
+  const handleConfirmPurchase = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isProcessingBuyNow) return;
+
+    try {
+      setIsProcessingBuyNow(true);
+      const response = await orderDirectly({
+        items: [
+          {
+            courseId: course.courseId,
+            coursePrice: course.price || 0,
+          },
+        ],
+        notes: notes,
+      });
+
+      if (response.status == "success") {
+        try {
+          const res = await paymentOrder(response.data.id);
+          if (res.status === "success") {
+            setPaymentData(res.data);
+            toast.success("Đặt hàng thành công! Vui lòng thanh toán.");
+            setShowBuyNowFlow(false);
+            setShowConfirmation(false);
+          } else {
+            toast.error("Không tạo được thanh toán!");
+          }
+        } catch (err) {
+          console.error("Payment error:", err);
+          toast.error("Lỗi khi tạo thanh toán!");
+        }
+      } else {
+        toast.error(response.message || "Đặt hàng thất bại!");
+      }
+    } catch (error) {
+      console.error("Error ordering directly:", error);
+      toast.error("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!");
+    } finally {
+      setIsProcessingBuyNow(false);
+    }
+  };
+
   return (
     <div className="course-sidebar">
-      {/* Course Image with Preview Overlay */}
       <div className="course-card-image">
         <img src={course.image} alt={course.title} />
         <div className="preview-overlay">
@@ -51,26 +143,94 @@ export default function CourseSidebar({
         </div>
       </div>
 
-      {/* Card Body */}
       <div className="course-card-body">
-        {/* Price */}
         <div className="course-price">{formatPrice(course.price)}</div>
 
-        {/* CTA Buttons */}
-        <div className="cta-buttons">
-          <button className="btn-primary">
-            <i className="fa-solid fa-cart-plus"></i>
-            Thêm vào giỏ hàng
-          </button>
-          <button className="btn-secondary">Mua ngay</button>
+        <div className="cta-container">
+          {paymentData ? (
+            <PaymentInfo paymentData={paymentData} />
+          ) : showBuyNowFlow ? (
+            <div className="buy-now-flow">
+              {!showConfirmation ? (
+                <>
+                  <div className="form-group" style={{ marginBottom: "10px" }}>
+                    <label
+                      htmlFor="notes"
+                      style={{ display: "block", marginBottom: "5px" }}
+                    >
+                      Ghi chú (tùy chọn):
+                    </label>
+                    <textarea
+                      id="notes"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Bạn có lưu ý gì cho đơn hàng?"
+                      rows={2}
+                      style={{ width: "100%", boxSizing: "border-box" }}
+                    />
+                  </div>
+                  <button
+                    className="mt-4 bg-green-600 w-full text-white px-4 py-2 rounded-md hover:bg-green-700"
+                    onClick={handleShowConfirmation}
+                  >
+                    Thanh toán
+                  </button>
+                  <button
+                    className=" text-green-600 px-4 py-1 rounded-md border-2 w-full hover:bg-green-200"
+                    onClick={handleCancelBuyNow}
+                  >
+                    Hủy
+                  </button>
+                </>
+              ) : (
+                <div className="confirmation-step">
+                  <p style={{ textAlign: "center", fontWeight: "bold" }}>
+                    Bạn chắc chắn muốn mua?
+                  </p>
+                  <button
+                    className="mt-4 bg-green-600 w-full text-white px-4 py-2 rounded-md hover:bg-green-700"
+                    onClick={handleConfirmPurchase}
+                    disabled={isProcessingBuyNow}
+                  >
+                    {isProcessingBuyNow ? "Đang xử lý..." : "Mua ngay"}
+                  </button>
+                  <button
+                    className=" text-green-600 mt-2 px-4 py-1 rounded-md border-2 w-full hover:bg-green-200"
+                    onClick={() => setShowConfirmation(false)}
+                    disabled={isProcessingBuyNow}
+                  >
+                    Quay lại
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="cta-buttons">
+              <button
+                className="btn-primary"
+                onClick={handleClick}
+                disabled={isProcessingCart}
+              >
+                {isProcessingCart ? (
+                  "Đang thêm..."
+                ) : (
+                  <>
+                    <i className="fa-solid fa-cart-plus"></i>
+                    Thêm vào giỏ hàng
+                  </>
+                )}
+              </button>
+              <button className="btn-secondary" onClick={handleShowBuyNow}>
+                Mua ngay
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Money Back Guarantee */}
         <div className="money-back-guarantee">
           <p>Đảm bảo hoàn tiền trong 30 ngày</p>
         </div>
 
-        {/* Course Includes */}
         <div className="course-includes">
           <h3>Khóa học này bao gồm:</h3>
           <ul>
@@ -97,7 +257,6 @@ export default function CourseSidebar({
           </ul>
         </div>
 
-        {/* Course Actions - Share & Wishlist */}
         <div className="course-actions">
           <button>
             <i className="fa-regular fa-heart"></i>

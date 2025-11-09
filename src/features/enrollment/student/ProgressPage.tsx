@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { UUID } from "../utils/UUID";
 import Progress from "./Progress";
 import { RootState } from "../../../app/store";
+import HomeLayout from "../../home/layout/HomeLayout";
 
 const ProgressPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +22,8 @@ const ProgressPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <HomeLayout>
+    <div className="min-h-screen bg-gray-100 p-6">
       {/* Header */}
       <div className="mb-6">
         <button
@@ -45,7 +47,8 @@ const ProgressPage: React.FC = () => {
           enrollmentId={enrollmentId as UUID}
         />
       )}
-    </div>
+      </div>
+      </HomeLayout>
   );
 };
 
