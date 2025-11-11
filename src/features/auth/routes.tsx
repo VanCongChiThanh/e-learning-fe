@@ -3,6 +3,8 @@ import ConfirmationPage from "./pages/ConfirmationPage";
 import PublicRoute from "../../routes/PublicRoute";
 import RegisterPage from "./pages/RegisterPage";
 import Oauth2Callback from "./pages/Oauth2CallBack";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 export const authRoutes = [
   {
@@ -13,17 +15,6 @@ export const authRoutes = [
       </PublicRoute>
     ),
   },
-  // Nếu sau này có thêm register, forgot password,... thì thêm ở đây
-  // {
-  //   path: "/register",
-  //   element: (
-  //     <PublicRoute>
-  //       <MainLayout>
-  //         <RegisterPage />
-  //       </MainLayout>
-  //     </PublicRoute>
-  //   ),
-  // },
   {
     path: "/register/confirm",
     element: (
@@ -37,6 +28,30 @@ export const authRoutes = [
     element: (
       <PublicRoute>
         <RegisterPage />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: "/forgot-password",
+    element: (
+      <PublicRoute>
+        <ForgotPasswordPage />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: "/password/reset",
+    element: (
+      <PublicRoute>
+        <ResetPasswordPage />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: "/reset-password",
+    element: (
+      <PublicRoute>
+        <ResetPasswordPage />
       </PublicRoute>
     ),
   },
