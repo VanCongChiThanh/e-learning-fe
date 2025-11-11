@@ -59,3 +59,30 @@ export const register = async (body: RegisterRequest) => {
   const res = await axiosClient.post("/user/sign-up", body);
   return res.data;
 };
+
+// Forgot password
+export const forgotPasswordAPI = async (email: string) => {
+  const res = await axiosClient.post("/user/passwords/forgot", { email });
+  return res.data;
+};
+
+// Reset password
+export const resetPasswordAPI = async (body: {
+  email: string;
+  password: string;
+  password_confirmation: string;
+  reset_password_token: string;
+}) => {
+  const res = await axiosClient.post("/user/passwords/reset", body);
+  return res.data;
+};
+
+// Change password
+export const changePasswordAPI = async (body: {
+  old_password: string;
+  new_password: string;
+  confirm_new_password: string;
+}) => {
+  const res = await axiosAuth.post("/user/change_password", body);
+  return res.data;
+};

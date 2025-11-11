@@ -233,17 +233,41 @@ input[type="text"],
 input[type="email"],
 input[type="tel"],
 input[type="url"],
-input[type="file"],
-select,
-textarea {
+input[type="file"] {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--neutral-200);
   border-radius: 8px;
   font-size: 0.95rem;
   font-family: "Inter", sans-serif;
   transition: all 0.2s;
   background-color: white;
+}
+
+select {
+  width: 100%;
+  padding: 0.5rem 0.75rem !important;
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: "Inter", sans-serif;
+  transition: all 0.2s;
+  background-color: white;
+  line-height: 1.5;
+}
+
+textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem !important;
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: "Inter", sans-serif;
+  transition: all 0.2s;
+  background-color: white;
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
 }
 
 input:focus,
@@ -254,9 +278,9 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
 
-textarea {
-  resize: vertical;
-  min-height: 120px;
+textarea::placeholder {
+  color: #9ca3af;
+  opacity: 0.8;
 }
 
 .file-input-wrapper {

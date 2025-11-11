@@ -6,6 +6,7 @@ import {
   getPresignedUrl,
   uploadFileToS3,
 } from "../../../../services/file-service";
+import { toast } from "react-toastify";
 interface FormData {
   first_name: string;
   last_name: string;
@@ -91,7 +92,7 @@ const InstructorRegistration: React.FC = () => {
 
       const payload: ApplyInstructorRequest = {
         cv_url,
-        portfolioLink: formData.portfolio,
+        portfolio_link: formData.portfolio,
         motivation: formData.bio,
         extra_info: {
           first_name: formData.first_name,
@@ -111,6 +112,9 @@ const InstructorRegistration: React.FC = () => {
       await applyInstructor(payload);
 
       setSuccess(true);
+      toast.success(
+        "Gửi đơn đăng ký thành công! Chúng tôi sẽ liên hệ với bạn sớm."
+      );
       setFormData({
         first_name: "",
         last_name: "",
@@ -129,7 +133,12 @@ const InstructorRegistration: React.FC = () => {
         newsletter: false,
       });
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Có lỗi xảy ra!");
+      const errorMessage =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        "Có lỗi xảy ra khi gửi đơn!";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -225,11 +234,6 @@ const InstructorRegistration: React.FC = () => {
                 </p>
               </div>
 
-              {success && (
-                <div className="alert alert-success">Gửi đơn thành công!</div>
-              )}
-              {error && <div className="alert alert-danger">{error}</div>}
-
               <form id="instructorForm" onSubmit={handleSubmit}>
                 {/* Personal Info */}
                 <div className="form-row">
@@ -297,15 +301,12 @@ const InstructorRegistration: React.FC = () => {
 
                 {/* Expertise */}
                 <div className="form-group">
-                  <label htmlFor="expertise">
-                    Lĩnh vực chuyên môn <span className="required">*</span>
-                  </label>
+                  <label htmlFor="expertise">Lĩnh vực chuyên môn</label>
                   <select
                     id="expertise"
                     name="expertise"
                     value={formData.expertise}
                     onChange={handleChange}
-                    required
                   >
                     <option value="">Chọn lĩnh vực</option>
                     <option value="programming">Lập trình & Công nghệ</option>
@@ -320,15 +321,12 @@ const InstructorRegistration: React.FC = () => {
 
                 {/* Education */}
                 <div className="form-group">
-                  <label htmlFor="education">
-                    Trình độ học vấn <span className="required">*</span>
-                  </label>
+                  <label htmlFor="education">Trình độ học vấn</label>
                   <select
                     id="education"
                     name="education"
                     value={formData.education}
                     onChange={handleChange}
-                    required
                   >
                     <option value="">Chọn trình độ</option>
                     <option value="bachelor">Cử nhân</option>
@@ -341,15 +339,12 @@ const InstructorRegistration: React.FC = () => {
 
                 {/* Experience */}
                 <div className="form-group">
-                  <label htmlFor="experience">
-                    Số năm kinh nghiệm <span className="required">*</span>
-                  </label>
+                  <label htmlFor="experience">Số năm kinh nghiệm</label>
                   <select
                     id="experience"
                     name="experience"
                     value={formData.experience}
                     onChange={handleChange}
-                    required
                   >
                     <option value="">Chọn số năm</option>
                     <option value="0-2">0-2 năm</option>
@@ -412,7 +407,9 @@ const InstructorRegistration: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="portfolio">Website/Portfolio</label>
+                  <label htmlFor="portfolio">
+                    Website/Portfolio <span className="required">*</span>
+                  </label>
                   <input
                     type="url"
                     id="portfolio"
@@ -420,11 +417,14 @@ const InstructorRegistration: React.FC = () => {
                     value={formData.portfolio}
                     onChange={handleChange}
                     placeholder="https://yourwebsite.com"
+                    required
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="cv">Tải lên CV/Resume</label>
+                  <label htmlFor="cv">
+                    Tải lên CV/Resume <span className="required">*</span>
+                  </label>
                   <div className="file-input-wrapper">
                     <label htmlFor="cv" className="file-input-label">
                       📎 Chọn file (PDF, DOC, DOCX)
@@ -435,6 +435,7 @@ const InstructorRegistration: React.FC = () => {
                       name="cv"
                       accept=".pdf,.doc,.docx"
                       onChange={handleFileChange}
+                      required
                     />
                   </div>
                   {cvPreview && (
