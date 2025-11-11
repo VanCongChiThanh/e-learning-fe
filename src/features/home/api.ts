@@ -1,8 +1,8 @@
 import axiosAuth from "../../api/axiosAuth";
 import axiosClient from "../../api/axiosClient";
 export interface ApplyInstructorRequest {
-  cv_url: string; // cv_url trong JSON
-  portfolioLink: string; // portfolio_link trong JSON
+  cv_url: string;
+  portfolio_link: string;
   motivation: string;
   extra_info?: Record<string, any>;
 }
