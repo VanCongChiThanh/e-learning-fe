@@ -4,7 +4,7 @@ import ChangePasswordForm from "../components/ChangePasswordForm";
 export default function InstructorChangePasswordPage() {
   return (
     <InstructorProfileLayout>
-      <ChangePasswordForm redirectPath="/instructor-profile" />
+      <ChangePasswordForm />
     </InstructorProfileLayout>
   );
 }

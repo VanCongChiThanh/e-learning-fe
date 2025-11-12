@@ -49,7 +49,19 @@ export default function ChangePasswordPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setErrors({ ...errors, [name]: "" });
+
+    // Clear all errors when user starts typing
+    if (errors[name] || errors.api) {
+      const newErrors = { ...errors };
+      delete newErrors[name];
+      delete newErrors.api;
+      setErrors(newErrors);
+    }
+
+    // Also clear success message when user starts editing
+    if (success) {
+      setSuccess(false);
+    }
 
     if (name === "new_password") {
       setPasswordStrength(checkPasswordStrength(value));
