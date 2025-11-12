@@ -1,11 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { changePasswordAPI } from "../../auth/api/authAPI";
-
-interface ChangePasswordFormProps {
-  redirectPath: string;
-}
 
 interface ChangePasswordFormData {
   old_password: string;
@@ -13,10 +8,7 @@ interface ChangePasswordFormData {
   confirm_new_password: string;
 }
 
-export default function ChangePasswordForm({
-  redirectPath,
-}: ChangePasswordFormProps) {
-  const navigate = useNavigate();
+export default function ChangePasswordForm() {
   const [formData, setFormData] = useState<ChangePasswordFormData>({
     old_password: "",
     new_password: "",
@@ -56,7 +48,19 @@ export default function ChangePasswordForm({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setErrors({ ...errors, [name]: "" });
+
+    // Clear all errors when user starts typing
+    if (errors[name] || errors.api) {
+      const newErrors = { ...errors };
+      delete newErrors[name];
+      delete newErrors.api;
+      setErrors(newErrors);
+    }
+
+    // Also clear success message when user starts editing
+    if (success) {
+      setSuccess(false);
+    }
 
     if (name === "new_password") {
       setPasswordStrength(checkPasswordStrength(value));
@@ -99,10 +103,16 @@ export default function ChangePasswordForm({
       });
 
       setSuccess(true);
-      setTimeout(() => {
-        navigate(redirectPath);
-      }, 2000);
+      setErrors({}); // Clear all errors when successful
+      // Reset form after successful password change
+      setFormData({
+        old_password: "",
+        new_password: "",
+        confirm_new_password: "",
+      });
+      setPasswordStrength({ level: 0, text: "", color: "" });
     } catch (error: any) {
+      setSuccess(false); // Clear success message when error occurs
       const errorMessage =
         error.response?.data?.error?.message ||
         error.message ||
@@ -119,7 +129,7 @@ export default function ChangePasswordForm({
 
       {success && (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-          Đổi mật khẩu thành công! Đang chuyển hướng...
+          ✓ Đổi mật khẩu thành công!
         </div>
       )}
 
@@ -271,20 +281,13 @@ export default function ChangePasswordForm({
           )}
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="pt-4">
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 py-2.5 rounded-lg font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2.5 rounded-lg font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Đang xử lý..." : "Đổi mật khẩu"}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate(redirectPath)}
-            className="px-6 py-2.5 rounded-lg font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300"
-          >
-            Hủy
           </button>
         </div>
       </form>
