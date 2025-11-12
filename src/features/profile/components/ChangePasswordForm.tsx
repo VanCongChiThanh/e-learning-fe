@@ -28,17 +28,38 @@ export default function ChangePasswordForm() {
   }>({ level: 0, text: "", color: "" });
 
   const checkPasswordStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
-    if (password.match(/[0-9]/)) strength++;
-    if (password.match(/[^a-zA-Z0-9]/)) strength++;
-
-    if (strength === 0 || password.length === 0) {
+    if (password.length === 0) {
       return { level: 0, text: "", color: "" };
-    } else if (strength <= 2) {
+    }
+
+    // Check all requirements
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[^a-zA-Z0-9]/.test(password);
+
+    // Calculate strength based on requirements
+    let strength = 0;
+    if (hasMinLength && hasUpperCase && hasLowerCase && hasNumber) {
+      strength = 3; // Strong - meets all basic requirements
+      if (hasSpecialChar) {
+        strength = 3; // Still strong but with special char
+      }
+    } else if (
+      hasMinLength &&
+      ((hasUpperCase && hasLowerCase) ||
+        (hasUpperCase && hasNumber) ||
+        (hasLowerCase && hasNumber))
+    ) {
+      strength = 2; // Medium - has length and 2 types
+    } else {
+      strength = 1; // Weak - missing requirements
+    }
+
+    if (strength === 1) {
       return { level: 1, text: "Yếu", color: "bg-red-500" };
-    } else if (strength === 3) {
+    } else if (strength === 2) {
       return { level: 2, text: "Trung bình", color: "bg-yellow-500" };
     } else {
       return { level: 3, text: "Mạnh", color: "bg-green-600" };
@@ -74,8 +95,23 @@ export default function ChangePasswordForm() {
       newErrors.old_password = "Vui lòng nhập mật khẩu cũ";
     }
 
+    // Validate new password - collect all errors
+    const passwordErrors = [];
     if (formData.new_password.length < 8) {
-      newErrors.new_password = "Mật khẩu mới tối thiểu 8 ký tự";
+      passwordErrors.push("tối thiểu 8 ký tự");
+    }
+    if (!/[A-Z]/.test(formData.new_password)) {
+      passwordErrors.push("ít nhất 1 chữ hoa");
+    }
+    if (!/[a-z]/.test(formData.new_password)) {
+      passwordErrors.push("ít nhất 1 chữ thường");
+    }
+    if (!/[0-9]/.test(formData.new_password)) {
+      passwordErrors.push("ít nhất 1 chữ số");
+    }
+
+    if (passwordErrors.length > 0) {
+      newErrors.new_password = `Mật khẩu phải có: ${passwordErrors.join(", ")}`;
     }
 
     if (formData.new_password !== formData.confirm_new_password) {
@@ -199,6 +235,15 @@ export default function ChangePasswordForm() {
               ></i>
             </button>
           </div>
+
+          {/* Password requirements - always show */}
+          <div className="mt-2">
+            <p className="text-xs text-gray-600">
+              Mật khẩu phải có: tối thiểu 8 ký tự, ít nhất 1 chữ hoa, 1 chữ
+              thường, 1 chữ số
+            </p>
+          </div>
+
           {errors.new_password && (
             <p className="text-red-500 text-xs mt-1">{errors.new_password}</p>
           )}
