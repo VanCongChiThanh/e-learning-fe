@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { changePasswordAPI } from "../api/authAPI";
 
 interface ChangePasswordFormData {
@@ -10,7 +10,6 @@ interface ChangePasswordFormData {
 }
 
 export default function ChangePasswordPage() {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState<ChangePasswordFormData>({
     old_password: "",
     new_password: "",
@@ -93,10 +92,16 @@ export default function ChangePasswordPage() {
       });
 
       setSuccess(true);
-      setTimeout(() => {
-        navigate("/profile");
-      }, 2000);
+      setErrors({}); // Clear all errors when successful
+      // Reset form after successful password change
+      setFormData({
+        old_password: "",
+        new_password: "",
+        confirm_new_password: "",
+      });
+      setPasswordStrength({ level: 0, text: "", color: "" });
     } catch (error: any) {
+      setSuccess(false); // Clear success message when error occurs
       const errorMessage =
         error.response?.data?.error?.message ||
         error.message ||
