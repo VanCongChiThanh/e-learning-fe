@@ -273,3 +273,146 @@ export const submitQuizAnswers = async (quizId: string, answers: { questionId: s
     console.log("Nhận kết quả:", { score });
     return { score };
 };
+
+
+// reviews 
+
+export interface PaginationMeta {
+  current_page: number;
+  next_page: number;
+  prev_page: number;
+  total_pages: number;
+  total_count: number;
+}
+
+export interface ReviewReplyMeta {
+  reviewId: string;
+  likeCount: number;
+  dislikeCount: number;
+  parentReviewId: string;
+}
+
+export interface Review {
+  reviewId: string;
+  courseId: string;
+  userId: string;
+  rating: number;
+  comment: string;
+  createdAt: number; // timestamp
+  userAvatar: string | null;
+  likeCount: number;
+  dislikeCount: number;
+  replies: ReviewReplyMeta[];
+  userName: string;
+}
+
+// Đây là chi tiết cho một reply
+export interface ReviewDetail {
+  reviewId: string;
+  courseId: string;
+  userId: string;
+  rating: number; // Rating này có thể là 0
+  comment: string;
+  createdAt: number;
+  likeCount: number;
+  dislikeCount: number;
+  parentReviewId: string;
+  userName: string;
+  userAvatar?: string | null;
+  userVoteStatus: 'LIKE' | 'DISLIKE' | null;
+}
+
+// Interface chung cho response từ API
+interface ApiResponse<T> {
+  status: string;
+  data: T;
+  meta?: PaginationMeta;
+}
+
+/**
+ * Lấy danh sách review cho khóa học (có phân trang)
+ */
+export const getReviewsForCourse = async (
+  courseId: string,
+  params: {
+    page?: number;
+    paging?: number;
+    sort?: string;
+    order?: 'asc' | 'desc';
+    rating?: number; // Thêm filter theo rating
+    search?: string; // Thêm filter theo search
+  }
+): Promise<{ data: Review[]; meta: PaginationMeta }> => {
+  const res = await axiosAuth.get<ApiResponse<Review[]>>(
+    `/courses/${courseId}/reviews/Page`, // Sửa 'Page' thành 'page'
+    {
+      params: {
+        page: params.page || 1,
+        paging: params.paging || 10,
+        sort: params.sort || 'created_At',
+        order: params.order || 'desc',
+        ...params,
+      },
+    }
+  );
+  // @ts-ignore - Giả định cấu trúc response trả về đúng như mô tả
+  return { data: res.data.data, meta: res.data.meta };
+};
+
+/**
+ * Tạo một review mới
+ */
+export const createReview = async (
+  courseId: string,
+  payload: { comment: string; rating: number }
+): Promise<Review> => {
+  const res = await axiosAuth.post<ApiResponse<Review>>(
+    `/courses/${courseId}/reviews`,
+    payload
+  );
+  return res.data.data;
+};
+
+/**
+ * Vote (Like/Dislike) cho một review
+ */
+export const voteForReview = async (
+  courseId: string,
+  reviewId: string,
+  voteType: 'LIKE' | 'DISLIKE'
+): Promise<{ status: string; meta: string }> => {
+  const res = await axiosAuth.post(
+    `/courses/${courseId}/reviews/${reviewId}/vote`,
+    null,
+    { params: { voteType } }
+  );
+  return res.data;
+};
+
+/**
+ * Reply một review
+ */
+export const replyToReview = async (
+  courseId: string,
+  parentReviewId: string,
+  payload: { comment: string; rating: number } // rating set cứng (vd: 0)
+): Promise<ReviewDetail> => {
+  const res = await axiosAuth.post<ApiResponse<ReviewDetail>>(
+    `/courses/${courseId}/reviews/${parentReviewId}/reply`,
+    payload
+  );
+  return res.data.data;
+};
+
+/**
+ * Lấy chi tiết một review (dùng để lấy chi tiết reply)
+ */
+export const getReviewDetail = async (
+  courseId: string,
+  reviewId: string
+): Promise<ReviewDetail> => {
+  const res = await axiosAuth.get<ApiResponse<ReviewDetail>>(
+    `/courses/${courseId}/reviews/${reviewId}`
+  );
+  return res.data.data;
+};
