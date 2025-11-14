@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import MainLayout from "../../../layouts/MainLayout";
+import InstructorProfileLayout from "./ProfileLayout";
 import { toast } from "react-toastify";
 import "./Edit.scss";
 import {
@@ -101,7 +101,7 @@ const InstructorProfileEdit: React.FC = () => {
   };
 
   return (
-    <MainLayout>
+    <InstructorProfileLayout>
       <div className="max-w-4xl mx-auto bg-gradient-to-br from-green-50 to-emerald-50 min-h-screen py-8 px-4">
         <div className="page-header">
           <h5>
@@ -446,7 +446,7 @@ const InstructorProfileEdit: React.FC = () => {
           </div>
         </form>
       </div>
-    </MainLayout>
+    </InstructorProfileLayout>
   );
 };
 

@@ -1,21 +1,26 @@
 import type React from "react";
 import { useState } from "react";
-import { register } from "../api/authAPI";
-import { RegisterRequest } from "../types/authType";
-export default function RegisterPage() {
-  const [formData, setFormData] = useState<RegisterRequest>({
-    email: "",
-    firstname: "",
-    lastname: "",
-    password: "",
-    password_confirmation: "",
-    role: "LEARNER",
+import { Link } from "react-router-dom";
+import { changePasswordAPI } from "../api/authAPI";
+
+interface ChangePasswordFormData {
+  old_password: string;
+  new_password: string;
+  confirm_new_password: string;
+}
+
+export default function ChangePasswordPage() {
+  const [formData, setFormData] = useState<ChangePasswordFormData>({
+    old_password: "",
+    new_password: "",
+    confirm_new_password: "",
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<{
     level: number;
@@ -24,17 +29,38 @@ export default function RegisterPage() {
   }>({ level: 0, text: "", color: "" });
 
   const checkPasswordStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
-    if (password.match(/[0-9]/)) strength++;
-    if (password.match(/[^a-zA-Z0-9]/)) strength++;
-
-    if (strength === 0 || password.length === 0) {
+    if (password.length === 0) {
       return { level: 0, text: "", color: "" };
-    } else if (strength <= 2) {
+    }
+
+    // Check all requirements
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[^a-zA-Z0-9]/.test(password);
+
+    // Calculate strength based on requirements
+    let strength = 0;
+    if (hasMinLength && hasUpperCase && hasLowerCase && hasNumber) {
+      strength = 3; // Strong - meets all basic requirements
+      if (hasSpecialChar) {
+        strength = 3; // Still strong but with special char
+      }
+    } else if (
+      hasMinLength &&
+      ((hasUpperCase && hasLowerCase) ||
+        (hasUpperCase && hasNumber) ||
+        (hasLowerCase && hasNumber))
+    ) {
+      strength = 2; // Medium - has length and 2 types
+    } else {
+      strength = 1; // Weak - missing requirements
+    }
+
+    if (strength === 1) {
       return { level: 1, text: "Yếu", color: "bg-red-500" };
-    } else if (strength === 3) {
+    } else if (strength === 2) {
       return { level: 2, text: "Trung bình", color: "bg-yellow-500" };
     } else {
       return { level: 3, text: "Mạnh", color: "bg-green-600" };
@@ -44,30 +70,55 @@ export default function RegisterPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setErrors({ ...errors, [name]: "" });
 
-    if (name === "password") {
+    // Clear all errors when user starts typing
+    if (errors[name] || errors.api) {
+      const newErrors = { ...errors };
+      delete newErrors[name];
+      delete newErrors.api;
+      setErrors(newErrors);
+    }
+
+    // Also clear success message when user starts editing
+    if (success) {
+      setSuccess(false);
+    }
+
+    if (name === "new_password") {
       setPasswordStrength(checkPasswordStrength(value));
     }
   };
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      newErrors.email = "Email không hợp lệ";
+
+    if (!formData.old_password) {
+      newErrors.old_password = "Vui lòng nhập mật khẩu cũ";
     }
-    if (!formData.firstname.trim()) {
-      newErrors.firstname = "Vui lòng nhập họ";
+
+    // Validate new password - collect all errors
+    const passwordErrors = [];
+    if (formData.new_password.length < 8) {
+      passwordErrors.push("tối thiểu 8 ký tự");
     }
-    if (!formData.lastname.trim()) {
-      newErrors.lastname = "Vui lòng nhập tên";
+    if (!/[A-Z]/.test(formData.new_password)) {
+      passwordErrors.push("ít nhất 1 chữ hoa");
     }
-    if (formData.password.length < 8) {
-      newErrors.password = "Mật khẩu tối thiểu 8 ký tự";
+    if (!/[a-z]/.test(formData.new_password)) {
+      passwordErrors.push("ít nhất 1 chữ thường");
     }
-    if (formData.password !== formData.password_confirmation) {
-      newErrors.password_confirmation = "Mật khẩu không khớp";
+    if (!/[0-9]/.test(formData.new_password)) {
+      passwordErrors.push("ít nhất 1 chữ số");
     }
+
+    if (passwordErrors.length > 0) {
+      newErrors.new_password = `Mật khẩu phải có: ${passwordErrors.join(", ")}`;
+    }
+
+    if (formData.new_password !== formData.confirm_new_password) {
+      newErrors.confirm_new_password = "Mật khẩu xác nhận không khớp";
+    }
+
     return newErrors;
   };
 
@@ -81,16 +132,29 @@ export default function RegisterPage() {
 
     try {
       setLoading(true);
-      await register(formData);
+
+      await changePasswordAPI({
+        old_password: formData.old_password,
+        new_password: formData.new_password,
+        confirm_new_password: formData.confirm_new_password,
+      });
+
       setSuccess(true);
+      setErrors({}); // Clear all errors when successful
+      // Reset form after successful password change
+      setFormData({
+        old_password: "",
+        new_password: "",
+        confirm_new_password: "",
+      });
+      setPasswordStrength({ level: 0, text: "", color: "" });
     } catch (error: any) {
-      console.log("API ERROR:", error.response?.data);
-      const apiError = error.response?.data?.error;
-      if (apiError && apiError.message) {
-        setErrors({ api: apiError.message });
-      } else {
-        setErrors({ api: "Đăng ký thất bại" });
-      }
+      setSuccess(false); // Clear success message when error occurs
+      const errorMessage =
+        error.response?.data?.error?.message ||
+        error.message ||
+        "Đổi mật khẩu thất bại";
+      setErrors({ api: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -105,11 +169,11 @@ export default function RegisterPage() {
             src="/svg/login.png"
             alt="Coursevo Illustration"
             className="w-full h-auto"
-            style={{ transform: "scale(1.2)" }}
+            style={{ transform: "scale(2.5)" }}
           />
         </div>
 
-        {/* Right: Register Form */}
+        {/* Right: Change Password Form */}
         <div className="flex-1 max-w-md w-full">
           <div className="bg-white p-10">
             {/* Logo & Header */}
@@ -120,87 +184,42 @@ export default function RegisterPage() {
               >
                 Coursevo
               </h1>
-              <p className="text-gray-600 text-sm">Tạo tài khoản học để phát triển sự nghiệp cùng Coursevo</p>
+              <p className="text-gray-600 text-sm">Đổi mật khẩu</p>
             </div>
+
+            {success && (
+              <p className="mb-4 text-center text-green-600 text-sm">
+                Đổi mật khẩu thành công! Đang chuyển hướng...
+              </p>
+            )}
+
+            {errors.api && (
+              <p className="mb-4 text-center text-red-600 text-sm">
+                {errors.api}
+              </p>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-2">
-              {/* Email */}
-              <div>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 text-sm border rounded-sm bg-gray-50 focus:outline-none focus:border-gray-400 ${
-                    errors.email ? "border-red-500" : "border-gray-300"
-                  }`}
-                  placeholder="Email"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {/* Firstname */}
-                <div>
-                  <input
-                    type="text"
-                    name="firstname"
-                    value={formData.firstname}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 text-sm border rounded-sm bg-gray-50 focus:outline-none focus:border-gray-400 ${
-                      errors.firstname ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Họ"
-                  />
-                  {errors.firstname && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors.firstname}
-                    </p>
-                  )}
-                </div>
-
-                {/* Lastname */}
-                <div>
-                  <input
-                    type="text"
-                    name="lastname"
-                    value={formData.lastname}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 text-sm border rounded-sm bg-gray-50 focus:outline-none focus:border-gray-400 ${
-                      errors.lastname ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Tên"
-                  />
-                  {errors.lastname && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors.lastname}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Password */}
+              {/* Old Password */}
               <div>
                 <div className="relative">
                   <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
+                    type={showOldPassword ? "text" : "password"}
+                    name="old_password"
+                    value={formData.old_password}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 pr-10 text-sm border rounded-sm bg-gray-50 focus:outline-none focus:border-gray-400 ${
-                      errors.password ? "border-red-500" : "border-gray-300"
+                      errors.old_password ? "border-red-500" : "border-gray-300"
                     }`}
-                    placeholder="Mật khẩu"
+                    placeholder="Mật khẩu cũ"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowOldPassword(!showOldPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   >
-                    {showPassword ? (
+                    {showOldPassword ? (
                       <svg
                         className="w-5 h-5"
                         fill="none"
@@ -237,8 +256,81 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                {errors.old_password && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.old_password}
+                  </p>
+                )}
+              </div>
+
+              {/* New Password */}
+              <div>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    name="new_password"
+                    value={formData.new_password}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 pr-10 text-sm border rounded-sm bg-gray-50 focus:outline-none focus:border-gray-400 ${
+                      errors.new_password ? "border-red-500" : "border-gray-300"
+                    }`}
+                    placeholder="Mật khẩu mới"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showNewPassword ? (
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+
+                {/* Password requirements - always show */}
+                <div className="mt-2">
+                  <p className="text-xs text-gray-600">
+                    Mật khẩu phải có: tối thiểu 8 ký tự, ít nhất 1 chữ hoa, 1
+                    chữ thường, 1 chữ số
+                  </p>
+                </div>
+
+                {errors.new_password && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.new_password}
+                  </p>
                 )}
 
                 {passwordStrength.level > 0 && (
@@ -281,20 +373,20 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* Confirm Password */}
+              {/* Confirm New Password */}
               <div>
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
-                    name="password_confirmation"
-                    value={formData.password_confirmation}
+                    name="confirm_new_password"
+                    value={formData.confirm_new_password}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 pr-10 text-sm border rounded-sm bg-gray-50 focus:outline-none focus:border-gray-400 ${
-                      errors.password_confirmation
+                      errors.confirm_new_password
                         ? "border-red-500"
                         : "border-gray-300"
                     }`}
-                    placeholder="Xác nhận mật khẩu"
+                    placeholder="Xác nhận mật khẩu mới"
                   />
                   <button
                     type="button"
@@ -338,44 +430,31 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
-                {errors.password_confirmation && (
+                {errors.confirm_new_password && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.password_confirmation}
+                    {errors.confirm_new_password}
                   </p>
                 )}
               </div>
-
-              {errors.api && (
-                <p className="text-red-500 text-sm mt-1 text-center">
-                  {errors.api}
-                </p>
-              )}
 
               <button
                 type="submit"
                 disabled={loading}
                 className="w-full py-2 mt-3 rounded-sm font-semibold text-white text-sm bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
               >
-                {loading ? "Đang xử lý..." : "Đăng ký"}
+                {loading ? "Đang xử lý..." : "Đổi mật khẩu"}
               </button>
             </form>
 
-            {success && (
-              <p className="text-green-600 text-center mt-4 font-medium text-sm">
-                Đăng ký thành công! Vui lòng kiểm tra email để xác nhận.
-              </p>
-            )}
-
-            {/* Login Link */}
+            {/* Back to Profile Link */}
             <div className="text-center mt-6 pt-6 border-t border-gray-300">
               <p className="text-sm">
-                Đã có tài khoản?{" "}
-                <a
-                  href="/login"
+                <Link
+                  to="/profile"
                   className="text-emerald-600 font-semibold hover:text-emerald-700"
                 >
-                  Đăng nhập
-                </a>
+                  Quay lại trang cá nhân
+                </Link>
               </p>
             </div>
           </div>

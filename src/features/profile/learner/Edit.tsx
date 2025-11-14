@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
-import {
-  getUserInfo,
-  updateUserInfo,
-  UserInfo,
-} from "../api";
+import { getUserInfo, updateUserInfo, UserInfo } from "../api";
 import {
   getPresignedUrl,
   uploadFileToS3,
 } from "../../../services/file-service";
-import MainLayout from "../../../layouts/MainLayout";
+import ProfileLayout from "./ProfileLayout";
 function LearnerProfileEdit() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -78,116 +74,126 @@ function LearnerProfileEdit() {
     setPreviewAvatar(URL.createObjectURL(file)); // chỉ preview
   };
 
-  if (loading && !user) return <div className="text-center">Loading...</div>;
-
   return (
-    <MainLayout>
-    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-md relative">
-      {!isEditing && (
-        <button
-          onClick={() => setIsEditing(true)}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100"
-          title="Edit"
-        >
-          <i className="fas fa-pen text-[#106c54] text-lg"></i>
-        </button>
-      )}
-
-      <h2 className="text-2xl font-bold mb-6 text-center">Thông tin cá nhân</h2>
-
-      {user && (
-        <>
-          {/* Avatar */}
-          <div className="flex flex-col items-center mb-6">
-            <div className="flex flex-col items-center mb-6 relative group w-32">
-              {/* Avatar */}
-              <img
-                src={
-                  previewAvatar ||
-                  avatarUrl ||
-                  `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`
-                }
-                alt="avatar"
-                className="w-32 h-32 rounded-full object-cover border-2 border-gray-200"
-              />
-
-              {/* Overlay icon edit */}
-              <label className="absolute bottom-0 right-0 bg-white border border-gray-300 p-1 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
-                <i className="fas fa-pen text-sm text-gray-700"></i>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="hidden"
-                />
-              </label>
-            </div>
+    <ProfileLayout>
+      <div className="max-w-md mx-auto relative">
+        {loading && !user ? (
+          <div className="text-center py-12">
+            <i className="fas fa-spinner fa-spin text-4xl text-emerald-600 mb-4"></i>
+            <p className="text-gray-600">Đang tải...</p>
           </div>
-
-          {/* First name */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">First name</label>
-            <input
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              disabled={!isEditing}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring ${
-                isEditing
-                  ? "focus:ring-[#106c54]/50"
-                  : "bg-gray-100 cursor-not-allowed"
-              }`}
-            />
-          </div>
-
-          {/* Last name */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Last name</label>
-            <input
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              disabled={!isEditing}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring ${
-                isEditing
-                  ? "focus:ring-[#106c54]/50"
-                  : "bg-gray-100 cursor-not-allowed"
-              }`}
-            />
-          </div>
-
-          {isEditing && (
-            <div className="flex gap-3">
-              {/* Save */}
+        ) : (
+          <>
+            {!isEditing && (
               <button
-                onClick={handleSave}
-                disabled={loading}
-                className="flex-1 py-2 bg-[#106c54] text-white font-semibold rounded-lg hover:opacity-90 disabled:bg-gray-400 flex items-center justify-center gap-2"
+                onClick={() => setIsEditing(true)}
+                className="absolute top-0 right-0 p-2 rounded-lg hover:bg-gray-100"
+                title="Edit"
               >
-                <i className="fas fa-save"></i>
-                {loading ? "Saving..." : "Save"}
+                <i className="fas fa-pen text-[#106c54] text-lg"></i>
               </button>
+            )}
 
-              {/* Cancel */}
-              <button
-                onClick={() => {
-                  setIsEditing(false);
-                  setPreviewAvatar(null);
-                  setNewAvatarFile(null);
-                  if (user) {
-                    setFirstName(user.first_name);
-                    setLastName(user.last_name);
-                  }
-                }}
-                className="flex-1 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 flex items-center justify-center gap-2"
-              >
-                <i className="fas fa-times"></i>
-                Cancel
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-    </MainLayout>
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              Thông tin cá nhân
+            </h2>
+
+            {user && (
+              <>
+                {/* Avatar */}
+                <div className="flex flex-col items-center mb-6">
+                  <div className="relative w-32 h-32 group">
+                    <img
+                      src={
+                        previewAvatar ||
+                        avatarUrl ||
+                        `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}`
+                      }
+                      alt="avatar"
+                      className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                    />
+
+                    {/* Camera icon - only show when editing */}
+                    {isEditing && (
+                      <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full cursor-pointer opacity-0 hover:opacity-100 transition-opacity">
+                        <i className="fas fa-camera text-white text-2xl"></i>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarChange}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {/* First name */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">Họ</label>
+                  <input
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    disabled={!isEditing}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring ${
+                      isEditing
+                        ? "focus:ring-emerald-500/50 border-gray-300"
+                        : "bg-gray-100 cursor-not-allowed border-gray-200"
+                    }`}
+                  />
+                </div>
+
+                {/* Last name */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">Tên</label>
+                  <input
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    disabled={!isEditing}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring ${
+                      isEditing
+                        ? "focus:ring-emerald-500/50 border-gray-300"
+                        : "bg-gray-100 cursor-not-allowed border-gray-200"
+                    }`}
+                  />
+                </div>
+
+                {isEditing && (
+                  <div className="flex gap-3 mt-6">
+                    {/* Save */}
+                    <button
+                      onClick={handleSave}
+                      disabled={loading}
+                      className="flex-1 py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 disabled:bg-gray-400 flex items-center justify-center gap-2"
+                    >
+                      <i className="fas fa-save"></i>
+                      {loading ? "Saving..." : "Save"}
+                    </button>
+
+                    {/* Cancel */}
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setPreviewAvatar(null);
+                        setNewAvatarFile(null);
+                        if (user) {
+                          setFirstName(user.first_name);
+                          setLastName(user.last_name);
+                        }
+                      }}
+                      className="flex-1 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 flex items-center justify-center gap-2"
+                    >
+                      <i className="fas fa-times"></i>
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </ProfileLayout>
   );
 }
 

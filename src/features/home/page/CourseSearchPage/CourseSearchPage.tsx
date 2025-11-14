@@ -629,7 +629,7 @@ const CourseSearchPage: React.FC = () => {
                           <img
                             src={
                               course.image ||
-                              "https://via.placeholder.com/400x225?text=Course"
+                              "https://placehold.co/400x225?text=Course"
                             }
                             alt={course.title}
                           />

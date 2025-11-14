@@ -14,6 +14,7 @@ const initialState: AuthState = {
   user: null,
   loading: false,
   error: null,
+  isInitialized: false, // Not initialized yet
 };
 // login async action
 export const login = createAsyncThunk(
@@ -87,7 +88,11 @@ const authSlice = createSlice({
     logout: (state) => {
       state.token = null;
       state.user = null;
+      state.isInitialized = true;
       localStorage.removeItem("token");
+    },
+    setInitialized: (state) => {
+      state.isInitialized = true;
     },
   },
   extraReducers: (builder) => {
@@ -122,11 +127,17 @@ const authSlice = createSlice({
       // fetch user
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.user = action.payload;
+        state.isInitialized = true;
+      })
+      .addCase(fetchCurrentUser.rejected, (state) => {
+        state.user = null;
+        state.isInitialized = true;
       })
       // logout
       .addCase(logoutAsync.fulfilled, (state) => {
         state.token = null;
         state.user = null;
+        state.isInitialized = true;
         localStorage.removeItem("token");
       })
       // login admin
@@ -171,5 +182,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, setInitialized } = authSlice.actions;
 export default authSlice.reducer;
