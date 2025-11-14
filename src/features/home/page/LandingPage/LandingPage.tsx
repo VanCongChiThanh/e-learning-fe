@@ -260,7 +260,7 @@ const LandingPage: React.FC = () => {
                   <div className="course-image">
                     <img
                       src={
-                        course.image || "https://via.placeholder.com/300x200"
+                        course.image || "https://placehold.co/400x225?text=Course"
                       }
                       alt={course.title}
                     />

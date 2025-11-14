@@ -196,13 +196,13 @@ const HomePage = () => {
         <div className="course-image">
           <img
             src={
-              course.image || "https://via.placeholder.com/400x225?text=Course"
+              course.image || "https://placehold.co/400x225?text=Course"
             }
             alt={course.title}
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src =
-                "https://via.placeholder.com/400x225?text=Course";
+                "https://placehold.co/400x225?text=Course";
             }}
           />
           {course.level && <span className="course-level">{course.level}</span>}
