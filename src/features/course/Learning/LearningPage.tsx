@@ -8,7 +8,7 @@ import LearningFooter from "./LearningFooter";
 import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail,  ExerciseListItem, getQuizDetail, QuizDetail } from "../api";
 import OverviewTab from "./OverviewTab";
 import NoteTab from "./NoteTab";
-import ReviewPage from "./ReviewTag";
+import ReviewTag from "./ReviewTag";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 import CodingExerciseTab from "./CodingTag";
@@ -261,7 +261,7 @@ const LearningPage: React.FC = () => {
               <NoteTab lectureId={currentLecture.lectureId!} userId={userId} />
             )}
             {activeTab === "Thông báo" && <div>Chưa có thông báo nào.</div>}
-            {activeTab === "Đánh giá" && <ReviewPage />}
+            {activeTab === "Đánh giá" && <ReviewTag courseId={course.courseId} />}
             {activeTab === "Coding Exercise" && currentLecture && <CodingExerciseTab lectureId={currentLecture.lectureId!} />}
             {activeTab === "Quiz" && (
                 activeQuizId ? (
