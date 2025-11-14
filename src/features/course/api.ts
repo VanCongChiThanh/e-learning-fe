@@ -319,6 +319,7 @@ export interface ReviewDetail {
   parentReviewId: string;
   userName: string;
   userAvatar?: string | null;
+  userVoteStatus: 'LIKE' | 'DISLIKE' | null;
 }
 
 // Interface chung cho response từ API
