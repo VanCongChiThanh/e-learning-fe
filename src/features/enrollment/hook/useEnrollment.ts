@@ -5,26 +5,35 @@ import {
   getEnrollmentByUserId,
   getEnrollmentByCourseId,
   getEnrollmentById,
-  createEnrollment,
-  updateEnrollment,
   getEnrollmentReportByCourseId,
+  getEnrollmentReportByUserId,
+  getEnrollmentCourseCompletionTrends,
+  getEnrollmentCourseOverview,
+  getEnrollmentCourseQuizPerformance,
+  getEnrollmentUserOverview,
 } from "../api/enrollment";
 import { getCourseById } from "../api/course";
+import {
+  Course,
+  CourseReport,
+  Enrollment,
+  EnrollmentWithStats,
+  UserReport,
+} from "../type";
 
 export function useEnrollments(userId?: UUID, courseId?: UUID) {
-  const [enrollments, setEnrollments] = useState<any[]>([]);
-  const [selectedEnrollment, setSelectedEnrollment] = useState<any | null>(null);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [enrollmentReport, setEnrollmentReport] = useState<
+    EnrollmentWithStats[]
+  >([]);
+  const [userReport, setUserReport] = useState<UserReport[]>([]);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [selectedEnrollment, setSelectedEnrollment] = useState<any | null>(
+    null
+  );
+  const [courseReport, setCourseReport] = useState<CourseReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [coursesMap, setCoursesMap] = useState<Record<string, any>>({});
-
-  // Dùng ref để tránh dependency cycle
-  const coursesMapRef = useRef<Record<string, any>>({});
-
-  // Sync ref với state
-  useEffect(() => {
-    coursesMapRef.current = coursesMap;
-  }, [coursesMap]);
 
   const fetchEnrollments = useCallback(async () => {
     setLoading(true);
@@ -33,10 +42,10 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
       let data;
       if (userId) {
         const res = await getEnrollmentByUserId(userId);
-        data = res.data ?? res;
+        data = res;
       } else if (courseId) {
         const res = await getEnrollmentByCourseId(courseId);
-        data = res.data ?? res;
+        data = res;
       } else {
         data = await getAllEnrollment();
       }
@@ -69,7 +78,7 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
     setError(null);
     try {
       const res = await getEnrollmentByCourseId(courseId);
-      const data = res.data ?? res;
+      const data = res;
       setEnrollments(Array.isArray(data) ? data : []);
       return data;
     } catch (err: any) {
@@ -81,159 +90,85 @@ export function useEnrollments(userId?: UUID, courseId?: UUID) {
     }
   }, []);
 
-  const fetchEnrollmentReportByCourseId = useCallback(async (courseId: UUID) => {
+  const fetchEnrollmentReportByCourseId = useCallback(
+    async (courseId: UUID) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getEnrollmentReportByCourseId(courseId);
+        setEnrollmentReport(Array.isArray(res) ? res : []);
+        return res;
+      } catch (err: any) {
+        setError(err.message || "Error fetching enrollment report by course");
+        setEnrollmentReport([]);
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+  const fetchCourseById = useCallback(async (id: UUID) => {
+    try {
+      const data = await getCourseById(id);
+      setCourse(data.data);
+      return data;
+    } catch (err: any) {
+      console.error(`Error fetching course ${id}:`, err.message);
+      setCourse(null);
+      return null;
+    }
+  }, []);
+  const fetchUserReportByCourseId = useCallback(async (courseId: UUID) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getEnrollmentReportByCourseId(courseId);
-      const data = res.data ?? res;
-      setEnrollments(Array.isArray(data) ? data : []);
-      return data;
+      const res = await getEnrollmentUserOverview(courseId);
+      setUserReport(Array.isArray(res) ? res : []);
+      return res;
     } catch (err: any) {
-      setError(err.message || "Error fetching enrollment report by course");
-      setEnrollments([]);
+      setError(err.message || "Error fetching user report by course");
+      setUserReport([]);
       return [];
     } finally {
       setLoading(false);
     }
   }, []);
-
-  // Fixed: Dùng ref thay vì coursesMap trong dependencies
-  const fetchCourseById = useCallback(async (id: UUID) => {
-    // Check cache từ ref
-    if (coursesMapRef.current[id]) {
-      return coursesMapRef.current[id];
-    }
-
-    try {
-      const data = await getCourseById(id);
-
-      // Update state và ref
-      setCoursesMap(prev => {
-        const updated = { ...prev, [id]: data };
-        coursesMapRef.current = updated;
-        return updated;
-      });
-
-      return data;
-    } catch (err: any) {
-      console.error(`Error fetching course ${id}:`, err.message);
-      return null;
-    }
-  }, []); // ✅ Không có dependencies
-
-  // Fixed: Dùng ref
-  const fetchCoursesByIds = useCallback(async (courseIds: UUID[]) => {
-    const promises = courseIds.map(id => fetchCourseById(id));
-    const results = await Promise.allSettled(promises);
-
-    const newCoursesMap: Record<string, any> = { ...coursesMapRef.current };
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value) {
-        newCoursesMap[courseIds[index]] = result.value;
-      }
-    });
-
-    setCoursesMap(newCoursesMap);
-    coursesMapRef.current = newCoursesMap;
-    return newCoursesMap;
-  }, [fetchCourseById]);
-
-  // Fixed: Dùng ref
-  const getCourseFromMap = useCallback((courseId: UUID) => {
-    return coursesMapRef.current[courseId] || null;
-  }, []);
-
-  const addEnrollment = useCallback(
-    async (courseId: UUID) => {
-      if (!userId) {
-        setError("userId is required to create enrollment");
-        return null;
-      }
-
-      setError(null);
-      try {
-        const newEnroll = await createEnrollment({ userId, courseId });
-        const enrollmentData = newEnroll.data ?? newEnroll;
-        setEnrollments((prev) => [...prev, enrollmentData]);
-
-        // Fetch course info cho enrollment mới
-        await fetchCourseById(courseId);
-
-        return enrollmentData;
-      } catch (err: any) {
-        setError(err.message || "Error creating enrollment");
-        return null;
-      }
-    },
-    [userId, fetchCourseById]
-  );
-
-  const editEnrollment = useCallback(
-    async (id: UUID, data: any) => {
-      setError(null);
-      try {
-        const updated = await updateEnrollment(id, data);
-        const updatedData = updated.data ?? updated;
-
-        setEnrollments((prev) =>
-          prev.map((e) => (e.id === id ? { ...e, ...updatedData } : e))
-        );
-
-        if (selectedEnrollment?.id === id) {
-          setSelectedEnrollment({ ...selectedEnrollment, ...updatedData });
-        }
-
-        return updatedData;
-      } catch (err: any) {
-        setError(err.message || "Error updating enrollment");
-        return null;
-      }
-    },
-    [selectedEnrollment]
-  );
-
-  const removeEnrollment = useCallback((id: UUID) => {
-    setEnrollments((prev) => prev.filter((e) => e.id !== id));
-    if (selectedEnrollment?.id === id) {
-      setSelectedEnrollment(null);
-    }
-  }, [selectedEnrollment]);
-
-  const clearError = useCallback(() => {
+  const fetchCourseReportOverview = useCallback(async (courseId: UUID) => {
+    setLoading(true);
     setError(null);
+    try {
+      const res = await getEnrollmentCourseOverview(courseId);
+      setCourseReport(res);
+      return res;
+    } catch (err: any) {
+      setError(err.message || "Error fetching course report overview");
+      return null;
+    } finally {
+      setLoading(false);
+    }
   }, []);
-
   useEffect(() => {
     fetchEnrollments();
   }, [fetchEnrollments]);
 
   return {
-    // Data
     enrollments,
     selectedEnrollment,
-    coursesMap,
+    course,
     loading,
     error,
-
-    // Setters
+    enrollmentReport,
+    courseReport,
+    userReport,
+    fetchCourseReportOverview,
+    setEnrollmentReport,
     setSelectedEnrollment,
-
-    // Enrollment methods
     fetchEnrollments,
     fetchEnrollmentById,
     fetchEnrollmentsByCourseId,
     fetchEnrollmentReportByCourseId,
-    addEnrollment,
-    editEnrollment,
-    removeEnrollment,
-
-    // Course methods
     fetchCourseById,
-    fetchCoursesByIds,
-    getCourseFromMap,
-
-    // Utils
-    clearError,
+    fetchUserReportByCourseId,
   };
 }

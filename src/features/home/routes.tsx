@@ -29,7 +29,6 @@ export const homeRoutes = [
     element: (
       <ProtectedRoute roles={["LEARNER", "INSTRUCTOR"]}>
         <MainLayout>
-          {/* <MyLearningPage /> */}
           <EnrollmentLearn />
         </MainLayout>
       </ProtectedRoute>
@@ -41,7 +40,7 @@ export const homeRoutes = [
   },
   {
     path: "/certificate/:id",
-    element: < CertificateDetailPage/>
+    element: <CertificateDetailPage />,
   },
   {
     path: "/careers",
@@ -61,7 +60,6 @@ export const homeRoutes = [
   },
   {
     path: "/payment-result",
-    element:  < PaymentResult />
-    }
-
+    element: <PaymentResult />,
+  },
 ];
