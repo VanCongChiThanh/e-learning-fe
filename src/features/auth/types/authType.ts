@@ -12,6 +12,7 @@ export interface AuthState {
   user: User | null;
   loading: boolean;
   error: string | ApiError | null;
+  isInitialized: boolean; // Track if we've tried to fetch user
 }
 
 export interface ApiError {
