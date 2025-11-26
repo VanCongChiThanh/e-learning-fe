@@ -1,7 +1,6 @@
 import ProtectedRoute from "../../routes/ProtectedRoute";
 import MainPage from "./page/MainPage";
 import OnlineDegreesPage from "./page/OnlineDegreesPage";
-import CareersPage from "./page/CareersPage";
 import MainLayout from "../../layouts/MainLayout";
 import EnrollmentLearn from "../enrollment/student/EnrollmentLearn";
 import InstructorRegistration from "./page/InstructorRegistration/InstructorRegistration";
@@ -10,7 +9,10 @@ import CoursePreviewPage from "./page/CoursePreviewPage/CoursePreviewPage";
 import CartPage from "./page/CartPage/CartPage";
 import PaymentResult from "./page/CartPage/PaymentResult";
 import CertificateDetailPage from "./page/CertificateDetailPage";
-
+// Career pages
+import CareerQuestionPage from "./page/Career/CareerQuestionPage";
+import MyCareerPage from "./page/Career/MyCareerPage";
+import CareerPreviewPage from "./page/Career/CareerPreviewPage";
 export const homeRoutes = [
   {
     path: "/",
@@ -29,6 +31,7 @@ export const homeRoutes = [
     element: (
       <ProtectedRoute roles={["LEARNER", "INSTRUCTOR"]}>
         <MainLayout>
+          {/* <MyLearningPage /> */}
           <EnrollmentLearn />
         </MainLayout>
       </ProtectedRoute>
@@ -41,10 +44,6 @@ export const homeRoutes = [
   {
     path: "/certificate/:id",
     element: <CertificateDetailPage />,
-  },
-  {
-    path: "/careers",
-    element: <CareersPage />,
   },
   {
     path: "/instructor-registration",
@@ -61,5 +60,18 @@ export const homeRoutes = [
   {
     path: "/payment-result",
     element: <PaymentResult />,
+  },
+  // Career routes
+  {
+    path: "/career/questions",
+    element: <CareerQuestionPage />,
+  },
+  {
+    path: "/career",
+    element: <MyCareerPage />,
+  },
+  {
+    path: "/career/preview",
+    element: <CareerPreviewPage />,
   },
 ];

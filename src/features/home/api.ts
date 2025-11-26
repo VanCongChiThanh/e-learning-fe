@@ -1,5 +1,7 @@
 import axiosAuth from "../../api/axiosAuth";
 import axiosClient from "../../api/axiosClient";
+import aiAPI from "../../api/aiAPI";
+import { CareerPlanRequest,GenerateCareerPlanPayload } from "./types/CareerType";
 export interface ApplyInstructorRequest {
   cv_url: string;
   portfolio_link: string;
@@ -85,4 +87,30 @@ export const getCetificateByUserId = async (userId: string) => {
 export const getCertificateDetailById = async (certificateId: string) => {
   const response = await axiosAuth.get(`/certificates/${certificateId}`);
   return response.data;
+};
+//career plan 
+
+//get course by list id
+export const getCourseByListId = async (courseIds: string[]) => {
+  const res = await axiosClient.get("/courses/list-by-ids", {
+    params: { course_ids: courseIds.join(",") },
+  });
+  return res.data;
+};
+// gọi AI FastAPI generate lộ trình
+export const generateCareerPlan = async (data: GenerateCareerPlanPayload) => {
+  const res = await aiAPI.post("/career/generate", data);
+  return res.data;
+};
+
+// lưu lộ trình career vào Spring
+export const saveCareerPlan = async (data: CareerPlanRequest) => {
+  const res = await axiosAuth.post("/career-plans/me", data);
+  return res.data.data;
+};
+
+// lấy lộ trình của user
+export const getMyCareerPlan = async () => {
+  const res = await axiosAuth.get("/career-plans/me");
+  return res.data.data;
 };

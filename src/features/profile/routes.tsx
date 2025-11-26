@@ -5,6 +5,7 @@ import InstructorProfilePage from "./instructor/InstructorProfilePage";
 import LearnerChangePasswordPage from "./learner/ChangePasswordPage";
 import InstructorChangePasswordPage from "./instructor/ChangePasswordPage";
 
+
 export const profileRoutes = [
   {
     path: "/account-profile",
