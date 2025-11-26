@@ -53,7 +53,7 @@ const HomeLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
               Chứng nhận Online
             </NavLink>
             <NavLink
-              to="/careers"
+              to="/career"
               className={({ isActive }) =>
                 `pb-2 whitespace-nowrap transition-colors ${
                   isActive

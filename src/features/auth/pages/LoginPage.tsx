@@ -49,10 +49,9 @@ const LoginPage: React.FC = () => {
         <div className="flex-1 max-w-md w-full">
           <div className="bg-white p-10">
             <h1
-              className="text-5xl text-center mb-8"
-              style={{ fontFamily: "'Cookie', cursive" }}
+              className="text-3xl mb-8"
             >
-              Coursevo
+              Đăng nhập để tiếp tục hành trình học tập của bạn cùng <span className="text-emerald-600 font-bold">coursevo </span>
             </h1>
 
             {token && (
