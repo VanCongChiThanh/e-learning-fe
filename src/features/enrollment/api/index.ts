@@ -3,6 +3,4 @@ export * from "./progress";
 export * from "./quiz";
 export * from "./quizAttempt";
 export * from "./quizQA";
-export * from "./assignment";
-export * from "./assignmentSubmission";
 export * from "./course";

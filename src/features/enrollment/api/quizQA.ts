@@ -15,30 +15,13 @@ export interface QuizQuestionAnswerResponse {
 }
 
 // GET /api/quiz-questions/{id} -> getById
-export const getQuizQuestionById = async (id: UUID): Promise<QuizQuestionAnswerResponse> => {
+export const getQuizQuestionById = async (
+  id: UUID
+): Promise<QuizQuestionAnswerResponse> => {
   const res: AxiosResponse = await axiosAuth.get(`/quiz-questions/${id}`);
   return res.data;
 };
 
-// POST /api/quiz-questions/{id} -> create
-export const createQuizQuestion = async (
-  id: UUID,
-  data: any
-): Promise<QuizQuestionAnswerResponse> => {
-  const res: AxiosResponse = await axiosAuth.post(`/quiz-questions/${id}`, data);
-  return res.data;
-};
-export const createBulkQuizQuestions = async (
-  id: UUID,
-  data: any[]
-): Promise<QuizQuestionAnswerResponse[]> => {
-  console.log("Creating bulk quiz questions with data:", data);
-  const res: AxiosResponse = await axiosAuth.post(`/quiz-questions/${id}/bulk`, {
-    questions: data,
-    quizId: id
-  });
-  return res.data;
-}
 // PUT /api/quiz-questions/{id} -> update
 export const updateQuizQuestion = async (
   id: UUID,
@@ -59,8 +42,11 @@ export const deleteQuizQuestion = async (id: UUID): Promise<any> => {
 };
 
 // GET /api/quiz-questions/quiz/{quizId} -> getByQuizId
-export const getQuizQuestionsByQuizId = async (quizId: UUID): Promise<QuizQuestionAnswerResponse[]> => {
-  const res: AxiosResponse = await axiosAuth.get(`/quiz-questions/quiz/${quizId}`);
+export const getQuizQuestionsByQuizId = async (
+  quizId: UUID
+): Promise<QuizQuestionAnswerResponse[]> => {
+  const res: AxiosResponse = await axiosAuth.get(
+    `/quiz-questions/quiz/${quizId}`
+  );
   return res.data;
 };
-
