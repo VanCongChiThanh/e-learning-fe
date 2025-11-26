@@ -54,7 +54,19 @@ export interface Enrollment {
   totalWatchTimeMinutes?: number;
   lastAccessedAt?: string;
 }
-
+export interface ProgressEnrollment {
+  id: string;
+  enrollmentId: string;
+  enrollmentStatus: string;
+  enrollmentProgressPercentage: number;
+  courseId: string;
+  courseTitle: string;
+  courseImageUrl?: string;
+  sectionCount?: number;
+  lectureCount?: number;
+  currentLearningStatus?: string;
+  recommendedAction?: string;
+}
 export interface EnrollmentWithStats {
   enrollmentId: UUID;
   userId: UUID;

@@ -149,9 +149,3 @@ export const LearnRoutes = [
     ),
   },
 ];
-
-// 1. CourseQuizmanager-- > chưa hiển thị báo cáo quiz
-// 3. QuizQuestionManagementPage-- > chưa dùng
-// 4. LearnRoutes có nhiều route chưa dùng đến, cần xem lại có cần thiết không-- AI tạo
-// 5. Test tạo quiz với question rồi xóa quiz xem có bị lỗi ko
-// 6. Sửa chỗ QuizCard cho phù hợp

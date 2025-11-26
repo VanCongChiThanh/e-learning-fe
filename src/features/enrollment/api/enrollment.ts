@@ -1,13 +1,20 @@
 import { AxiosResponse } from "axios";
 import { UUID } from "crypto";
 import axiosAuth from "../../../api/axiosAuth";
-import { Enrollment, EnrollmentWithStats } from "../type";
+import { Enrollment, EnrollmentWithStats, ProgressEnrollment } from "../type";
 
 export const getEnrollmentById = async (id: UUID): Promise<Enrollment> => {
   const res: AxiosResponse = await axiosAuth.get(`/enrollments/${id}`);
   return res.data;
 };
-
+export const getProgressEnrollmentById = async (
+  id: UUID
+): Promise<ProgressEnrollment> => {
+  const res: AxiosResponse = await axiosAuth.get(
+    `/progress/enrollment/${id}/recent-learning`
+  );
+  return res.data;
+};
 export const getAllEnrollment = async (): Promise<Enrollment> => {
   const res: AxiosResponse = await axiosAuth.get(`/enrollments`);
   return res.data;
