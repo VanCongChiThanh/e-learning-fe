@@ -34,10 +34,8 @@ const Header: React.FC = () => {
     <header className="header-container border-b shadow-sm">
       <div className="inner flex justify-between items-center px-4 py-2">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="text-[#106c54] font-extrabold text-xl md:text-2xl lg:text-3xl">
-            Course<span className="text-gray-800">vo</span>
-          </div>
+        <Link to="/" >
+          <img src="/svg/logo.png" alt="Coursevo Logo" className="h-3 sm:h-4 lg:h-5 w-auto"/>
         </Link>
 
         {/* Search box (desktop only) */}
