@@ -1,5 +1,4 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
-import MainLayout from "../../../../layouts/MainLayout";
 import "./InstructorRegistration.scss";
 import { applyInstructor, ApplyInstructorRequest } from "../../api";
 import {
@@ -145,7 +144,6 @@ const InstructorRegistration: React.FC = () => {
   };
 
   return (
-    <MainLayout>
       <div className="instructor-registration-page ">
         <section className="hero">
           <div className="container">
@@ -491,7 +489,6 @@ const InstructorRegistration: React.FC = () => {
           </div>
         </main>
       </div>
-    </MainLayout>
   );
 };
 
