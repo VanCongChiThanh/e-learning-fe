@@ -9,15 +9,15 @@ import { UUID } from "../utils/UUID";
 import { Course } from "../type";
 import { title } from "process";
 
-
-
-type CourseStatus = 'active' | 'draft' | 'archived';
+type CourseStatus = "active" | "draft" | "archived";
 
 const EnrollmentInstructor: React.FC = () => {
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<CourseStatus | "all">("all");
-  const { user } = useSelector((state: RootState) => state.auth as { user: { id: UUID } | null });
+  const { user } = useSelector(
+    (state: RootState) => state.auth as { user: { id: UUID } | null }
+  );
   const userId = user?.id;
   const navigate = useNavigate();
   const { courses, loading, error } = useInstructorCourses(userId);
@@ -27,14 +27,11 @@ const EnrollmentInstructor: React.FC = () => {
   const filterCourses = () => {
     let filtered = courses;
     if (searchTerm) {
-      filtered = filtered.filter(course =>
-        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (course) =>
+          course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          course.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    }
-
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(course => course.status === statusFilter);
     }
 
     setFilteredCourses(filtered);
@@ -70,7 +67,7 @@ const EnrollmentInstructor: React.FC = () => {
       </div>
     );
   }
-
+  console.log("Filtered courses:", filteredCourses);
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -101,8 +98,12 @@ const EnrollmentInstructor: React.FC = () => {
                 <Book className="h-6 w-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Tổng khóa học</p>
-                <p className="text-2xl font-bold text-gray-900">{courses.length}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Tổng khóa học
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {courses.length}
+                </p>
               </div>
             </div>
           </div>
@@ -113,9 +114,11 @@ const EnrollmentInstructor: React.FC = () => {
                 <Users className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Đang hoạt động</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Đang hoạt động
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {courses.filter(course => course.status === 'active').length}
+                  {/* {courses.filter(course => course.status === 'active').length} */}
                 </p>
               </div>
             </div>
@@ -129,7 +132,7 @@ const EnrollmentInstructor: React.FC = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Nháp</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {courses.filter(course => course.status === 'draft').length}
+                  {/* {courses.filter(course => course.status === 'draft').length} */}
                 </p>
               </div>
             </div>
@@ -150,7 +153,9 @@ const EnrollmentInstructor: React.FC = () => {
             </div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as CourseStatus | "all")}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as CourseStatus | "all")
+              }
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">Tất cả trạng thái</option>
@@ -169,10 +174,9 @@ const EnrollmentInstructor: React.FC = () => {
               Không có khóa học nào
             </h3>
             <p className="mt-1 text-sm text-gray-500">
-              {courses.length === 0 
+              {courses.length === 0
                 ? "Bắt đầu bằng cách tạo khóa học đầu tiên của bạn."
-                : "Không tìm thấy khóa học nào phù hợp với bộ lọc hiện tại."
-              }
+                : "Không tìm thấy khóa học nào phù hợp với bộ lọc hiện tại."}
             </p>
             {courses.length === 0 && (
               <div className="mt-6">

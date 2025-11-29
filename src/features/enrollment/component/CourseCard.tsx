@@ -1,31 +1,35 @@
-import React from 'react';
-import { Button } from '../common/UI';
-import { Course } from '../type';
+import React from "react";
+import { Button } from "../common/UI";
+import { Course } from "../type";
 
 interface CourseCardProps {
   course: Course;
   onCourseClick: (courseId: string) => void;
   onEdit?: (courseId: string) => void;
-  variant?: 'student' | 'instructor';
+  variant?: "student" | "instructor";
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
   course,
   onCourseClick,
   onEdit,
-  variant = 'student',
+  variant = "student",
 }) => {
   const getStatusDisplay = (status: string) => {
     const statusMap: Record<string, { label: string; color: string }> = {
-      'active': { label: 'Đang hoạt động', color: 'bg-green-100 text-green-800' },
-      'draft': { label: 'Nháp', color: 'bg-yellow-100 text-yellow-800' },
-      'archived': { label: 'Đã lưu trữ', color: 'bg-gray-100 text-gray-800' }
+      PUBLISHED: {
+        label: "Đang hoạt động",
+        color: "bg-green-100 text-green-800",
+      },
+      DRAFT: { label: "Nháp", color: "bg-yellow-100 text-yellow-800" },
+      ARCHIVED: { label: "Đã lưu trữ", color: "bg-gray-100 text-gray-800" },
     };
-    return statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800' };
+    return (
+      statusMap[status] || { label: status, color: "bg-gray-100 text-gray-800" }
+    );
   };
 
   const handleClick = () => {
-    console.log("Course clicked:", course);
     onCourseClick(course.courseId);
   };
 
@@ -38,7 +42,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   const statusInfo = getStatusDisplay(course.status);
 
   return (
-    <div 
+    <div
       className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer overflow-hidden"
       onClick={handleClick}
     >
@@ -57,10 +61,12 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             </div>
           </div>
         )}
-        
+
         {/* Status Badge */}
         <div className="absolute top-2 right-2">
-          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+          <span
+            className={`px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}
+          >
             {statusInfo.label}
           </span>
         </div>
@@ -88,8 +94,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               <span className="ml-1">{course.instructor.name}</span>
             </div>
           )}
-          
-          {/* {variant === 'instructor' && course.enrollmentCount !== undefined && (
+
+          {/* {variant === "instructor" && course.enrollmentCount !== undefined && (
             <div className="flex items-center text-sm text-gray-600">
               <span className="font-medium">Học viên:</span>
               <span className="ml-1">{course.enrollmentCount}</span>
@@ -98,7 +104,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
           <div className="flex items-center text-sm text-gray-600">
             <span className="font-medium">Tạo:</span>
-            <span className="ml-1">{new Date(course.createdAt).toLocaleDateString('vi-VN')}</span>
+            <span className="ml-1">
+              {new Date(course.createdAt).toLocaleDateString("vi-VN")}
+            </span>
           </div>
         </div>
 
@@ -110,10 +118,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             onClick={handleClick}
             className="flex-1"
           >
-            {variant === 'instructor' ? 'Quản lý' : 'Xem chi tiết'}
+            {variant === "instructor" ? "Quản lý" : "Xem chi tiết"}
           </Button>
-          
-          {variant === 'instructor' && onEdit && (
+
+          {variant === "instructor" && onEdit && (
             <Button
               variant="secondary"
               size="sm"

@@ -3,10 +3,9 @@ import { UUID } from "../utils/UUID";
 import { getAllSections, getAllLectures } from "../api/course";
 import {
   getProgressByEnrollmentId,
-  createProgress,
   updateProgress,
   getProgressById,
-  getProgressByLectureId
+  getProgressByLectureId,
 } from "../api/progress";
 import { Session, Lecture, Progress } from "../type";
 
@@ -39,22 +38,27 @@ export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
 
               // Map lectures với progress data
               const lecturesWithProgress = lectures.map((lecture: any) => {
-                const progress = progressData.find(p => p.lectureId === lecture.id);
+                const progress = progressData.find(
+                  (p) => p.lectureId === lecture.id
+                );
                 return {
                   ...lecture,
                   isCompleted: progress?.isCompleted || false,
-                  watchTimeMinutes: progress?.watchTimeMinutes || 0
+                  watchTimeMinutes: progress?.watchTimeMinutes || 0,
                 };
               });
 
-              const completedLectures = lecturesWithProgress.filter((l: any) => l.isCompleted).length;
+              const completedLectures = lecturesWithProgress.filter(
+                (l: any) => l.isCompleted
+              ).length;
               const totalLectures = lecturesWithProgress.length;
 
               return {
                 ...session,
                 lectureCount: totalLectures,
                 completedLectureCount: completedLectures,
-                isCompleted: totalLectures > 0 && completedLectures === totalLectures,
+                isCompleted:
+                  totalLectures > 0 && completedLectures === totalLectures,
               };
             } catch {
               return {
@@ -67,7 +71,9 @@ export function useSessionsByCourse(courseId?: UUID, enrollmentId?: UUID) {
           })
         );
 
-        const sorted = sessionsWithCompletion.sort((a, b) => a.position - b.position);
+        const sorted = sessionsWithCompletion.sort(
+          (a, b) => a.position - b.position
+        );
         setSessions(sorted);
       } catch (err: any) {
         setError(err.message || "Error fetching sessions");
@@ -107,15 +113,17 @@ export function useLecturesBySession(sessionId?: UUID, enrollmentId?: UUID) {
 
         // Map lectures với progress data
         const lecturesWithProgress = lecturesData.map((lecture: any) => {
-          const progress = progressData.find(p => p.lectureId === lecture.id);
+          const progress = progressData.find((p) => p.lectureId === lecture.id);
           return {
             ...lecture,
             isCompleted: progress?.isCompleted || false,
-            watchTimeMinutes: progress?.watchTimeMinutes || 0
+            watchTimeMinutes: progress?.watchTimeMinutes || 0,
           };
         });
 
-        const sorted = lecturesWithProgress.sort((a: any, b: any) => a.position - b.position);
+        const sorted = lecturesWithProgress.sort(
+          (a: any, b: any) => a.position - b.position
+        );
         setLectures(sorted);
       } catch (err: any) {
         setError(err.message || "Error fetching lectures");
@@ -136,12 +144,16 @@ export function useSessionStats(courseId?: UUID, enrollmentId?: UUID) {
 
   const stats = {
     totalSessions: sessions.length,
-    completedSessions: sessions.filter(s => s.isCompleted).length,
+    completedSessions: sessions.filter((s) => s.isCompleted).length,
     totalDuration: sessions.reduce((sum, s) => sum + (s.totalDuration || 0), 0),
     totalLectures: sessions.reduce((sum, s) => sum + (s.lectureCount || 0), 0),
-    completionRate: sessions.length > 0
-      ? Math.round((sessions.filter(s => s.isCompleted).length / sessions.length) * 100)
-      : 0,
+    completionRate:
+      sessions.length > 0
+        ? Math.round(
+            (sessions.filter((s) => s.isCompleted).length / sessions.length) *
+              100
+          )
+        : 0,
   };
 
   return stats;
@@ -153,12 +165,19 @@ export function useLectureStats(sessionId?: UUID, enrollmentId?: UUID) {
 
   const stats = {
     totalLectures: lectures.length,
-    completedLectures: lectures.filter(l => l.isCompleted).length,
+    completedLectures: lectures.filter((l) => l.isCompleted).length,
     totalDuration: lectures.reduce((sum, l) => sum + (l.duration || 0), 0),
-    totalWatchTime: lectures.reduce((sum, l) => sum + (l.watchTimeMinutes || 0), 0),
-    completionRate: lectures.length > 0
-      ? Math.round((lectures.filter(l => l.isCompleted).length / lectures.length) * 100)
-      : 0,
+    totalWatchTime: lectures.reduce(
+      (sum, l) => sum + (l.watchTimeMinutes || 0),
+      0
+    ),
+    completionRate:
+      lectures.length > 0
+        ? Math.round(
+            (lectures.filter((l) => l.isCompleted).length / lectures.length) *
+              100
+          )
+        : 0,
   };
 
   return stats;
@@ -182,8 +201,9 @@ export function useProgressByEnrollment(enrollmentId?: UUID) {
         // Map API response fields to our interface
         const mappedProgress = progressArray.map((item: any) => ({
           ...item,
-          watchTimeMinutes: item.watchTimeMinutes || item.watchedDurationMinutes || 0,
-          isCompleted: item.isCompleted || (item.watchedPercentage >= 100),
+          watchTimeMinutes:
+            item.watchTimeMinutes || item.watchedDurationMinutes || 0,
+          isCompleted: item.isCompleted || item.watchedPercentage >= 100,
         }));
 
         setProgress(mappedProgress);
@@ -198,23 +218,6 @@ export function useProgressByEnrollment(enrollmentId?: UUID) {
     fetchProgress();
   }, [enrollmentId]);
 
-  // Function để tạo progress mới
-  const addProgress = async (progressData: {
-    enrollmentId: UUID;
-    watchedPercentage: number;
-    watchedDurationMinutes?: number;
-    lastWatchedAt?: string;
-  }) => {
-    try {
-      const newProgress = await createProgress(progressData);
-      setProgress(prev => [...prev, newProgress]);
-      return newProgress;
-    } catch (err: any) {
-      setError(err.message || "Error creating progress");
-      throw err;
-    }
-  };
-
   // Function để cập nhật progress theo ID
   const updateProgressById = async (
     id: UUID,
@@ -228,8 +231,8 @@ export function useProgressByEnrollment(enrollmentId?: UUID) {
       const updatedProgress = await updateProgress(id, progressData);
 
       // Cập nhật trong state local
-      setProgress(prev =>
-        prev.map(p => p.id === id ? { ...p, ...updatedProgress } : p)
+      setProgress((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, ...updatedProgress } : p))
       );
 
       return updatedProgress;
@@ -243,7 +246,6 @@ export function useProgressByEnrollment(enrollmentId?: UUID) {
     progress,
     loading,
     error,
-    addProgress,
     updateProgressById,
   };
 }
@@ -262,8 +264,9 @@ export function useProgressByLecture(lectureId?: UUID) {
         if (data) {
           const mappedProgress = {
             ...data,
-            watchTimeMinutes: data.watchTimeMinutes || data.watchedDurationMinutes || 0,
-            isCompleted: data.isCompleted || (data.watchedPercentage >= 100),
+            watchTimeMinutes:
+              data.watchTimeMinutes || data.watchedDurationMinutes || 0,
+            isCompleted: data.isCompleted || data.watchedPercentage >= 100,
           };
           setProgress(mappedProgress);
         } else {
@@ -281,7 +284,7 @@ export function useProgressByLecture(lectureId?: UUID) {
   }, [lectureId, refreshIndex]);
 
   const refreshProgress = () => {
-    setRefreshIndex(prev => prev + 1);
+    setRefreshIndex((prev) => prev + 1);
   };
   return { progress, loading, error, refreshProgress };
 }

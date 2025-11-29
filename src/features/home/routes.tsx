@@ -73,5 +73,5 @@ export const homeRoutes = [
   {
     path: "/career/preview",
     element: <CareerPreviewPage />,
-  }
+  },
 ];

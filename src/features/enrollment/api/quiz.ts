@@ -16,16 +16,46 @@ export interface QuizResponse {
   createdAt?: string;
 }
 
-// POST /api/quizzes -> createQuiz
-export const createQuiz = async (data: {
+// Interface for Quiz Question in the new API
+export interface QuizQuestionCreateRequest {
+  questionText: string;
+  options: string[];
+  correctAnswerIndex: number;
+  points: number;
+  sortOrder: number;
+}
+
+// Interface for new Quiz Create Request
+export interface QuizCreateRequest {
   lectureId: UUID;
   title: string;
-  description?: string;
-  maxAttempts: number;
-  passingScore: number;
+  description: string;
   timeLimitMinutes: number;
+  passingScore: number;
+  maxAttempts: number;
+  isActive: boolean;
+  questions: QuizQuestionCreateRequest[];
+}
+
+// Interface for new Quiz Create Response
+export interface QuizCreateResponse {
+  id: UUID;
+  lectureId: UUID;
+  title: string;
+  description: string;
+  timeLimitMinutes: number;
+  passingScore: number;
+  maxAttempts: number;
   numberQuestions: number;
-}): Promise<QuizResponse> => {
+  isActive: boolean | null;
+  createdAt: number;
+  questions: null;
+}
+
+// POST /api/v1/quizzes -> createQuizWithQuestions (new single API call)
+export const createQuizWithQuestions = async (
+  data: QuizCreateRequest
+): Promise<QuizCreateResponse> => {
   const res: AxiosResponse = await axiosAuth.post("/quizzes", data);
   return res.data;
 };
@@ -59,7 +89,11 @@ export const deleteQuiz = async (id: UUID): Promise<any> => {
 };
 
 // GET /api/quizzes/lecture/{lectureId} -> getAllQuizzesByLectureId
-export const getAllQuizzesByLectureId = async (lectureId: UUID): Promise<QuizResponse[]> => {
-  const res: AxiosResponse = await axiosAuth.get(`/quizzes/lecture/${lectureId}`);
+export const getAllQuizzesByLectureId = async (
+  lectureId: UUID
+): Promise<QuizResponse[]> => {
+  const res: AxiosResponse = await axiosAuth.get(
+    `/quizzes/lecture/${lectureId}`
+  );
   return res.data;
 };

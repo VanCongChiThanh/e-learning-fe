@@ -2,17 +2,6 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { UUID } from "crypto";
 import axiosAuth from "../../../api/axiosAuth";
 
-// POST /api/progress -> createProgress
-export const createProgress = async (data: {
-  enrollmentId: UUID;
-  watchedPercentage: number;
-  watchedDurationMinutes?: number;
-  lastWatchedAt?: string;
-}): Promise<any> => {
-  const res: AxiosResponse = await axiosAuth.post("/progress", data);
-  return res.data;
-};
-
 // GET /api/progress/{id} -> getProgressById
 export const getProgressById = async (id: UUID): Promise<any> => {
   const res: AxiosResponse = await axiosAuth.get(`/progress/${id}`);
@@ -33,12 +22,23 @@ export const updateProgress = async (
 };
 
 // GET /api/progress/enrollment/{id} -> getProgressByEnrollmentId
-export const getProgressByEnrollmentId = async (enrollmentId: UUID): Promise<any> => {
-  const res: AxiosResponse = await axiosAuth.get(`/progress/enrollment/${enrollmentId}`);
+export const getProgressByEnrollmentId = async (
+  enrollmentId: UUID
+): Promise<any> => {
+  const res: AxiosResponse = await axiosAuth.get(
+    `/progress/enrollment/${enrollmentId}`
+  );
   return res.data;
 };
 
 export const getProgressByLectureId = async (lectureId: UUID): Promise<any> => {
-  const res: AxiosResponse = await axiosAuth.get(`/progress/lecture/${lectureId}`);
-  return res.data;
-}
+  try {
+    const res: AxiosResponse = await axiosAuth.get(
+      `/progress/lecture/${lectureId}`
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching progress by lecture ID:", error);
+    throw error;
+  }
+};
