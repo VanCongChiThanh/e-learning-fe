@@ -143,7 +143,7 @@ const QuizTab: React.FC<QuizTabProps> = ({ quizId }) => {
       </div>
 
       <div className="mt-6">
-        <button onClick={handleTestCode} disabled={isLoading} className="px-6 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700 disabled:bg-purple-300">
+        <button onClick={handleTestCode} disabled={isLoading} className="px-6 py-2 bg-[#106c54] text-white rounded font-semibold hover:bg-[#0d5a45] disabled:bg-green-300">
           {isLoading ? "Đang chấm..." : "Nộp bài và Chạy thử"}
         </button>
       </div>

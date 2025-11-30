@@ -56,7 +56,7 @@ const CodingExerciseTab: React.FC<CodingExerciseTabProps> = ({ lectureId, onSele
                   className="block w-full text-left p-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <span className="text-lg font-bold text-purple-600 mr-4">{index + 1}</span>
+                    <span className="text-lg font-bold text-[#106c54] mr-4">{index + 1}</span>
                     <span className="font-semibold text-gray-800">{exercise.title}</span>
                     <i className="fas fa-arrow-right ml-auto text-gray-400"></i>
                   </div>

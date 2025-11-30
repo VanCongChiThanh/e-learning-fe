@@ -276,7 +276,7 @@ const CodePage: React.FC<CodePageProps>= ({ exerciseId, onClose }) => {
               <select
                 value={languageId}
                 onChange={(e) => setLanguageId(Number(e.target.value))}
-                className="border border-gray-600 rounded px-3 py-1 bg-gray-700 text-white text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="border border-gray-600 rounded px-3 py-1 bg-gray-700 text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#106c54]"
               >
                 {supportedLanguages.map((lang) => <option key={lang.id} value={lang.id}>{lang.name}</option>)}
               </select>
@@ -292,15 +292,15 @@ const CodePage: React.FC<CodePageProps>= ({ exerciseId, onClose }) => {
           {/* Vùng Test Case và Kết quả */}
           <div className="bg-gray-800 rounded-lg shadow-md flex flex-col h-1/3">
             <div className="flex border-b border-gray-700">
-              <button onClick={() => setActiveTab('testcase')} className={`px-4 py-2 font-semibold text-sm ${activeTab === 'testcase' ? 'text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>Test Case</button>
-              <button onClick={() => setActiveTab('result')} className={`px-4 py-2 font-semibold text-sm ${activeTab === 'result' ? 'text-white border-b-2 border-purple-500' : 'text-gray-400'}`}>Result</button>
+              <button onClick={() => setActiveTab('testcase')} className={`px-4 py-2 font-semibold text-sm ${activeTab === 'testcase' ? 'text-white border-b-2 border-[#106c54]' : 'text-gray-400'}`}>Test Case</button>
+              <button onClick={() => setActiveTab('result')} className={`px-4 py-2 font-semibold text-sm ${activeTab === 'result' ? 'text-white border-b-2 border-[#106c54]' : 'text-gray-400'}`}>Result</button>
             </div>
             <div className="p-4 flex-grow overflow-y-auto text-gray-300">
                {activeTab === 'testcase' && (
                 <div>
                   <div className="flex gap-2 mb-4">
                     {exercise.testCases.filter(tc => !tc.isHidden).map((tc, index) => (
-                      <button key={tc.id} onClick={() => setSelectedTestCase(tc)} className={`px-3 py-1 rounded text-sm ${selectedTestCase?.id === tc.id ? 'bg-purple-600 text-white' : 'bg-gray-700'}`}>
+                      <button key={tc.id} onClick={() => setSelectedTestCase(tc)} className={`px-3 py-1 rounded text-sm ${selectedTestCase?.id === tc.id ? 'bg-[#106c54] text-white' : 'bg-gray-700'}`}>
                         Case {index + 1}
                       </button>
                     ))}
@@ -414,7 +414,7 @@ const CodePage: React.FC<CodePageProps>= ({ exerciseId, onClose }) => {
                               </div>
                               <div className="flex items-center gap-4">
                                 <span className="w-28 text-gray-400">Best Practices</span>
-                                <div className="w-full bg-gray-600 rounded-full h-2.5"><div className="bg-purple-500 h-2.5 rounded-full" style={{ width: `${feedback.code_quality.best_practices}%` }}></div></div>
+                                <div className="w-full bg-gray-600 rounded-full h-2.5"><div className="bg-[#106c54] h-2.5 rounded-full" style={{ width: `${feedback.code_quality.best_practices}%` }}></div></div>
                                 <span className="font-bold w-10 text-right">{feedback.code_quality.best_practices}%</span>
                               </div>
                             </div>

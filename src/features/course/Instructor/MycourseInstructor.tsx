@@ -60,18 +60,18 @@ const MyCoursesInstructor: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+      <div className="bg-gradient-to-r from-[#106c54] to-[#0d5a45] text-white">
         <div className="container mx-auto px-6 py-12">
           <h1 className="text-4xl font-bold mb-2">Quản lý khóa học</h1>
-          <p className="text-indigo-100">Theo dõi và quản lý tất cả khóa học của bạn</p>
+          <p className="text-green-100">Theo dõi và quản lý tất cả khóa học của bạn</p>
           <div className="mt-6 flex gap-4">
             <Link
               to="/instructor/courses/create"
-              className="bg-white text-indigo-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="bg-white text-[#106c54] px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               + Tạo khóa học mới
             </Link>
-            <button className="border border-white text-white px-6 py-2 rounded-lg hover:bg-white hover:text-indigo-600 transition-colors">
+            <button className="border border-white text-white px-6 py-2 rounded-lg hover:bg-white hover:text-[#106c54] transition-colors">
               Thống kê
             </button>
           </div>
@@ -82,7 +82,7 @@ const MyCoursesInstructor: React.FC = () => {
       <div className="container mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6 text-center">
-            <div className="text-2xl font-bold text-indigo-600">{courses.length}</div>
+            <div className="text-2xl font-bold text-[#106c54]">{courses.length}</div>
             <div className="text-gray-600">Tổng khóa học</div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 text-center">
@@ -98,7 +98,7 @@ const MyCoursesInstructor: React.FC = () => {
             <div className="text-gray-600">Bản nháp</div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 text-center">
-            <div className="text-2xl font-bold text-purple-600">
+            <div className="text-2xl font-bold text-[#106c54]">
               {courses.reduce((total, c) => total + (c.totalStudents || 0), 0)}
             </div>
             <div className="text-gray-600">Tổng học viên</div>
@@ -108,12 +108,12 @@ const MyCoursesInstructor: React.FC = () => {
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex flex-wrap items-center gap-4">
-            <select className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#106c54]">
               <option>Tất cả trạng thái</option>
               <option>Đã xuất bản</option>
               <option>Bản nháp</option>
             </select>
-            <select className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#106c54]">
               <option>Tất cả danh mục</option>
               <option>Lập trình</option>
               <option>Kinh doanh</option>
@@ -122,9 +122,9 @@ const MyCoursesInstructor: React.FC = () => {
             <input
               type="text"
               placeholder="Tìm kiếm khóa học..."
-              className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#106c54]"
             />
-            <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+            <button className="bg-[#106c54] text-white px-6 py-2 rounded-lg hover:bg-[#0d5a45] transition-colors">
               <i className="fas fa-search mr-2"></i>
               Tìm kiếm
             </button>
@@ -134,7 +134,7 @@ const MyCoursesInstructor: React.FC = () => {
         {/* Course List */}
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#106c54]"></div>
           </div>
         ) : !courses.length ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
@@ -145,7 +145,7 @@ const MyCoursesInstructor: React.FC = () => {
             <p className="text-gray-500 mb-6">Bắt đầu tạo khóa học đầu tiên của bạn ngay hôm nay!</p>
             <Link
               to="/instructor/courses/create"
-              className="inline-block bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+              className="inline-block bg-[#106c54] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#0d5a45] transition-colors"
             >
               Tạo khóa học mới
             </Link>
@@ -202,7 +202,7 @@ const MyCoursesInstructor: React.FC = () => {
                       <div className="flex gap-3">
                         <Link
                           to={`/instructor/courses/${course.courseId}/edit`}
-                          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-[#106c54] text-white rounded-lg hover:bg-[#0d5a45] transition-colors"
                         >
                           <i className="fas fa-edit"></i>
                           Chỉnh sửa
