@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-// highlight-start
-import { useParams, Link, useNavigate } from 'react-router-dom'; // Import useNavigate
-// highlight-end
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { getCodeExerciseDetail, ExerciseDetail, TestCase } from '../api';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../app/store';
+import axiosAuth from '../../../api/axiosAuth';
 
 // Định nghĩa các ngôn ngữ được hỗ trợ
 const supportedLanguages = [
@@ -16,38 +15,56 @@ const supportedLanguages = [
   { id: 54, name: "C++ (GCC 9.2.0)" },
 ];
 
+interface CodePageProps {
+  exerciseId: string;
+  onClose: () => void;
+}
+
+// Kiểu dữ liệu cho kết quả từ server chấm bài
 interface JudgeResult {
   stdout: string | null; time: string; memory: number; stderr: string | null;
   compile_output: string | null; status: { id: number; description: string; };
 }
 
-// --- COMPONENT HEADER CHO TRANG CODE ---
-interface CodePageHeaderProps {
-  onRunCode: () => void;
-  onSubmitCode: () => void;
-  isJudging: boolean;
+// Kiểu dữ liệu cho phản hồi từ AI
+interface CodeQuality {
+  readability: number;
+  efficiency: number;
+  best_practices: number;
 }
 
-const CodePageHeader: React.FC<CodePageHeaderProps> = ({ onRunCode, onSubmitCode, isJudging }) => {
+interface Feedback {
+  score: number;
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  suggestions: string[];
+  code_quality: CodeQuality;
+}
+
+
+// --- COMPONENT HEADER CHO TRANG CODE ---
+interface CodePageHeaderProps {
+  onRunTests: () => void;
+  onSubmitCode: () => void;
+  isJudging: boolean,
+  onClose: () => void;
+}
+
+const CodePageHeader: React.FC<CodePageHeaderProps> = ({ onRunTests, onSubmitCode, isJudging, onClose }) => {
   const { user } = useSelector((state: RootState) => state.auth);
-  // highlight-start
-  const navigate = useNavigate(); // Hook to control navigation
-  // highlight-end
 
   return (
     <header className="bg-gray-800 text-white p-3 flex items-center justify-between shadow-md flex-shrink-0">
       {/* Phần bên trái */}
       <div className="flex items-center gap-4">
-        {/*// highlight-start*/}
-        {/* Nút Back mới */}
         <button
-          onClick={() => navigate(-1)} // Go back one step in history
+          onClick={onClose} // Go back one step in history
           className="flex items-center gap-2 text-gray-300 hover:text-white"
           title="Back to Learning Page"
         >
           <i className="fa-solid fa-arrow-left"></i>
         </button>
-        {/*// highlight-end*/}
         <Link to="/" className="flex items-center gap-2">
           <div className="text-green-400 font-extrabold text-xl">
             Course<span className="text-white">vo</span>
@@ -62,16 +79,17 @@ const CodePageHeader: React.FC<CodePageHeaderProps> = ({ onRunCode, onSubmitCode
       {/* Phần ở giữa */}
       <div className="flex items-center gap-3">
         <button
-          onClick={onRunCode}
+          onClick={onRunTests}
           disabled={isJudging}
           className="px-4 py-1.5 bg-gray-600 text-white rounded font-semibold hover:bg-gray-500 disabled:bg-gray-700 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <i className="fa-solid fa-play text-sm"></i>
-          {isJudging ? "Running..." : "Run"}
+          {isJudging ? "Running..." : "Run Tests"}
         </button>
         <button
           onClick={onSubmitCode}
-          className="px-4 py-1.5 bg-green-600 text-white rounded font-semibold hover:bg-green-500 flex items-center gap-2"
+          disabled={isJudging}
+          className="px-4 py-1.5 bg-green-600 text-white rounded font-semibold hover:bg-green-500 disabled:bg-green-800 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <i className="fa-solid fa-paper-plane text-sm"></i>
           Submit
@@ -100,8 +118,8 @@ const CodePageHeader: React.FC<CodePageHeaderProps> = ({ onRunCode, onSubmitCode
 };
 
 
-const CodePage: React.FC = () => {
-  const { exerciseId } = useParams<{ exerciseId: string }>();
+const CodePage: React.FC<CodePageProps>= ({ exerciseId, onClose }) => {
+  // const { exerciseId } = useParams<{ exerciseId: string }>();
   const [exercise, setExercise] = useState<ExerciseDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +127,8 @@ const CodePage: React.FC = () => {
   const [languageId, setLanguageId] = useState<number>(54);
   const [sourceCode, setSourceCode] = useState<string>("");
   const [isJudging, setIsJudging] = useState<boolean>(false);
-  const [result, setResult] = useState<JudgeResult | null>(null);
+  const [results, setResults] = useState<JudgeResult[] | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [judgeError, setJudgeError] = useState<string | null>(null);
   
   const [activeTab, setActiveTab] = useState<'testcase' | 'result'>('testcase');
@@ -135,48 +154,98 @@ const CodePage: React.FC = () => {
     fetchDetail();
   }, [exerciseId]);
 
-  const handleRunCode = async () => {
-    if (!selectedTestCase) {
-      setJudgeError("Vui lòng chọn một test case để chạy thử.");
+  const handleRunTests = async () => {
+    if (!exercise || !exercise.testCases) return;
+
+    const visibleTestCases = exercise.testCases.filter(tc => !tc.isHidden);
+    if (visibleTestCases.length === 0) {
+      setJudgeError("No visible test cases to run.");
       return;
     }
+
     setIsJudging(true);
-    setResult(null);
+    setResults(null);
+    setFeedback(null); // Reset feedback cũ
     setJudgeError(null);
     setActiveTab('result');
-    const payload = {
+
+    const payload = visibleTestCases.map(tc => ({
       language_id: languageId,
       source_code: sourceCode,
-      stdin: selectedTestCase.inputData,
-      expected_output: selectedTestCase.expectedOutput,
-    };
+      stdin: tc.inputData,
+      expected_output: tc.expectedOutput,
+    }));
+
     try {
-      const response = await axios.post("https://judge-coursevo.onrender.com/api/judge/test", payload);
-      setResult(response.data.judge_result);
+      // API for multi-test is not authenticated as per docs
+      const response = await axios.post("https://judge-coursevo.onrender.com/api/judge/multi-test", payload);
+      // The API returns a nested object, the results array is in response.data.judge_results.submissions
+      if (response.data && response.data.judge_results && Array.isArray(response.data.judge_results.submissions)) {
+        setResults(response.data.judge_results.submissions);
+      } else {
+        setJudgeError("Invalid response format from judge server.");
+      }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        setJudgeError(`Lỗi: ${err.response.status} - ${err.response.data.detail || err.message}`);
+        setJudgeError(`Error: ${err.response.status} - ${err.response.data.detail || err.message}`);
       } else {
-        setJudgeError("Không thể kết nối đến máy chủ chấm bài.");
+        setJudgeError("Could not connect to the judge server.");
       }
     } finally {
       setIsJudging(false);
     }
   };
 
-  const handleSubmitCode = () => {
-    alert("Chức năng Submit chưa được cài đặt");
-  };
+  const handleSubmitCode = async () => {
+    if (!exercise) return;
 
+    setIsJudging(true);
+    setResults(null);
+    setFeedback(null); // Reset feedback cũ
+    setJudgeError(null);
+    setActiveTab('result');
+
+    const payload = {
+      language_id: languageId,
+      source_code: sourceCode,
+      problem_description: exercise.problemStatement,
+      exercise_id: exercise.id,
+      // stdin and expected_output might not be needed for submit, but included based on docs
+      stdin: exercise.testCases.find(tc => !tc.isHidden)?.inputData || "",
+      expected_output: exercise.testCases.find(tc => !tc.isHidden)?.expectedOutput || "",
+    };
+
+    try {
+      const response = await axiosAuth.post("https://judge-coursevo.onrender.com/api/judge/submit", payload);
+      // API trả về object chứa judge_result và feedback
+      if (response.data && response.data.judge_result) {
+        setResults([response.data.judge_result]); // Kết quả chấm chỉ có 1
+        setFeedback(response.data.feedback || null); // Lưu feedback từ AI
+      } else {
+        setJudgeError("Invalid response format from submission API.");
+      }
+    } 
+    catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        setJudgeError(`Error: ${err.response.status} - ${err.response.data.detail || err.message}`);
+      } else {
+        setJudgeError("Could not connect to the judge server for submission.");
+      }
+    } 
+    finally {
+      setIsJudging(false);
+    }
+  };
   if (isLoading) return <div className="p-8 text-center bg-gray-900 text-white h-screen">Đang tải đề bài...</div>;
   if (error || !exercise) return <div className="p-8 text-center text-red-500 bg-gray-900 h-screen">{error}</div>;
 
   return (
-    <div className="bg-gray-900 h-screen flex flex-col">
+    <div className="bg-gray-900 h-full flex flex-col">
       <CodePageHeader
-        onRunCode={handleRunCode}
+        onRunTests={handleRunTests}
         onSubmitCode={handleSubmitCode}
         isJudging={isJudging}
+        onClose={onClose}
       />
       <main className="grid grid-cols-1 lg:grid-cols-3 gap-3 p-3 flex-grow overflow-hidden">
         {/* Cột trái: Đề bài (chiếm 1/3) */}
@@ -254,17 +323,104 @@ const CodePage: React.FC = () => {
                 <div>
                   {isJudging && <p>Đang chấm bài...</p>}
                   {judgeError && <div className="text-red-500 font-semibold">{judgeError}</div>}
-                  {result && (
-                    <div>
-                      <div className={`px-3 py-1 inline-block rounded-full text-white text-sm mb-4 ${result.status.description === "Accepted" ? "bg-green-500" : "bg-red-500"}`}>
-                        {result.status.description}
-                      </div>
-                      {result.stdout && (
-                          <div>
-                          <label className="block text-sm font-semibold text-gray-400 mb-1">Your Output:</label>
-                          <pre className="bg-gray-900 text-white p-3 rounded font-mono text-sm">{result.stdout}</pre>
+                  {/* Hiển thị kết quả Run Tests */}
+                  {results && !feedback && (
+                    <div className="space-y-4">
+                      {results.map((result, index) => (
+                        <div key={index} className="border-b border-gray-700 pb-4 last:border-b-0">
+                          <div className="flex items-center gap-4 mb-2">
+                            <h4 className="font-bold text-white">Case {index + 1}</h4>
+                            <span className={`px-3 py-1 inline-block rounded-full text-white text-xs ${result?.status?.description === "Accepted" ? "bg-green-500" : "bg-red-500"}`}>
+                              {result?.status?.description ?? "Error"}
+                            </span>
                           </div>
-                      )}
+                          {result.stdout && (<div><label className="block text-sm font-semibold text-gray-400 mb-1">Your Output:</label><pre className="bg-gray-900 text-white p-2 rounded font-mono text-sm">{result.stdout}</pre></div>)}
+                          {result.stderr && (<div><label className="block text-sm font-semibold text-gray-400 mb-1">Error:</label><pre className="bg-gray-900 text-red-400 p-2 rounded font-mono text-sm">{result.stderr}</pre></div>)}
+                          {result.compile_output && (<div><label className="block text-sm font-semibold text-gray-400 mb-1">Compile Output:</label><pre className="bg-gray-900 text-yellow-400 p-2 rounded font-mono text-sm">{result.compile_output}</pre></div>)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Hiển thị kết quả Submit */}
+                  {results && feedback && (
+                    <div className="space-y-6">
+                      {/* Phần kết quả chấm tự động */}
+                      {results.map((result, index) => (
+                        <div key={index} className="bg-gray-700/50 p-4 rounded-lg">
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="font-bold text-lg text-white">Submission Result</h4>
+                            <span className={`px-4 py-1.5 inline-block rounded-full text-white font-semibold text-sm ${result?.status?.description === "Accepted" ? "bg-green-600" : "bg-red-600"}`}>
+                              {result?.status?.description ?? "Error"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div><strong className="text-gray-400">Time:</strong> {result.time}s</div>
+                            <div><strong className="text-gray-400">Memory:</strong> {result.memory} KB</div>                          
+                          </div>
+                          {result.stdout && (<div><label className="block text-sm font-semibold text-gray-400 mt-2 mb-1">Your Output:</label><pre className="bg-gray-900 text-white p-2 rounded font-mono text-sm">{result.stdout}</pre></div>)}
+                          {result.stderr && (<div><label className="block text-sm font-semibold text-gray-400 mt-2 mb-1">Error:</label><pre className="bg-gray-900 text-red-400 p-2 rounded font-mono text-sm">{result.stderr}</pre></div>)}
+                        </div>
+                      ))}
+
+                      {/* Phần feedback từ AI */}
+                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                        <h4 className="font-bold text-lg text-white mb-3">AI Feedback</h4>
+                        <div className="flex items-baseline gap-4 mb-4">
+                          <p className="text-4xl font-bold text-green-400">{feedback.score}<span className="text-2xl text-gray-400">/100</span></p>
+                          <p className="text-gray-300 italic">{feedback.summary}</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                          {feedback.strengths && feedback.strengths.length > 0 && (
+                            <div>
+                              <h5 className="font-semibold text-green-400 mb-2 flex items-center gap-2"><i className="fa-solid fa-thumbs-up"></i> Strengths</h5>
+                              <ul className="list-disc list-inside space-y-1 text-sm">
+                                {feedback.strengths.map((s, i) => <li key={i}>{s}</li>)}
+                              </ul>
+                            </div>
+                          )}
+                          {feedback.weaknesses && feedback.weaknesses.length > 0 && (
+                            <div>
+                              <h5 className="font-semibold text-yellow-400 mb-2 flex items-center gap-2"><i className="fa-solid fa-triangle-exclamation"></i> Weaknesses</h5>
+                              <ul className="list-disc list-inside space-y-1 text-sm">
+                                {feedback.weaknesses.map((w, i) => <li key={i}>{w}</li>)}
+                              </ul>
+                            </div>
+                          )}
+                          {feedback.suggestions && feedback.suggestions.length > 0 && (
+                            <div>
+                              <h5 className="font-semibold text-blue-400 mb-2 flex items-center gap-2"><i className="fa-solid fa-lightbulb"></i> Suggestions</h5>
+                              <ul className="list-disc list-inside space-y-1 text-sm">
+                                {feedback.suggestions.map((s, i) => <li key={i}>{s}</li>)}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+
+                        {feedback.code_quality && (
+                          <div>
+                            <h5 className="font-semibold text-white mb-3">Code Quality Analysis</h5>
+                            <div className="space-y-3 text-sm">
+                              <div className="flex items-center gap-4">
+                                <span className="w-28 text-gray-400">Readability</span>
+                                <div className="w-full bg-gray-600 rounded-full h-2.5"><div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${feedback.code_quality.readability}%` }}></div></div>
+                                <span className="font-bold w-10 text-right">{feedback.code_quality.readability}%</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="w-28 text-gray-400">Efficiency</span>
+                                <div className="w-full bg-gray-600 rounded-full h-2.5"><div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${feedback.code_quality.efficiency}%` }}></div></div>
+                                <span className="font-bold w-10 text-right">{feedback.code_quality.efficiency}%</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="w-28 text-gray-400">Best Practices</span>
+                                <div className="w-full bg-gray-600 rounded-full h-2.5"><div className="bg-purple-500 h-2.5 rounded-full" style={{ width: `${feedback.code_quality.best_practices}%` }}></div></div>
+                                <span className="font-bold w-10 text-right">{feedback.code_quality.best_practices}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
