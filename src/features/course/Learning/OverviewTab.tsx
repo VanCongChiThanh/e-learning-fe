@@ -88,7 +88,7 @@ const OverviewTab: React.FC<{ slug: string }> = ({ slug }) => {
       {/* Thẻ */}
       <div className="mb-4 flex gap-2">
         {course.tags?.map(tag => (
-          <span key={tag.tagId} className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">
+          <span key={tag.tagId} className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
             {tag.name}
           </span>
         ))}
@@ -114,7 +114,7 @@ const OverviewTab: React.FC<{ slug: string }> = ({ slug }) => {
         <div>
           <h3 className="font-semibold mb-1">Tính năng</h3>
           <div className="text-sm text-gray-700">
-            <div>Có sẵn trên <span className="text-purple-700 font-bold">iOS</span> và <span className="text-purple-700 font-bold">Android</span></div>
+            <div>Có sẵn trên <span className="text-[#106c54] font-bold">iOS</span> và <span className="text-[#106c54] font-bold">Android</span></div>
           </div>
         </div>
       </div>

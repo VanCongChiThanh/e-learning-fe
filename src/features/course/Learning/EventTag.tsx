@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 
 // Định nghĩa kiểu dữ liệu cho một sự kiện đã được lưu
 export interface StoredEvent {
@@ -11,15 +11,17 @@ export interface StoredEvent {
 }
 
 interface EventTabProps {
-  events: StoredEvent[];
+  events: StoredEvent[],
+  onSelectCodeEvent: (exerciseId: string) => void,
+  onSelectQuizEvent: (quizId: string) => void;
 }
 
-const EventTab: React.FC<EventTabProps> = ({ events }) => {
+const EventTab: React.FC<EventTabProps> = ({ events, onSelectCodeEvent, onSelectQuizEvent }) => {
 
   const getIconForType = (type: StoredEvent['type']) => {
     switch (type) {
       case 'CODE':
-        return <i className="fas fa-code text-purple-600"></i>;
+        return <i className="fas fa-code text-blue-600"></i>;
       case 'QUIZ':
         return <i className="fas fa-question-circle text-blue-600"></i>;
       default:
@@ -55,12 +57,21 @@ const EventTab: React.FC<EventTabProps> = ({ events }) => {
                 </div>
                 {/* Nút chỉ hiển thị cho bài tập CODE */}
                 {event.type === 'CODE' && (
-                  <Link
-                    to={`/code-exercise/${event.payload}`}
-                    className="bg-purple-100 text-purple-700 font-semibold py-2 px-4 rounded-lg hover:bg-purple-200"
+                  <button
+                    onClick={() => onSelectCodeEvent(event.payload)} // Gọi hàm từ prop
+                    className="bg-blue-100 text-blue-700 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors"
                   >
                     Làm bài
-                  </Link>
+                  </button>
+                )}
+                {event.type === 'QUIZ' && (
+                  <button
+                    onClick={() => onSelectQuizEvent(event.payload)}
+                    // Thêm class màu xanh cho khác biệt
+                    className="bg-blue-100 text-blue-700 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors"
+                  >
+                    Làm bài
+                  </button>
                 )}
               </div>
             </li>
