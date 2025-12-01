@@ -106,7 +106,7 @@ const EditCourse: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#106c54]"></div>
       </div>
     );
   }
@@ -126,16 +126,16 @@ const EditCourse: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg p-8 mb-8">
+        <div className="bg-gradient-to-r from-[#106c54] to-[#0d5a45] text-white rounded-lg p-8 mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Chỉnh sửa khóa học</h1>
-              <p className="text-indigo-100">Cập nhật thông tin và nội dung khóa học của bạn</p>
+              <p className="text-green-100">Cập nhật thông tin và nội dung khóa học của bạn</p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => navigate(`/instructor/courses/${courseId}/detail`)}
-                className="bg-white text-indigo-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
+                className="bg-white text-[#106c54] px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
               >
                 <i className="fas fa-cog"></i>
                 Quản lý nội dung
@@ -143,7 +143,7 @@ const EditCourse: React.FC = () => {
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="border border-white text-white px-6 py-2 rounded-lg hover:bg-white hover:text-indigo-600 transition-colors flex items-center gap-2"
+                  className="border border-white text-white px-6 py-2 rounded-lg hover:bg-white hover:text-[#106c54] transition-colors flex items-center gap-2"
                 >
                   <i className="fas fa-edit"></i>
                   Chỉnh sửa
@@ -199,7 +199,7 @@ const EditCourse: React.FC = () => {
               {/* Basic Info Card */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <i className="fas fa-info-circle text-indigo-600"></i>
+                  <i className="fas fa-info-circle text-[#106c54]"></i>
                   Thông tin cơ bản
                 </h3>
                 
@@ -230,7 +230,7 @@ const EditCourse: React.FC = () => {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       disabled={!isEditing}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#106c54] transition-colors ${
                         isEditing
                           ? "border-gray-300 bg-white"
                           : "bg-gray-50 border-gray-200 cursor-not-allowed"
@@ -246,7 +246,7 @@ const EditCourse: React.FC = () => {
               {/* Course Details Card */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <i className="fas fa-sliders-h text-indigo-600"></i>
+                  <i className="fas fa-sliders-h text-[#106c54]"></i>
                   Chi tiết khóa học
                 </h3>
                 
@@ -260,7 +260,7 @@ const EditCourse: React.FC = () => {
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       disabled={!isEditing}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#106c54] transition-colors ${
                         isEditing
                           ? "border-gray-300 bg-white"
                           : "bg-gray-50 border-gray-200 cursor-not-allowed"
@@ -277,7 +277,7 @@ const EditCourse: React.FC = () => {
                       value={level}
                       onChange={(e) => setLevel(e.target.value)}
                       disabled={!isEditing}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#106c54] transition-colors ${
                         isEditing
                           ? "border-gray-300 bg-white"
                           : "bg-gray-50 border-gray-200 cursor-not-allowed"
@@ -298,7 +298,7 @@ const EditCourse: React.FC = () => {
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
                       disabled={!isEditing}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#106c54] transition-colors ${
                         isEditing
                           ? "border-gray-300 bg-white"
                           : "bg-gray-50 border-gray-200 cursor-not-allowed"
@@ -330,7 +330,7 @@ const EditCourse: React.FC = () => {
                     <button
                       type="submit"
                       disabled={saving}
-                      className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:bg-gray-400"
+                      className="px-6 py-3 bg-[#106c54] text-white rounded-lg hover:bg-[#0d5a45] transition-colors flex items-center gap-2 disabled:bg-gray-400"
                     >
                       <i className="fas fa-save"></i>
                       {saving ? "Đang lưu..." : "Lưu thay đổi"}
@@ -342,18 +342,18 @@ const EditCourse: React.FC = () => {
 
             {/* Quick Actions */}
             <div className="bg-white rounded-lg shadow p-6 mt-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <i className="fas fa-bolt text-indigo-600"></i>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i className="fas fa-bolt text-[#106c54]"></i>
                 Thao tác nhanh
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
                   onClick={() => navigate(`/instructor/courses/${courseId}/detail`)}
-                  className="p-4 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors text-left group"
+                  className="p-4 border border-green-200 rounded-lg hover:bg-green-50 transition-colors text-left group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
-                      <i className="fas fa-list text-indigo-600"></i>
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                      <i className="fas fa-list text-[#106c54]"></i>
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">Quản lý nội dung</div>
@@ -362,10 +362,10 @@ const EditCourse: React.FC = () => {
                   </div>
                 </button>
                 
-                <button className="p-4 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors text-left group">
+                <button className="p-4 border border-green-200 rounded-lg hover:bg-green-50 transition-colors text-left group">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                      <i className="fas fa-chart-line text-purple-600"></i>
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                      <i className="fas fa-chart-line text-[#106c54]"></i>
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">Thống kê</div>

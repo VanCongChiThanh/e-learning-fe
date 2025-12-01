@@ -389,9 +389,7 @@ export const voteForReview = async (
   return res.data;
 };
 
-/**
- * Reply một review
- */
+
 export const replyToReview = async (
   courseId: string,
   parentReviewId: string,
@@ -404,9 +402,8 @@ export const replyToReview = async (
   return res.data.data;
 };
 
-/**
- * Lấy chi tiết một review (dùng để lấy chi tiết reply)
- */
+
+
 export const getReviewDetail = async (
   courseId: string,
   reviewId: string
@@ -415,4 +412,14 @@ export const getReviewDetail = async (
     `/courses/${courseId}/reviews/${reviewId}`
   );
   return res.data.data;
+};
+
+export const checkEnrollment = async (courseId: string): Promise<boolean> => {
+  try {
+    const res = await axiosAuth.get(`/enrollments/courses/${courseId}/check-exists-enrollment`);
+    return res.data.data; // Trả về giá trị boolean từ thuộc tính 'data'
+  } catch (error) {
+    console.error("Lỗi khi kiểm tra enrollment:", error);
+    return false;
+  }
 };

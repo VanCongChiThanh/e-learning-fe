@@ -86,7 +86,7 @@ const QuizTab: React.FC<QuizTabProps> = ({ quizId }) => {
         <h2 className="text-3xl font-bold mb-4">Kết quả bài kiểm tra</h2>
         <p className={`text-5xl font-bold mb-6 ${isPassed ? 'text-green-500' : 'text-red-500'}`}>{score} / 100</p>
         <p className="text-xl mb-8">{isPassed ? '🎉 Chúc mừng! Bạn đã vượt qua.' : ' Rất tiếc, bạn chưa đạt.'}</p>
-        <button onClick={() => setQuizState('loading')} className="px-6 py-2 bg-purple-600 text-white rounded font-semibold">Làm lại</button>
+        <button onClick={() => setQuizState('loading')} className="px-6 py-2 bg-[#106c54] text-white rounded font-semibold hover:bg-[#0d5a45]">Làm lại</button>
       </div>
     );
   }
@@ -118,7 +118,7 @@ const QuizTab: React.FC<QuizTabProps> = ({ quizId }) => {
               <label 
                 key={option.id}
                 className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all 
-                           ${userAnswers[currentQuestion.id] === option.id ? 'bg-purple-100 border-purple-400 ring-2 ring-purple-300' : 'border-gray-300 hover:bg-gray-50'}`}
+                           ${userAnswers[currentQuestion.id] === option.id ? 'bg-green-100 border-green-400 ring-2 ring-green-300' : 'border-gray-300 hover:bg-gray-50'}`}
               >
                 <input
                   type="radio"
@@ -156,7 +156,7 @@ const QuizTab: React.FC<QuizTabProps> = ({ quizId }) => {
             <button 
               onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
               disabled={currentQuestionIndex === questions.length - 1}
-              className="px-6 py-2 bg-purple-600 text-white rounded font-semibold disabled:opacity-50"
+              className="px-6 py-2 bg-[#106c54] text-white rounded font-semibold disabled:opacity-50 hover:bg-[#0d5a45]"
             >
               Tiếp
             </button>

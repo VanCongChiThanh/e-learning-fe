@@ -4,9 +4,10 @@ import { getCodeExercisesByLecture, ExerciseListItem } from '../api'; // Import 
 
 interface CodingExerciseTabProps {
   lectureId: string;
+  onSelectExercise: (exerciseId: string) => void;
 }
 
-const CodingExerciseTab: React.FC<CodingExerciseTabProps> = ({ lectureId }) => {
+const CodingExerciseTab: React.FC<CodingExerciseTabProps> = ({ lectureId, onSelectExercise }) => {
   const [exercises, setExercises] = useState<ExerciseListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,16 +51,16 @@ const CodingExerciseTab: React.FC<CodingExerciseTabProps> = ({ lectureId }) => {
           <ul className="divide-y divide-gray-200">
             {exercises.map((exercise, index) => (
               <li key={exercise.id}>
-                <Link
-                  to={`/code-exercise/${exercise.id}`} // Điều hướng đến trang code mới
-                  className="block p-4 hover:bg-gray-50 transition-colors"
+                <button
+                  onClick={() => onSelectExercise(exercise.id)}
+                  className="block w-full text-left p-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <span className="text-lg font-bold text-purple-600 mr-4">{index + 1}</span>
+                    <span className="text-lg font-bold text-[#106c54] mr-4">{index + 1}</span>
                     <span className="font-semibold text-gray-800">{exercise.title}</span>
                     <i className="fas fa-arrow-right ml-auto text-gray-400"></i>
                   </div>
-                </Link>
+                </button>
               </li>
             ))}
           </ul>

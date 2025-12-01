@@ -1,24 +1,39 @@
-import React, { useEffect, useState, useCallback  } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import LearningHeader from "./LearningHeader";
 import LearningTabs from "./LearningTabs";
 import LearningVideo, { TimeTrigger } from "./LearningVideo";
 import LearningSidebar from "./LearningSidebar";
 import LearningFooter from "./LearningFooter";
-import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail,  ExerciseListItem, getQuizDetail, QuizDetail } from "../api";
+import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail, ExerciseListItem, getQuizDetail, QuizDetail } from "../api";
 import OverviewTab from "./OverviewTab";
 import NoteTab from "./NoteTab";
 import ReviewTag from "./ReviewTag";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 import CodingExerciseTab from "./CodingTag";
-import CodeExercise from "./CodeExercise"; 
+import CodeExercise from "./CodeExercise";
 import EventNotification from "./EventNotification";
 import EventTab, { StoredEvent } from "./EventTag";
 import QuizTab from "./QuizTag";
+import CodePage from "./CodePage";
 
-
-
+const FullScreenModal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: '#111827', // bg-gray-900
+      zIndex: 50, // Đè lên trên mọi thứ
+      overflow: 'auto'
+    }}>
+      {children}
+    </div>
+  );
+};
 
 
 const LearningPage: React.FC = () => {
@@ -30,7 +45,7 @@ const LearningPage: React.FC = () => {
   const userId = useSelector((state: RootState) => state.auth.user?.id);
   const [videoTriggers, setVideoTriggers] = useState<TimeTrigger[]>([]);
   const [activeTab, setActiveTab] = useState("Tổng quan");
-  
+
 
   // State mới để theo dõi các section đang tải
   const [loadingSections, setLoadingSections] = useState<Set<string>>(new Set());
@@ -48,7 +63,9 @@ const LearningPage: React.FC = () => {
   const [quizNotificationContent, setQuizNotificationContent] = useState<{ title: string; quizId: string | null }>({ title: '', quizId: null });
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
 
-  
+  const [modalExerciseId, setModalExerciseId] = useState<string | null>(null);
+
+
 
   // Tải dữ liệu ban đầu cho khóa học và các section
   useEffect(() => {
@@ -69,13 +86,13 @@ const LearningPage: React.FC = () => {
     fetchCourseAndSections();
   }, [slug]);
   // Reset triggers mỗi khi đổi bài giảng mới
-    useEffect(() => {
+  useEffect(() => {
     if (currentLecture?.lectureId) {
       const fetchEvents = async () => {
         try {
           // Lấy toàn bộ response từ API
           const response = await getEventsForLecture(currentLecture.lectureId);
-          
+
           // --- SỬA LỖI Ở ĐÂY ---
           // Kiểm tra xem response.data có phải là một mảng hay không
           if (response && Array.isArray(response.data)) {
@@ -103,7 +120,7 @@ const LearningPage: React.FC = () => {
     }
   }, [currentLecture]);
   // Hàm xử lý sự kiện được gửi từ LearningVideo
-  const handleVideoEvent = async  (action: string, type?: string) => {
+  const handleVideoEvent = async (action: string, type?: string) => {
     console.log(`Event triggered! Type: ${type}, Payload (quizId): ${action}`);
     const addEventToList = (newEvent: Omit<StoredEvent, 'id' | 'timestamp'>) => {
       setStoredEvents(prevEvents => {
@@ -121,10 +138,11 @@ const LearningPage: React.FC = () => {
         // Hiển thị thông báo với trạng thái đang tải
         setCodeNotificationContent({ title: "Đang tải đề bài...", exerciseId: null });
         setCodeNotificationVisible(true);
+        
 
         // Gọi API để lấy chi tiết bài tập
         const exerciseDetails = await getCodeExerciseDetail(action); // action chính là exerciseId
-        
+
         // Cập nhật nội dung thông báo với title thực tế
         setCodeNotificationContent({
           title: exerciseDetails.title,
@@ -143,32 +161,32 @@ const LearningPage: React.FC = () => {
       }
 
     } else if (type === 'QUIZ') {
-      try{
+      try {
         // Logic cho QUIZ vẫn có thể giữ lại alert hoặc nâng cấp sau
-      // alert(`Đã đến lúc làm bài tập trắc nghiệm!`);
-      // setActiveQuizId(action); 
-      // setActiveTab("Quiz");
-      setNotificationContent({ title: "Đang tải đề bài...", exerciseId: null });
-      setQuizNotificationVisible(true);
-      const quizDetails: QuizDetail = await getQuizDetail(action);
-      setQuizNotificationContent({ title: quizDetails.title, quizId: quizDetails.id });
-      setStoredEvents(prev => [...prev, {
-            id: `QUIZ-${quizDetails.id}-${Date.now()}`,
-            type: 'QUIZ',
-            payload: quizDetails.id,
-            title: quizDetails.title,
-            timestamp: new Date()
+        // alert(`Đã đến lúc làm bài tập trắc nghiệm!`);
+        // setActiveQuizId(action); 
+        // setActiveTab("Quiz");
+        setNotificationContent({ title: "Đang tải đề bài...", exerciseId: null });
+        setQuizNotificationVisible(true);
+        const quizDetails: QuizDetail = await getQuizDetail(action);
+        setQuizNotificationContent({ title: quizDetails.title, quizId: quizDetails.id });
+        setStoredEvents(prev => [...prev, {
+          id: `QUIZ-${quizDetails.id}-${Date.now()}`,
+          type: 'QUIZ',
+          payload: quizDetails.id,
+          title: quizDetails.title,
+          timestamp: new Date()
         }]);
 
-      }catch(error){
+      } catch (error) {
         console.error("Lỗi khi lấy chi tiết bài kiểm tra từ event:", error);
         setQuizNotificationVisible(false);
       }
-      
-      
-      
+
+
+
     }
-    
+
   };
 
 
@@ -186,7 +204,7 @@ const LearningPage: React.FC = () => {
       const lectures = await getLectures(sectionId);
       // Sắp xếp lecture theo position
       const sortedLectures = [...lectures].sort((a, b) => a.position - b.position);
-      
+
       setLecturesMap(prevMap => ({
         ...prevMap,
         [sectionId]: sortedLectures,
@@ -239,70 +257,107 @@ const LearningPage: React.FC = () => {
       setActiveTab("Quiz");
     }
   };
+  const handleCodeNotificationClick = () => {
+    // Kiểm tra xem đã có ID bài tập trong state thông báo chưa
+    if (codeNotificationContent.exerciseId) {
+      // Đặt ID cho modal để mở nó
+      setModalExerciseId(codeNotificationContent.exerciseId);
+      // EventNotification sẽ tự động đóng khi được click
+    }
+  };
+
+  const handleSelectQuizEvent = (quizId: string) => {
+    setActiveQuizId(quizId); // Đặt quiz ID đang hoạt động
+    setActiveTab("Quiz");     // Chuyển sang tab Quiz
+  };
+
+
 
   if (!course) return <div>Đang tải khóa học...</div>;
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <LearningHeader title={course.title} />
-      <div className="flex flex-1">
-        {/* Main Content */}
-        <main className="flex-1 mr-80"> {/* mr-80 để chừa chỗ cho sidebar */}
-          <LearningVideo
-            videoUrl={currentLecture?.videoUrl}
-            triggers={videoTriggers}
-            onTimeTrigger={handleVideoEvent}
-            setTriggers={setVideoTriggers}
-          />
-          <LearningTabs active={activeTab} setActive={setActiveTab} />
-          <div className="mt-4 px-4">
-            {activeTab === "Tổng quan" && <OverviewTab slug={slug!} />}
-            {activeTab === "Ghi chú" && currentLecture && userId && (
-              <NoteTab lectureId={currentLecture.lectureId!} userId={userId} />
-            )}
-            {activeTab === "Thông báo" && <div>Chưa có thông báo nào.</div>}
-            {activeTab === "Đánh giá" && <ReviewTag courseId={course.courseId} />}
-            {activeTab === "Coding Exercise" && currentLecture && <CodingExerciseTab lectureId={currentLecture.lectureId!} />}
-            {activeTab === "Quiz" && (
+    <>
+      <div className="flex flex-col min-h-screen bg-gray-50">
+        <LearningHeader title={course.title} />
+        <div className="flex flex-1">
+          {/* Main Content */}
+          <main className="flex-1 mr-80"> {/* mr-80 để chừa chỗ cho sidebar */}
+            <LearningVideo
+              videoUrl={currentLecture?.videoUrl}
+              triggers={videoTriggers}
+              onTimeTrigger={handleVideoEvent}
+              setTriggers={setVideoTriggers}
+            />
+            <LearningTabs active={activeTab} setActive={setActiveTab} />
+            <div className="mt-4 px-4">
+              {activeTab === "Tổng quan" && <OverviewTab slug={slug!} />}
+              {activeTab === "Ghi chú" && currentLecture && userId && (
+                <NoteTab lectureId={currentLecture.lectureId!} userId={userId} />
+              )}
+              {activeTab === "Thông báo" && <div>Chưa có thông báo nào.</div>}
+              {activeTab === "Đánh giá" && <ReviewTag courseId={course.courseId} />}
+              {activeTab === "Coding Exercise" && currentLecture && (
+                <CodingExerciseTab
+                  lectureId={currentLecture.lectureId!}
+                  onSelectExercise={setModalExerciseId} // THÊM: Truyền hàm set state
+                />
+              )}
+              {activeTab === "Quiz" && (
                 activeQuizId ? (
-                <QuizTab quizId={activeQuizId} />
+                  <QuizTab quizId={activeQuizId} />
                 ) : (
-                <div className="text-center p-12 bg-white rounded-lg shadow">
+                  <div className="text-center p-12 bg-white rounded-lg shadow">
                     <p className="text-gray-500">Chưa có bài kiểm tra nào được kích hoạt.</p>
-                </div>
+                  </div>
                 )
+              )}
+              {activeTab === "Sự kiện" && (
+              <EventTab 
+                events={storedEvents} 
+                onSelectCodeEvent={setModalExerciseId}
+                onSelectQuizEvent={handleSelectQuizEvent} // THÊM DÒNG NÀY
+              />
             )}
-            {activeTab === "Sự kiện" && <EventTab events={storedEvents} />}
-          </div>
-          <LearningFooter />
-        </main>
-        <LearningSidebar
-          sections={sections}
-          lecturesMap={lecturesMap}
-          currentLectureId={currentLecture?.lectureId}
-          onSelectLecture={handleSelectLecture}
-          // Prop mới để xử lý việc tải và hiển thị
-          onToggleSection={handleToggleSection}
-          loadingSections={loadingSections}
+            </div>
+            <LearningFooter />
+          </main>
+          <LearningSidebar
+            sections={sections}
+            lecturesMap={lecturesMap}
+            currentLectureId={currentLecture?.lectureId}
+            onSelectLecture={handleSelectLecture}
+            // Prop mới để xử lý việc tải và hiển thị
+            onToggleSection={handleToggleSection}
+            loadingSections={loadingSections}
+          />
+        </div>
+        <EventNotification
+          isVisible={codeNotificationVisible}
+          title={codeNotificationContent.title}
+          message="Có bài tập lập trình mới!"
+          // Truyền link vào prop linkTo
+          // linkTo={codeNotificationContent.exerciseId ? `/code-exercise/${codeNotificationContent.exerciseId}` : undefined}
+          onClick={handleCodeNotificationClick}
+          onClose={() => setCodeNotificationVisible(false)}
+        />
+        <EventNotification
+          isVisible={quizNotificationVisible}
+          title={quizNotificationContent.title}
+          message="Có bài kiểm tra mới!"
+          // Truyền hàm xử lý vào prop onClick
+          onClick={handleQuizNotificationClick}
+          onClose={() => setQuizNotificationVisible(false)}
         />
       </div>
-      <EventNotification
-        isVisible={codeNotificationVisible}
-        title={codeNotificationContent.title}
-        message="Có bài tập lập trình mới!"
-        // Truyền link vào prop linkTo
-        linkTo={codeNotificationContent.exerciseId ? `/code-exercise/${codeNotificationContent.exerciseId}` : undefined}
-        onClose={() => setCodeNotificationVisible(false)}
-      />
-      <EventNotification
-        isVisible={quizNotificationVisible}
-        title={quizNotificationContent.title}
-        message="Có bài kiểm tra mới!"
-        // Truyền hàm xử lý vào prop onClick
-        onClick={handleQuizNotificationClick}
-        onClose={() => setQuizNotificationVisible(false)}
-      />
-    </div>
+      {modalExerciseId && (
+        <FullScreenModal>
+          <CodePage
+            exerciseId={modalExerciseId}
+            onClose={() => setModalExerciseId(null)} // Hàm để đóng Modal
+          />
+        </FullScreenModal>
+      )}
+    </>
   );
 };
 

@@ -7,7 +7,11 @@ interface Props {
   course_ids: string[];
 }
 
-const CareerSectionCard = ({ section_title, description, course_ids }: Props) => {
+const CareerSectionCard = ({
+  section_title,
+  description,
+  course_ids,
+}: Props) => {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -21,12 +25,12 @@ const CareerSectionCard = ({ section_title, description, course_ids }: Props) =>
     if (!expanded || loadedOnce || !course_ids.length) return;
 
     setLoading(true);
-    // getCourseByListId(course_ids)
-    //   .then((res) => setCourses(res.data))
-    //   .finally(() => {
-    //     setLoadedOnce(true);
-    //     setLoading(false);
-    //   });
+    getCourseByListId(course_ids)
+      .then((res) => setCourses(res.data))
+      .finally(() => {
+        setLoadedOnce(true);
+        setLoading(false);
+      });
   }, [expanded, course_ids, loadedOnce]);
 
   return (
@@ -48,7 +52,15 @@ const CareerSectionCard = ({ section_title, description, course_ids }: Props) =>
 
         {/* Icon dropdown */}
         <div className="text-2xl text-gray-400 group-hover:text-gray-600 transition">
-          {expanded ? "▾" : "▸"}
+          {expanded ? (
+            <span>
+              <i className="fa fa-chevron-up"></i>
+            </span>
+          ) : (
+            <span>
+              <i className="fa fa-chevron-down"></i>
+            </span>
+          )}
         </div>
       </div>
 
@@ -76,7 +88,9 @@ const CareerSectionCard = ({ section_title, description, course_ids }: Props) =>
               >
                 <img
                   className="w-20 h-20 rounded-lg object-cover"
-                  src={course.image || "https://placehold.co/400x225?text=Course"}
+                  src={
+                    course.image || "https://placehold.co/400x225?text=Course"
+                  }
                   alt={course.title}
                 />
                 <div className="flex-1">
@@ -85,9 +99,6 @@ const CareerSectionCard = ({ section_title, description, course_ids }: Props) =>
                   </p>
                   <p className="text-sm text-gray-500 mt-1">{course.level}</p>
                 </div>
-                <button className="px-4 py-2 rounded-lg border bg-gray-50 hover:bg-emerald-600 hover:text-white transition font-medium">
-                  Xem khóa
-                </button>
               </div>
             ))}
           </div>
@@ -97,6 +108,16 @@ const CareerSectionCard = ({ section_title, description, course_ids }: Props) =>
         {!loading && loadedOnce && courses.length === 0 && (
           <p className="text-gray-500 py-3">Không tìm thấy khóa học phù hợp.</p>
         )}
+        {/* Nút thêm khóa học */}
+        <button
+          onClick={() =>
+            console.log("thêm khóa học vào section", section_title)
+          }
+          className="mx-auto mt-1 px-2 py-1 rounded-md border border-emerald-500 text-emerald-600 
+              hover:bg-emerald-600 hover:text-white text-sm transition flex items-center gap-1"
+        >
+          <i className="fa fa-plus text-xs"></i> Thêm khoá học
+        </button>
       </div>
     </div>
   );
