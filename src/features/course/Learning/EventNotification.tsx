@@ -39,7 +39,7 @@ const EventNotification: React.FC<EventNotificationProps> = ({ isVisible, title,
     <div className="bg-white rounded-lg shadow-2xl p-4 flex items-start w-full">
       <div className="flex-shrink-0 pt-0.5">
         {/* Thay đổi icon cho phù hợp với từng loại event */}
-        <i className={`fa-solid ${linkTo ? 'fa-code text-purple-600' : 'fa-question-circle text-blue-600'} text-xl`}></i>
+        <i className={`fa-solid ${linkTo ? 'fa-code text-[#106c54]' : 'fa-question-circle text-blue-600'} text-xl`}></i>
       </div>
       <div className="ml-3 w-0 flex-1">
         <p className="text-sm font-semibold text-gray-900">{message}</p>

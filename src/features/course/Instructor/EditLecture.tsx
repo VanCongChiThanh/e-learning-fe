@@ -54,7 +54,7 @@ const EditLecture: React.FC = () => {
     const lectureData = lectureRes.data.data;
     console.log("🎬 Lecture data:", lectureData);
     
-    const sectionRes = await axiosAuth.get(`/courses/{courseId}/sections/${lectureData.sectionId}`);
+    const sectionRes = await axiosAuth.get(`/courses/sections/${lectureData.sectionId}`);
     const sectionData = sectionRes.data.data;
     console.log("📦 Section data:", sectionData);
 
@@ -137,7 +137,7 @@ const EditLecture: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#106c54]"></div>
       </div>
     );
   }
@@ -162,34 +162,34 @@ const EditLecture: React.FC = () => {
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <button
                 onClick={() => navigate('/instructor/courses')}
-                className="hover:text-indigo-600 transition-colors"
+                className="hover:text-[#106c54] transition-colors"
               >
                 Khóa học của tôi
               </button>
               <i className="fas fa-chevron-right text-xs"></i>
               <button
                 onClick={() => navigate(`/instructor/courses/${course.courseId}/edit`)}
-                className="hover:text-indigo-600 transition-colors"
+                className="hover:text-[#106c54] transition-colors"
               >
                 {course.title}
               </button>
               <i className="fas fa-chevron-right text-xs"></i>
               <button
                 onClick={() => navigate(`/instructor/courses/${course.courseId}/detail`)}
-                className="hover:text-indigo-600 transition-colors"
+                className="hover:text-[#106c54] transition-colors"
               >
                 Quản lý nội dung
               </button>
               <i className="fas fa-chevron-right text-xs"></i>
               <span className="text-gray-900 font-medium">{section.title}</span>
               <i className="fas fa-chevron-right text-xs"></i>
-              <span className="text-indigo-600 font-medium">{lecture.title}</span>
+              <span className="text-[#106c54] font-medium">{lecture.title}</span>
             </div>
           </div>
         </nav>
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg p-8 mb-8">
+        <div className="bg-gradient-to-r from-[#106c54] to-[#0d5a45] text-white rounded-lg p-8 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <img
@@ -198,17 +198,17 @@ const EditLecture: React.FC = () => {
                 className="w-16 h-16 rounded-lg object-cover shadow-lg"
               />
               <div>
-                <div className="text-sm text-indigo-200 mb-1">
+                <div className="text-sm text-green-200 mb-1">
                   {course.title} → {section.title}
                 </div>
                 <h1 className="text-3xl font-bold mb-2">Chỉnh sửa bài giảng</h1>
-                <p className="text-indigo-100">{lecture.title}</p>
+                <p className="text-green-100">{lecture.title}</p>
               </div>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => navigate(`/instructor/courses/${course.courseId}/detail`)}
-                className="border border-white text-white px-6 py-2 rounded-lg hover:bg-white hover:text-indigo-600 transition-colors flex items-center gap-2"
+                className="border border-white text-white px-6 py-2 rounded-lg hover:bg-white hover:text-[#106c54] transition-colors flex items-center gap-2"
               >
                 <i className="fas fa-arrow-left"></i>
                 Quay lại
@@ -216,7 +216,7 @@ const EditLecture: React.FC = () => {
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="bg-white text-indigo-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
+                  className="bg-white text-[#106c54] px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
                 >
                   <i className="fas fa-edit"></i>
                   Chỉnh sửa
@@ -231,7 +231,7 @@ const EditLecture: React.FC = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <i className="fas fa-play-circle text-indigo-600"></i>
+                <i className="fas fa-play-circle text-[#106c54]"></i>
                 Video bài giảng
               </h3>
               
@@ -253,7 +253,7 @@ const EditLecture: React.FC = () => {
               </div>
 
               {isEditing && (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors">
                   <input
                     type="file"
                     accept="video/*"
@@ -273,7 +273,7 @@ const EditLecture: React.FC = () => {
             {/* Lecture Info Form */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <i className="fas fa-info-circle text-indigo-600"></i>
+                <i className="fas fa-info-circle text-[#106c54]"></i>
                 Thông tin bài giảng
               </h3>
               
@@ -286,7 +286,7 @@ const EditLecture: React.FC = () => {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     disabled={!isEditing}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#106c54] transition-colors ${
                       isEditing
                         ? "border-gray-300 bg-white"
                         : "bg-gray-50 border-gray-200 cursor-not-allowed"
@@ -304,7 +304,7 @@ const EditLecture: React.FC = () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={!isEditing}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#106c54] transition-colors ${
                       isEditing
                         ? "border-gray-300 bg-white"
                         : "bg-gray-50 border-gray-200 cursor-not-allowed"
@@ -323,7 +323,7 @@ const EditLecture: React.FC = () => {
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
                     disabled={!isEditing}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#106c54] transition-colors ${
                       isEditing
                         ? "border-gray-300 bg-white"
                         : "bg-gray-50 border-gray-200 cursor-not-allowed"
@@ -345,7 +345,7 @@ const EditLecture: React.FC = () => {
                     <button
                       type="submit"
                       disabled={saving}
-                      className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:bg-gray-400"
+                      className="flex-1 px-6 py-3 bg-[#106c54] text-white rounded-lg hover:bg-[#0d5a45] transition-colors flex items-center justify-center gap-2 disabled:bg-gray-400"
                     >
                       <i className="fas fa-save"></i>
                       {saving ? "Đang lưu..." : "Lưu thay đổi"}
@@ -361,7 +361,7 @@ const EditLecture: React.FC = () => {
             {/* Course Info */}
             <div className="bg-white rounded-lg shadow p-6 mb-6 sticky top-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <i className="fas fa-graduation-cap text-indigo-600"></i>
+                <i className="fas fa-graduation-cap text-[#106c54]"></i>
                 Thông tin khóa học
               </h3>
               <div className="space-y-3">
@@ -383,11 +383,11 @@ const EditLecture: React.FC = () => {
 
               <div className="space-y-2">
                 <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3 text-sm">
-                  <i className="fas fa-eye text-indigo-600"></i>
+                  <i className="fas fa-eye text-[#106c54]"></i>
                   <span>Xem trước bài giảng</span>
                 </button>
                 <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-3 text-sm">
-                  <i className="fas fa-copy text-indigo-600"></i>
+                  <i className="fas fa-copy text-[#106c54]"></i>
                   <span>Sao chép bài giảng</span>
                 </button>
                 <button className="w-full text-left p-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors flex items-center gap-3 text-sm">
@@ -400,13 +400,13 @@ const EditLecture: React.FC = () => {
             {/* Quick Stats */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <i className="fas fa-chart-bar text-indigo-600"></i>
+                <i className="fas fa-chart-bar text-[#106c54]"></i>
                 Thống kê nhanh
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Lượt xem:</span>
-                  <span className="font-semibold text-indigo-600">0</span>
+                  <span className="font-semibold text-[#106c54]">0</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Hoàn thành:</span>

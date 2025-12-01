@@ -62,7 +62,7 @@ const LearningSidebar: React.FC<{
                         key={lecture.lectureId}
                         className={`cursor-pointer px-2 py-1 px-5 rounded ${
                           lecture.lectureId === currentLectureId
-                            ? "bg-purple-100 font-bold"
+                            ? "bg-green-100 font-bold"
                             : "hover:bg-gray-100"
                         }`}
                         onClick={() => onSelectLecture(lecture.lectureId)}

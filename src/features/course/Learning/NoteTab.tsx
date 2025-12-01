@@ -97,7 +97,7 @@ const NoteTab: React.FC<NoteTabProps> = ({ lectureId, userId }) => {
         <button
           onClick={handleSave}
           disabled={saving || !content.trim()}
-          className="px-4 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700"
+          className="px-4 py-2 bg-[#106c54] text-white rounded font-semibold hover:bg-[#0d5a45]"
         >
           {saving ? "Đang lưu..." : "Lưu ghi chú"}
         </button>
@@ -108,10 +108,10 @@ const NoteTab: React.FC<NoteTabProps> = ({ lectureId, userId }) => {
 
       {/* Bộ lọc và sắp xếp */}
       <div className="flex gap-4 mb-4">
-        <select className="border rounded px-4 py-2 font-semibold text-purple-700">
+        <select className="border rounded px-4 py-2 font-semibold text-[#106c54]">
           <option>Tất cả bài giảng</option>
         </select>
-        <select className="border rounded px-4 py-2 font-semibold text-purple-700">
+        <select className="border rounded px-4 py-2 font-semibold text-[#106c54]">
           <option>Sắp xếp mới nhất</option>
         </select>
       </div>
@@ -129,7 +129,7 @@ const NoteTab: React.FC<NoteTabProps> = ({ lectureId, userId }) => {
             </div>
             <button
               onClick={() => alert("Chức năng chỉnh sửa chưa làm")}
-              className="ml-auto px-2 text-gray-500 hover:text-purple-600"
+              className="ml-auto px-2 text-gray-500 hover:text-[#106c54]"
             >
               <i className="fas fa-pen"></i>
             </button>

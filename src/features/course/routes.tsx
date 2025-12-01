@@ -6,7 +6,9 @@ import MyCoursesInstructor from "./Instructor/MycourseInstructor";
 import LearningPage from "./Learning/LearningPage";
 import EditLecture from "./Instructor/EditLecture";
 import EditCourseDetail from "./Instructor/EditCoureseDetail";
+import CreateCourse from "./Instructor/CreateCourse";
 import CodePage from "./Learning/CodePage";
+import EnrollmentProtectedRoute from "../../routes/EnrollmentProtechtedRoute";
 export const courseRoutes = [
   {
     path: "/my-courses",
@@ -21,19 +23,19 @@ export const courseRoutes = [
   {
     path: "/learning/:slug",
     element: (
-      <ProtectedRoute roles={["LEARNER"]}>
-          <LearningPage />
-      </ProtectedRoute>
+      <EnrollmentProtectedRoute>
+        <LearningPage />
+      </EnrollmentProtectedRoute>
     ),
   },
-  {
-    path: "/code-exercise/:exerciseId",
-    element: (
-      <ProtectedRoute roles={["LEARNER"]}>
-        <CodePage />
-      </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/code-exercise/:exerciseId",
+  //   element: (
+  //     <ProtectedRoute roles={["LEARNER"]}>
+  //       <CodePage />
+  //     </ProtectedRoute>
+  //   ),
+  // },
 ];
 
 export const courseRoutesForInstructor = [
@@ -43,6 +45,16 @@ export const courseRoutesForInstructor = [
       <ProtectedRoute roles={["INSTRUCTOR"]}>
         <MainLayout>
           <MyCoursesInstructor />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/instructor/courses/create",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]}>
+        <MainLayout>
+          <CreateCourse />
         </MainLayout>
       </ProtectedRoute>
     ),
