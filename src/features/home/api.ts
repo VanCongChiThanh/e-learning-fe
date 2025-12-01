@@ -92,11 +92,11 @@ export const getCertificateDetailById = async (certificateId: string) => {
 
 //get course by list id
 export const getCourseByListId = async (courseIds: string[]) => {
-  const res = await axiosClient.get("/courses/list-by-ids", {
-    params: { course_ids: courseIds.join(",") },
-  });
+  const setIds = Array.from(new Set(courseIds)); // loại trùng + chuẩn Set
+  const res = await axiosClient.post("/courses/list-ids", setIds);
   return res.data;
 };
+
 // gọi AI FastAPI generate lộ trình
 export const generateCareerPlan = async (data: GenerateCareerPlanPayload) => {
   const res = await aiAPI.post("/career/generate", data);
