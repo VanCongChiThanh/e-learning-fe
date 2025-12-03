@@ -4,7 +4,8 @@ import InstructorProfileEdit from "./instructor/Edit";
 import InstructorProfilePage from "./instructor/InstructorProfilePage";
 import LearnerChangePasswordPage from "./learner/ChangePasswordPage";
 import InstructorChangePasswordPage from "./instructor/ChangePasswordPage";
-
+import BankAccountPage from "./instructor/BankAccountPage";
+import BankAccountConfirmPage from "./instructor/BankAccountConfirmPage";
 
 export const profileRoutes = [
   {
@@ -28,6 +29,22 @@ export const profileRoutes = [
     element: (
       <ProtectedRoute roles={["INSTRUCTOR"]} redirect="/login">
         <InstructorProfileEdit />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/instructor-profile/bank-account",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]} redirect="/login">
+        <BankAccountPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/bank/account/confirm",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]} redirect="/login">
+        <BankAccountConfirmPage />
       </ProtectedRoute>
     ),
   },
