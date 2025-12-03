@@ -2,10 +2,10 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import LearningHeader from "./LearningHeader";
 import LearningTabs from "./LearningTabs";
-import LearningVideo, { TimeTrigger } from "./LearningVideo";
+import LearningVideo, { TimeTrigger, ProgressState } from "./LearningVideo";
 import LearningSidebar from "./LearningSidebar";
 import LearningFooter from "./LearningFooter";
-import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail, getQuizDetail, QuizDetail, getMyEnrollmentForCourse, getQuizzesByLecture } from "../api";
+import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail, getQuizDetail, QuizDetail, getMyEnrollmentForCourse, getQuizzesByLecture, updateLectureProgress } from "../api";
 import OverviewTab from "./OverviewTab";
 import NoteTab from "./NoteTab";
 import ReviewTag from "./ReviewTag";
@@ -36,7 +36,7 @@ const FullScreenModal: React.FC<{ children: React.ReactNode }> = ({ children }) 
 };
 
 
-const LearningPage: React.FC = () => {
+const LearningPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [course, setCourse] = useState<any>(null);
@@ -63,9 +63,9 @@ const LearningPage: React.FC = () => {
 
   const [quizNotificationVisible, setQuizNotificationVisible] = useState(false);
   const [quizNotificationContent, setQuizNotificationContent] = useState<{ title: string; quizId: string | null }>({ title: '', quizId: null });
-  const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
 
   const [modalExerciseId, setModalExerciseId] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
 
 
 
@@ -172,8 +172,6 @@ const LearningPage: React.FC = () => {
       try {
         // Logic cho QUIZ vẫn có thể giữ lại alert hoặc nâng cấp sau
         // alert(`Đã đến lúc làm bài tập trắc nghiệm!`);
-        // setActiveQuizId(action); 
-        // setActiveTab("Quiz");
         setNotificationContent({ title: "Đang tải đề bài...", exerciseId: null });
         setQuizNotificationVisible(true);
         const quizDetails: QuizDetail = await getQuizDetail(action);
@@ -196,6 +194,41 @@ const LearningPage: React.FC = () => {
     }
 
   };
+
+  // Hàm để nhận tiến trình video từ component con
+  const handleVideoProgress = (progress: ProgressState) => {
+    setCurrentTime(progress.playedSeconds);
+  };
+
+  // Hàm format thời gian sang hh:mm:ss
+  const formatTime = (seconds: number): string => {
+    if (isNaN(seconds) || seconds < 0) {
+      return "00:00:00";
+    }
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
+
+  // Gửi tiến độ xem video định kỳ
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (userId && currentLecture?.lectureId && currentTime > 0) {
+        const payload = {
+          userId: userId,
+          lectureId: currentLecture.lectureId,
+          lastViewAt: formatTime(currentTime)
+        };
+        console.log("Updating progress:", payload);
+        updateLectureProgress(payload).catch(err => {
+          console.error("Failed to update lecture progress:", err);
+        });
+      }
+    }, 15000); // Gửi mỗi 15 giây
+
+    return () => clearInterval(interval);
+  }, [currentTime, currentLecture, userId]);
 
 
   // Hàm để tải lecture cho một section cụ thể
@@ -260,11 +293,10 @@ const LearningPage: React.FC = () => {
     fetchLecturesForSection(sectionId);
   };
   const handleQuizNotificationClick = () => {
-    if (quizNotificationContent.quizId) {
-      setActiveQuizId(quizNotificationContent.quizId);
-      setActiveTab("Quiz");
-    }
+    // Khi click vào thông báo quiz, chuyển sang tab Quiz
+    setActiveTab("Quiz");
   };
+
   const handleCodeNotificationClick = () => {
     // Kiểm tra xem đã có ID bài tập trong state thông báo chưa
     if (codeNotificationContent.exerciseId) {
@@ -298,6 +330,7 @@ const LearningPage: React.FC = () => {
               triggers={videoTriggers}
               onTimeTrigger={handleVideoEvent}
               setTriggers={setVideoTriggers}
+              onProgress={handleVideoProgress}
             />
             <LearningTabs active={activeTab} setActive={setActiveTab} />
             <div className="mt-4 px-4">

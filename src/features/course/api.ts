@@ -460,3 +460,16 @@ export const getMyEnrollmentForCourse = async (courseId: string): Promise<{ enro
         throw error;
     }
 };
+
+/**
+ * Cập nhật tiến độ xem bài giảng của người dùng.
+ * @param payload - Dữ liệu tiến độ bao gồm userId, lectureId, và lastViewAt.
+ */
+export const updateLectureProgress = async (payload: {
+  lastViewAt: string;
+  lectureId: string;
+  userId: string;
+}) => {
+  const res = await axiosAuth.put(`/progress/lecture-progress`, payload);
+  return res.data;
+};
