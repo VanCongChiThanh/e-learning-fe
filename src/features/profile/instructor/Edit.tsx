@@ -91,10 +91,10 @@ const InstructorProfileEdit: React.FC = () => {
 
     try {
       await updateInstructorProfile(instructor);
-      alert("Cập nhật hồ sơ giảng viên thành công!");
+      toast.success("Cập nhật hồ sơ giảng viên thành công!");
     } catch (error) {
       console.error("Update Instructor failed", error);
-      alert("Có lỗi xảy ra khi cập nhật hồ sơ giảng viên");
+      toast.error("Có lỗi xảy ra khi cập nhật hồ sơ giảng viên");
     } finally {
       setLoadingInstructor(false);
     }
