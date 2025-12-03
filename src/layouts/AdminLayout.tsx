@@ -43,6 +43,11 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       label: "Danh sách giảng viên chờ duyệt",
       icon: "fa-solid fa-user-check",
     },
+    {
+      path: "/admin/revenue",
+      label: "Thống kê doanh thu",
+      icon: "fa-solid fa-chart-line",
+    },
   ];
 
   return (
