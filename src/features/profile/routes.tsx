@@ -6,6 +6,7 @@ import LearnerChangePasswordPage from "./learner/ChangePasswordPage";
 import InstructorChangePasswordPage from "./instructor/ChangePasswordPage";
 import BankAccountPage from "./instructor/BankAccountPage";
 import BankAccountConfirmPage from "./instructor/BankAccountConfirmPage";
+import MyRevenuePage from "./instructor/MyRevenuePage";
 
 export const profileRoutes = [
   {
@@ -37,6 +38,14 @@ export const profileRoutes = [
     element: (
       <ProtectedRoute roles={["INSTRUCTOR"]} redirect="/login">
         <BankAccountPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/instructor-profile/revenue",
+    element: (
+      <ProtectedRoute roles={["INSTRUCTOR"]} redirect="/login">
+        <MyRevenuePage />
       </ProtectedRoute>
     ),
   },

@@ -107,3 +107,23 @@ export const confirmBankAccount = async (token: string): Promise<void> => {
     params: { token },
   });
 };
+
+// Get my revenue as instructor
+export interface MyRevenueRequest {
+  start_date?: number; // Unix timestamp in milliseconds
+  end_date?: number; // Unix timestamp in milliseconds
+}
+
+export interface MyRevenueResponse {
+  total_courses: number;
+  total_revenue: number;
+  commission_percentage: number;
+  net_earnings: number;
+}
+
+export const getMyRevenue = async (
+  body?: MyRevenueRequest
+): Promise<MyRevenueResponse> => {
+  const res = await axiosAuth.post("/instructors/me/revenue", body);
+  return res.data.data;
+};

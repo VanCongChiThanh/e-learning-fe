@@ -5,6 +5,7 @@ import InstructorApproval from "./pages/InstructorApproval";
 import CoursesPage from "./pages/CoursesPage";
 import UsersPage from "./pages/UsersPage";
 import InstructorsPage from "./pages/InstructorsPage";
+import RevenuePage from "./pages/RevenuePage";
 
 export const adminRoutes = [
   {
@@ -28,7 +29,7 @@ export const adminRoutes = [
     ),
   },
   {
-    path:"/admin/courses",
+    path: "/admin/courses",
     element: (
       <ProtectedRoute roles={["ADMIN"]}>
         <CoursesPage />
@@ -48,6 +49,14 @@ export const adminRoutes = [
     element: (
       <ProtectedRoute roles={["ADMIN"]}>
         <InstructorsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/revenue",
+    element: (
+      <ProtectedRoute roles={["ADMIN"]}>
+        <RevenuePage />
       </ProtectedRoute>
     ),
   },
