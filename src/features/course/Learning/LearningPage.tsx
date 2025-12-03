@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import LearningHeader from "./LearningHeader";
 import LearningTabs from "./LearningTabs";
 import LearningVideo, { TimeTrigger } from "./LearningVideo";
 import LearningSidebar from "./LearningSidebar";
 import LearningFooter from "./LearningFooter";
-import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail, ExerciseListItem, getQuizDetail, QuizDetail } from "../api";
+import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail, getQuizDetail, QuizDetail, getMyEnrollmentForCourse, getQuizzesByLecture } from "../api";
 import OverviewTab from "./OverviewTab";
 import NoteTab from "./NoteTab";
 import ReviewTag from "./ReviewTag";
@@ -38,6 +38,7 @@ const FullScreenModal: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
 const LearningPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [course, setCourse] = useState<any>(null);
   const [sections, setSections] = useState<any[]>([]);
   const [lecturesMap, setLecturesMap] = useState<Record<string, any[]>>({});
@@ -45,6 +46,7 @@ const LearningPage: React.FC = () => {
   const userId = useSelector((state: RootState) => state.auth.user?.id);
   const [videoTriggers, setVideoTriggers] = useState<TimeTrigger[]>([]);
   const [activeTab, setActiveTab] = useState("Tổng quan");
+  const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
 
 
   // State mới để theo dõi các section đang tải
@@ -79,6 +81,12 @@ const LearningPage: React.FC = () => {
         // Sắp xếp các section theo position trước khi set state
         const sortedSections = [...sectionsData].sort((a, b) => a.position - b.position);
         setSections(sortedSections);
+
+        // Lấy enrollmentId sau khi có courseId
+        if (courseData.courseId) {
+          const enrollmentData = await getMyEnrollmentForCourse(courseData.courseId);
+          setEnrollmentId(enrollmentData.enrollmentId);
+        }
       } catch (error) {
         console.error("Lỗi khi tải khóa học hoặc section:", error);
       }
@@ -267,8 +275,11 @@ const LearningPage: React.FC = () => {
   };
 
   const handleSelectQuizEvent = (quizId: string) => {
-    setActiveQuizId(quizId); // Đặt quiz ID đang hoạt động
-    setActiveTab("Quiz");     // Chuyển sang tab Quiz
+    if (enrollmentId) {
+      navigate(`/learn/quiz/${quizId}/${enrollmentId}`);
+    } else {
+      alert("Không tìm thấy thông tin đăng ký khóa học để bắt đầu bài quiz.");
+    }
   };
 
 
@@ -303,13 +314,11 @@ const LearningPage: React.FC = () => {
                 />
               )}
               {activeTab === "Quiz" && (
-                activeQuizId ? (
-                  <QuizTab quizId={activeQuizId} />
-                ) : (
-                  <div className="text-center p-12 bg-white rounded-lg shadow">
-                    <p className="text-gray-500">Chưa có bài kiểm tra nào được kích hoạt.</p>
-                  </div>
-                )
+                currentLecture && (
+                  <QuizTab 
+                    lectureId={currentLecture.lectureId} 
+                    enrollmentId={enrollmentId} 
+                  />)
               )}
               {activeTab === "Sự kiện" && (
               <EventTab 

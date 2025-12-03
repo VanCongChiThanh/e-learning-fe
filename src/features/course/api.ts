@@ -232,6 +232,24 @@ export interface QuizQuestion {
   options: QuizOption[];
 }
 
+// Kiểu dữ liệu cho một quiz trong danh sách
+export interface QuizListItem {
+  id: string;
+  title: string;
+  description: string;
+  numberQuestions: number;
+}
+
+/**
+ * Lấy danh sách các bài quiz của một bài giảng.
+ * @param lectureId - ID của bài giảng
+ */
+export const getQuizzesByLecture = async (lectureId: string): Promise<QuizListItem[]> => {
+  const response = await axiosAuth.get(`/quizzes/lecture/${lectureId}`);
+  // API trả về một mảng dữ liệu trực tiếp trong response.data
+  return Array.isArray(response.data) ? response.data : response.data.data || [];
+};
+
 /**
  * Lấy thông tin chi tiết của một bài quiz bằng ID.
  * @param quizId - ID của bài quiz (từ payload của event)
@@ -422,4 +440,23 @@ export const checkEnrollment = async (courseId: string): Promise<boolean> => {
     console.error("Lỗi khi kiểm tra enrollment:", error);
     return false;
   }
+};
+
+/**
+ * Lấy thông tin enrollment của user hiện tại cho một khóa học.
+ * @param courseId - ID của khóa học.
+ */
+export const getMyEnrollmentForCourse = async (courseId: string): Promise<{ enrollmentId: string }> => {
+    try {
+        const res = await axiosAuth.get(`/enrollments/course/${courseId}`);
+        // API trả về một mảng enrollment, ta lấy phần tử đầu tiên
+        const enrollmentData = res.data;
+        if (Array.isArray(enrollmentData) && enrollmentData.length > 0) {
+            return { enrollmentId: enrollmentData[0].id };
+        }
+        throw new Error("Không tìm thấy thông tin đăng ký khóa học.");
+    } catch (error) {
+        console.error("Lỗi khi lấy thông tin enrollment:", error);
+        throw error;
+    }
 };
