@@ -23,6 +23,8 @@ export interface InstructorCandidateResponse {
   portfolio_link: string;
   motivation?: string;
   status: ApplicationStatus;
+  created_at: string; // ISO timestamp
+  updated_at: string; // ISO timestamp
 }
 
 export type ApplicationStatus =
@@ -50,11 +52,14 @@ export const instructorManageApi = {
     paging = 5,
     sort = "created_at",
     order: "asc" | "desc" = "desc",
-    status?: ApplicationStatus
+    status?: ApplicationStatus,
+    excludeStatus?: ApplicationStatus
   ): Promise<ApiResponse<InstructorCandidateResponse[]>> => {
-    const res = await axiosAuth.get(`/instructor/applications/all`, {
-      params: { page, paging, sort, order, ...(status && { status }) },
-    });
+    const params: any = { page, paging, sort, order };
+    if (status) params.status = status;
+    if (excludeStatus) params.exclude_status = excludeStatus;
+
+    const res = await axiosAuth.get(`/instructor/applications/all`, { params });
     return res.data;
   },
 

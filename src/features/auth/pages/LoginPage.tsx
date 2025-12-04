@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "../store/authSlice";
+import { login, fetchCurrentUser } from "../store/authSlice";
 import type { AppDispatch, RootState } from "../../../app/store";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { loading, error, token } = useSelector(
     (state: RootState) => state.auth
   );
@@ -13,9 +14,20 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(login({ email, password }));
+    try {
+      // Login and get token
+      await dispatch(login({ email, password })).unwrap();
+
+      // Fetch user info immediately
+      await dispatch(fetchCurrentUser()).unwrap();
+
+      // Navigate after both are complete
+      navigate("/");
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -48,10 +60,9 @@ const LoginPage: React.FC = () => {
         {/* Right: Login Form */}
         <div className="flex-1 max-w-md w-full">
           <div className="bg-white p-10">
-            <h1
-              className="text-3xl mb-8"
-            >
-              Đăng nhập để tiếp tục hành trình học tập của bạn cùng <span className="text-emerald-600 font-bold">coursevo </span>
+            <h1 className="text-3xl mb-8">
+              Đăng nhập để tiếp tục hành trình học tập của bạn cùng{" "}
+              <span className="text-emerald-600 font-bold">coursevo </span>
             </h1>
 
             {token && (
