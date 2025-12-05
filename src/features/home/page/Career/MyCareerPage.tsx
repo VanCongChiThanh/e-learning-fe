@@ -5,19 +5,67 @@ import { CareerPlanSection } from "../../types/CareerType";
 import MainLayout from "../../../../layouts/MainLayout";
 import HomeLayout from "../../layout/HomeLayout";
 import { useNavigate } from "react-router-dom";
+
 const MyCareerPage = () => {
   const [plan, setPlan] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    getMyCareerPlan().then(setPlan);
+    const fetchCareerPlan = async () => {
+      try {
+        setLoading(true);
+        const data = await getMyCareerPlan();
+        setPlan(data);
+        setError(null);
+      } catch (err: any) {
+        console.error("Failed to fetch career plan:", err);
+        setError(
+          err.response?.data?.error?.message || "Không thể tải lộ trình học"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCareerPlan();
   }, []);
-  const navigate = useNavigate();
-  if (!plan) {
+
+  if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-gray-600 text-lg">
-        <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mr-3"></div>
-        Đang tải lộ trình học...
-      </div>
+      <MainLayout>
+        <HomeLayout>
+          <div className="flex min-h-screen items-center justify-center text-gray-600 text-lg">
+            <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mr-3"></div>
+            Đang tải lộ trình học...
+          </div>
+        </HomeLayout>
+      </MainLayout>
+    );
+  }
+
+  if (error || !plan) {
+    return (
+      <MainLayout>
+        <HomeLayout>
+          <div className="flex min-h-screen items-center justify-center">
+            <div className="text-center max-w-md">
+              <i className="fas fa-exclamation-circle text-6xl text-gray-300 mb-4"></i>
+              <p className="text-gray-600 text-lg mb-4">
+                {error || "Bạn chưa có lộ trình nghề nghiệp"}
+              </p>
+              <button
+                onClick={() => navigate("/career/questions")}
+                className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+              >
+                <i className="fas fa-plus mr-2"></i>
+                Tạo lộ trình mới
+              </button>
+            </div>
+          </div>
+        </HomeLayout>
+      </MainLayout>
     );
   }
 

@@ -17,6 +17,16 @@ export default function InstructorProfileLayout({
       label: "Hồ sơ giảng viên",
     },
     {
+      path: "/instructor-profile/revenue",
+      icon: "fas fa-chart-line",
+      label: "Thu nhập của tôi",
+    },
+    {
+      path: "/instructor-profile/bank-account",
+      icon: "fas fa-university",
+      label: "Tài khoản ngân hàng",
+    },
+    {
       path: "/instructor-profile/change-password",
       icon: "fas fa-key",
       label: "Đổi mật khẩu",
