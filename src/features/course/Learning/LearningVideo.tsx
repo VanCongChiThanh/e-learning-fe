@@ -1,7 +1,7 @@
 // src/pages/Course/Learning/LearningVideo.tsx
 
-import React, { useEffect, useRef, useCallback } from "react";
-import YouTube, { YouTubePlayer } from "react-youtube";
+import React, { useEffect, useRef, useCallback, VideoHTMLAttributes } from "react";
+import YouTube, { YouTubePlayer, YouTubeProps } from "react-youtube";
 
 // Định nghĩa kiểu cho một điểm kích hoạt sự kiện (không thay đổi)
 export interface TimeTrigger {
@@ -19,22 +19,31 @@ export interface ProgressState {
   loadedSeconds: number;
 }
 
-interface LearningVideoProps {
+// Định nghĩa kiểu cho Lecture được sử dụng trong LearningVideo
+export interface Lecture {
+  lectureId: string;
+  title: string;
+  videoUrl: string;
+}
+
+interface LearningVideoProps extends Omit<VideoHTMLAttributes<HTMLVideoElement>, 'onProgress' | 'onLoadedMetadata'> {
   videoUrl?: string;
   triggers: TimeTrigger[];
   onTimeTrigger: (action: string, type?: string) => void;
   setTriggers: React.Dispatch<React.SetStateAction<TimeTrigger[]>>;
   onProgress?: (state: ProgressState) => void;
+  youtubeOpts?: Omit<YouTubeProps, 'videoId' | 'onReady'>;
+  startTime?: number; // Thời gian bắt đầu (tính bằng giây)
 }
 
-const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTimeTrigger, setTriggers, onProgress }) => {
+const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTimeTrigger, setTriggers, onProgress, ...restProps }) => {
   const youtubePlayerRef = useRef<YouTubePlayer | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const resetTriggers = triggers.map(t => ({ ...t, triggered: false }));
-    setTriggers(resetTriggers);
-  }, [videoUrl]);
+    // Reset triggers khi videoUrl thay đổi
+    setTriggers(prevTriggers => prevTriggers.map(t => ({ ...t, triggered: false })));
+  }, [videoUrl, setTriggers]);
 
   const isYouTube = videoUrl ? videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be") : false;
 
@@ -61,7 +70,7 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
         console.log(`YouTube Current Time: ${Math.floor(currentTime)}s`);
         // highlight-end
 
-        triggers.forEach((trigger, index) => {
+        triggers.forEach((trigger: TimeTrigger, index: number) => {
           if (!trigger.triggered && currentTime >= trigger.time) {
             // highlight-start
             // LOG KHI TRIGGER ĐƯỢC KÍCH HOẠT
@@ -95,7 +104,7 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
       console.log(`HTML5 Video Current Time: ${Math.floor(currentTime)}s`);
       // highlight-end
       
-      triggers.forEach((trigger, index) => {
+      triggers.forEach((trigger: TimeTrigger, index: number) => {
         if (!trigger.triggered && currentTime >= trigger.time) {
           // highlight-start
           // LOG KHI TRIGGER ĐƯỢC KÍCH HOẠT
@@ -111,6 +120,14 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
     },
     [onProgress, onTimeTrigger, setTriggers, triggers]
   );
+
+  const handleVideoReady = (event: YouTubePlayer) => {
+    youtubePlayerRef.current = event.target;
+    const startTime = (restProps as any).startTime;
+    if (startTime && startTime > 0) {
+      event.target.seekTo(startTime, true);
+    }
+  };
 
   if (!videoUrl) {
     return (
@@ -135,11 +152,12 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
         <YouTube
           videoId={getYouTubeVideoId(videoUrl) || ''}
           className="w-full h-full"
-          onReady={(event) => { youtubePlayerRef.current = event.target; }}
+          onReady={handleVideoReady}
           opts={{
             height: '100%',
             width: '100%',
             playerVars: { autoplay: 1 },
+            ...(restProps as any).youtubeOpts?.opts,
           }}
         />
       ) : (
@@ -149,6 +167,13 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
           controls
           autoPlay
           className="w-full h-full object-cover"
+          {...restProps}
+          onLoadedMetadata={(e) => {
+            const startTime = (restProps as any).startTime;
+            if (startTime && startTime > 0) {
+              e.currentTarget.currentTime = startTime;
+            }
+          }}
           onTimeUpdate={handleTimeUpdate}
         />
       )}

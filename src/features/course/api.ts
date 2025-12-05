@@ -60,7 +60,14 @@ export const getSections = async (courseId: string) => {
   return res.data.data;
 };
 
-export const getLectures = async (sectionId: string) => {
+export interface LectureDataFromApi { // Define a more complete Lecture type for API response
+  lectureId: string;
+  title: string;
+  position: number;
+  videoUrl: string; // Assuming the API returns videoUrl directly
+}
+
+export const getLectures = async (sectionId: string): Promise<LectureDataFromApi[]> => {
   const res = await axiosAuth.get(`/sections/${sectionId}/lectures`);
   return res.data.data;
 };
@@ -472,4 +479,35 @@ export const updateLectureProgress = async (payload: {
 }) => {
   const res = await axiosAuth.put(`/progress/lecture-progress`, payload);
   return res.data;
+};
+
+export interface RecentLearningInfo {
+  enrollmentId: string;
+  enrollmentStatus: string;
+  enrollmentProgressPercentage: number;
+  lastAccessedAt: number;
+  courseId: string;
+  courseTitle: string;
+  courseDescription: string;
+  courseImage: string;
+  sectionId: string;
+  sectionTitle: string;
+  position: number;
+  lectureId: string;
+  lectureTitle: string;
+  lectureVideoUrl: string;
+  lectureDuration: number;
+  lectureOrder: number;
+  progressId: string;
+  isLectureCompleted: boolean;
+  lastViewedAt: string;
+  progressUpdatedAt: number;
+  lectureProgressPercentage: number;
+  currentLearningStatus: string;
+  recommendedAction: string;
+}
+
+export const getRecentLearning = async (enrollmentId: string): Promise<RecentLearningInfo> => {
+  const response = await axiosAuth.get(`/progress/enrollment/${enrollmentId}/recent-learning`);
+  return response.data;
 };

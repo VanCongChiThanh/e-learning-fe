@@ -4,7 +4,7 @@ import { getQuizzesByLecture, QuizListItem } from '../api';
 
 interface QuizTabProps {
   lectureId: string;
-  enrollmentId: string | null;
+  enrollmentId: string | null | undefined;
 }
 
 const QuizTab: React.FC<QuizTabProps> = ({ lectureId, enrollmentId }) => {
