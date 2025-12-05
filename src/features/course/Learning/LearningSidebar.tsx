@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-interface Section {
+export interface Section {
   sectionId: string;
   title: string;
   position: number;
@@ -27,6 +27,21 @@ const LearningSidebar: React.FC<{
       setOpenSectionId(sections[0].sectionId);
     }
   }, [sections, openSectionId]);
+
+  // Tự động mở section chứa bài giảng đang học
+  useEffect(() => {
+    if (currentLectureId && Object.keys(lecturesMap).length > 0) {
+      // Tìm sectionId chứa bài giảng hiện tại
+      const sectionIdContainingCurrentLecture = Object.keys(lecturesMap).find(
+        (secId) => lecturesMap[secId]?.some(lec => lec.lectureId === currentLectureId)
+      );
+
+      if (sectionIdContainingCurrentLecture && sectionIdContainingCurrentLecture !== openSectionId) {
+        setOpenSectionId(sectionIdContainingCurrentLecture);
+      }
+    }
+  }, [currentLectureId, lecturesMap]);
+
   // Sắp xếp section theo position tăng dần
   const sortedSections = [...sections].sort((a, b) => a.position - b.position);
   
@@ -34,7 +49,7 @@ const LearningSidebar: React.FC<{
     <aside className="fixed right-0 top-16 w-80 h-[calc(100vh-4rem)] bg-white border-l z-30">
       <h2 className="font-bold mb-4 text-lg border-b px-4 pb-2">Nội dung khóa học</h2>
       <div className="overflow-y-auto h-[calc(100vh-4rem-3.5rem)] pr-2 bg-gray-50">
-        {sections.map(section => (
+        {sortedSections.map(section => (
           <div key={section.sectionId} className="mb-4 border-b pb-2">
             <button
               className="w-full text-left font-semibold flex justify-between items-center py-2 px-4"
