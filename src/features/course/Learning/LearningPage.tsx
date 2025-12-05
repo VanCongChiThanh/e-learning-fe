@@ -74,7 +74,7 @@ const LearningPage = () => {
   const [quizNotificationContent, setQuizNotificationContent] = useState<{ title: string; quizId: string | null }>({ title: '', quizId: null });
 
   const [modalExerciseId, setModalExerciseId] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
+  const currentTimeRef = useRef(0);
   const [initialLectureLoaded, setInitialLectureLoaded] = useState(false);
   const initialLectureLoadAttempted = useRef(false); // Dùng ref để đảm bảo chỉ chạy một lần
   const [initialSeekTime, setInitialSeekTime] = useState(0);
@@ -215,7 +215,7 @@ const LearningPage = () => {
 
   // Hàm để nhận tiến trình video từ component con
   const handleVideoProgress = (progress: ProgressState) => {
-    setCurrentTime(progress.playedSeconds);
+    currentTimeRef.current = progress.playedSeconds;
   };
 
   // Hàm format thời gian sang hh:mm:ss
@@ -244,11 +244,11 @@ const LearningPage = () => {
   // Gửi tiến độ xem video định kỳ
   useEffect(() => {
     const interval = setInterval(() => {
-      if (userId && currentLecture?.lectureId && currentTime > 0) {
+      if (userId && currentLecture?.lectureId && currentTimeRef.current > 0) {
         const payload = {
           userId: userId,
           lectureId: currentLecture.lectureId,
-          lastViewAt: formatTime(currentTime)
+          lastViewAt: formatTime(currentTimeRef.current)
         };
         console.log("Updating progress:", payload);
         updateLectureProgress(payload).catch(err => {
@@ -258,7 +258,7 @@ const LearningPage = () => {
     }, 15000); // Gửi mỗi 15 giây
 
     return () => clearInterval(interval);
-  }, [currentTime, currentLecture, userId]);
+  }, [currentLecture, userId]);
 
 
   // Hàm để tải lecture cho một section cụ thể
