@@ -174,7 +174,8 @@ const BankAccountPage: React.FC = () => {
 
         {isPending && bank.expired_at && (
           <span className="text-xs text-yellow-700">
-            Hết hạn: {new Date(bank.expired_at).toLocaleString("vi-VN")}
+            Hết hạn:{" "}
+            {new Date(Number(bank.expired_at) * 1000).toLocaleString("vi-VN")}
           </span>
         )}
       </div>
