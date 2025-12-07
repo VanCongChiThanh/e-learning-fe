@@ -45,6 +45,29 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
     setTriggers(prevTriggers => prevTriggers.map(t => ({ ...t, triggered: false })));
   }, [videoUrl, setTriggers]);
 
+  // **FIX**: Thêm useEffect để xử lý việc tua video khi startTime thay đổi
+  // Điều này giải quyết vấn đề khi người dùng nhấn "Tiếp tục" sau khi video đã load xong.
+  useEffect(() => {
+    const { startTime } = restProps;
+    if (startTime === undefined || startTime <= 0) return;
+
+
+    if (isYouTube && youtubePlayerRef.current) {
+
+      youtubePlayerRef.current.seekTo(startTime, true); // Tua video
+      youtubePlayerRef.current.playVideo(); // **FIX: Thêm lệnh phát video**
+    } else if (!isYouTube && videoRef.current) {
+      // Đối với HTML video, chỉ set currentTime khi video đã có thể phát
+      if (videoRef.current.readyState > 0) {
+
+        videoRef.current.currentTime = startTime;
+        videoRef.current.play().catch(error => { // **FIX: Thêm lệnh phát video**
+          console.warn("Lỗi khi tự động phát video HTML5:", error);
+        });
+      }
+    }
+  }, [restProps.startTime, videoUrl]); // Chạy lại khi startTime hoặc videoUrl thay đổi
+
   const isYouTube = videoUrl ? videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be") : false;
 
   // --- LOGIC CHO TRÌNH PHÁT YOUTUBE ---
@@ -64,18 +87,14 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
             loadedSeconds: 0,
           });
         }
-        
-        // highlight-start
-        // LOG THỜI GIAN HIỆN TẠI CỦA VIDEO YOUTUBE
-        console.log(`YouTube Current Time: ${Math.floor(currentTime)}s`);
+
+
+
         // highlight-end
 
         triggers.forEach((trigger: TimeTrigger, index: number) => {
           if (!trigger.triggered && currentTime >= trigger.time) {
-            // highlight-start
-            // LOG KHI TRIGGER ĐƯỢC KÍCH HOẠT
-            console.log(`%c TRIGGER ACTIVATED at ${currentTime}s for action: ${trigger.action} (trigger time was ${trigger.time}s)`, 'color: lightgreen; font-weight: bold;');
-            // highlight-end
+
             youtubePlayerRef.current?.pauseVideo();
             onTimeTrigger(trigger.action, trigger.type);
             const newTriggers = [...triggers];
@@ -91,39 +110,37 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
 
   // --- LOGIC CHO TRÌNH PHÁT HTML <video> ---
   const handleTimeUpdate = useCallback(() => {
-      if (!videoRef.current) return;
-      // Gọi onProgress cho HTML5 video
-      if (onProgress) {
-        const { currentTime, duration } = videoRef.current;
-        onProgress({ played: currentTime / duration, playedSeconds: currentTime, loaded: 0, loadedSeconds: 0 });
+    if (!videoRef.current) return;
+    // Gọi onProgress cho HTML5 video
+    if (onProgress) {
+      const { currentTime, duration } = videoRef.current;
+      onProgress({ played: currentTime / duration, playedSeconds: currentTime, loaded: 0, loadedSeconds: 0 });
+    }
+    const currentTime = videoRef.current.currentTime;
+
+
+
+    triggers.forEach((trigger: TimeTrigger, index: number) => {
+      if (!trigger.triggered && currentTime >= trigger.time) {
+        // highlight-start
+        // LOG KHI TRIGGER ĐƯỢC KÍCH HOẠT
+        videoRef.current?.pause();
+
+        onTimeTrigger(trigger.action, trigger.type);
+        const newTriggers = [...triggers];
+        newTriggers[index].triggered = true;
+        setTriggers(newTriggers);
       }
-      const currentTime = videoRef.current.currentTime;
-  
-      // highlight-start
-      // LOG THỜI GIAN HIỆN TẠI CỦA VIDEO HTML5
-      console.log(`HTML5 Video Current Time: ${Math.floor(currentTime)}s`);
-      // highlight-end
-      
-      triggers.forEach((trigger: TimeTrigger, index: number) => {
-        if (!trigger.triggered && currentTime >= trigger.time) {
-          // highlight-start
-          // LOG KHI TRIGGER ĐƯỢC KÍCH HOẠT
-          videoRef.current?.pause();
-          console.log(`%c TRIGGER ACTIVATED at ${currentTime}s for action: ${trigger.action} (trigger time was ${trigger.time}s)`, 'color: lightblue; font-weight: bold;');
-          // highlight-end
-          onTimeTrigger(trigger.action, trigger.type); 
-          const newTriggers = [...triggers];
-          newTriggers[index].triggered = true;
-          setTriggers(newTriggers);
-        }
-      });
-    },
+    });
+  },
     [onProgress, onTimeTrigger, setTriggers, triggers]
   );
 
   const handleVideoReady = (event: YouTubePlayer) => {
     youtubePlayerRef.current = event.target;
-    const startTime = (restProps as any).startTime;
+    // Lấy startTime trực tiếp từ props
+    const { startTime } = restProps;
+
     if (startTime && startTime > 0) {
       event.target.seekTo(startTime, true);
     }
@@ -169,9 +186,12 @@ const LearningVideo: React.FC<LearningVideoProps> = ({ videoUrl, triggers, onTim
           className="w-full h-full object-cover"
           {...restProps}
           onLoadedMetadata={(e) => {
-            const startTime = (restProps as any).startTime;
+            // Lấy startTime trực tiếp từ props
+            const { startTime } = restProps;
+
             if (startTime && startTime > 0) {
               e.currentTarget.currentTime = startTime;
+
             }
           }}
           onTimeUpdate={handleTimeUpdate}

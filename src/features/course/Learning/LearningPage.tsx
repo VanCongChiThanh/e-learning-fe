@@ -44,6 +44,35 @@ const FullScreenModal: React.FC<{ children: React.ReactNode }> = ({ children }) 
   );
 };
 
+// Component cho thông báo "Tiếp tục xem"
+const ContinueWatchingNotification: React.FC<{
+  lectureTitle: string;
+  onContinue: () => void;
+  onDecline: () => void;
+}> = ({ lectureTitle, onContinue, onDecline }) => {
+  return (
+    <div className="fixed bottom-5 right-5 w-full max-w-sm z-50 bg-white rounded-lg shadow-2xl p-4 transition-all duration-500 ease-in-out">
+      <div className="flex items-start">
+        <div className="flex-shrink-0 pt-0.5">
+          <i className="fas fa-play-circle text-blue-500 text-xl"></i>
+        </div>
+        <div className="ml-3 w-0 flex-1">
+          <p className="text-sm font-semibold text-gray-900">Tiếp tục xem?</p>
+          <p className="mt-1 text-sm text-gray-700 truncate">Bạn đang xem dở bài: {lectureTitle}</p>
+        </div>
+      </div>
+      <div className="mt-4 flex gap-3 justify-end">
+        <button onClick={onDecline} className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50">
+          Bắt đầu lại
+        </button>
+        <button onClick={onContinue} className="px-3 py-1.5 bg-[#106c54] text-white rounded-md text-sm font-medium hover:bg-[#0d5a45]">
+          Tiếp tục
+        </button>
+      </div>
+    </div>
+  );
+};
+
 
 const LearningPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -78,6 +107,8 @@ const LearningPage = () => {
   const [initialLectureLoaded, setInitialLectureLoaded] = useState(false);
   const initialLectureLoadAttempted = useRef(false); // Dùng ref để đảm bảo chỉ chạy một lần
   const [initialSeekTime, setInitialSeekTime] = useState(0);
+  const [recentLearningInfo, setRecentLearningInfo] = useState<RecentLearningInfo | null>(null);
+  const [showContinueModal, setShowContinueModal] = useState(false);
 
 
 
@@ -231,13 +262,20 @@ const LearningPage = () => {
 
   // Hàm chuyển đổi hh:mm:ss sang giây
   const timeToSeconds = (timeStr: string): number => {
+    // LOG: Kiểm tra chuỗi thời gian đầu vào
+    console.log(`[timeToSeconds] Input time string: "${timeStr}"`);
     if (!timeStr || typeof timeStr !== 'string') {
+      console.log('[timeToSeconds] Invalid input, returning 0');
       return 0;
     }
     const parts = timeStr.split(':').map(Number);
     if (parts.length === 3) {
-      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      const seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      // LOG: Kiểm tra kết quả chuyển đổi
+      console.log(`[timeToSeconds] Converted to ${seconds} seconds.`);
+      return seconds;
     }
+    console.log('[timeToSeconds] String format is not hh:mm:ss, returning 0');
     return 0;
   };
 
@@ -323,9 +361,9 @@ const LearningPage = () => {
         try {
           const recentInfo: RecentLearningInfo = await getRecentLearning(enrollmentId);
           console.log("Tìm thấy bài giảng gần nhất:", recentInfo);
-
-          seekTime = timeToSeconds(recentInfo.lastViewedAt);
-          console.log(`Tự động tua đến: ${seekTime} giây`);
+          // Thay vì set lecture, hiển thị modal
+          setRecentLearningInfo(recentInfo);
+          setShowContinueModal(true);
 
           const lectures = await fetchLecturesForSection(recentInfo.sectionId);
           const foundRecentLecture = lectures?.find(l => l.lectureId === recentInfo.lectureId);
@@ -365,6 +403,35 @@ const LearningPage = () => {
 
     loadAndSetInitialLecture(); // Gọi hàm async
   }, [enrollmentId, sections, fetchLecturesForSection]);
+
+  const handleContinueLearning = async () => {
+    if (!recentLearningInfo) return;
+
+    // LOG: Kiểm tra thông tin khi nhấn nút "Tiếp tục"
+    console.log('%c[handleContinueLearning] User clicked "Continue"', 'color: #28a745; font-weight: bold;');
+    console.log('[handleContinueLearning] Recent Info:', recentLearningInfo);
+
+    // **QUAN TRỌNG**: Set thời gian tua trước
+    const newSeekTime = timeToSeconds(recentLearningInfo.lastViewedAt);
+
+    // Tải lectures của section chứa bài xem dở nếu chưa có
+    const lectures = lecturesMap[recentLearningInfo.sectionId] || await fetchLecturesForSection(recentLearningInfo.sectionId);
+    const recentLecture = lectures?.find(l => l.lectureId === recentLearningInfo.lectureId);
+
+    if (recentLecture) {
+      // Cập nhật cả hai state cùng lúc để React xử lý trong một lần render
+      // Điều này giúp `key` và `startTime` của LearningVideo được cập nhật đồng thời.
+      React.startTransition(() => {
+        setInitialSeekTime(newSeekTime);
+        setCurrentLecture({ ...recentLecture, videoUrl: recentLearningInfo.lectureVideoUrl });
+      });
+    }
+    setShowContinueModal(false); // Ẩn thông báo
+  };
+
+  const handleDeclineContinue = () => {
+    setShowContinueModal(false); // Chỉ cần ẩn thông báo
+  };
 
   const handleSelectLecture = (lectureId: string) => {
     for (const lectures of Object.values(lecturesMap)) {
@@ -413,6 +480,7 @@ const LearningPage = () => {
           {/* Main Content */}
           <main className="flex-1 mr-80"> {/* mr-80 để chừa chỗ cho sidebar */}
             <LearningVideo
+              key={currentLecture?.lectureId || 'no-lecture'} // **FIX: Thêm key để reset component**
               videoUrl={currentLecture?.videoUrl}
               triggers={videoTriggers}
               onTimeTrigger={handleVideoEvent}
@@ -478,6 +546,13 @@ const LearningPage = () => {
           onClick={handleQuizNotificationClick}
           onClose={() => setQuizNotificationVisible(false)}
         />
+        {showContinueModal && recentLearningInfo && (
+          <ContinueWatchingNotification
+            lectureTitle={recentLearningInfo.lectureTitle}
+            onContinue={handleContinueLearning}
+            onDecline={handleDeclineContinue}
+          />
+        )}
       </div>
       {modalExerciseId && (
         <FullScreenModal>
