@@ -144,7 +144,15 @@ export default function CourseSidebar({
       </div>
 
       <div className="course-card-body">
-        <div className="course-price">{formatPrice(course.price)}</div>
+        <div className="course-price">
+          {course.price === 0 ? (
+            <span className="price-free">Miễn phí</span>
+          ) : (
+            <span className="price-value">
+              {course.price.toLocaleString("vi-VN")} ₫
+            </span>
+          )}
+        </div>
 
         <div className="cta-container">
           {paymentData ? (
