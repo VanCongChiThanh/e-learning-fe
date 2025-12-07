@@ -22,7 +22,7 @@ const MyCoursesInstructor: React.FC = () => {
     async function fetchCourses() {
       setLoading(true);
       try {
-        const res = await axiosAuth.get("/courses/page", {
+        const res = await axiosAuth.get("/courses/instructor", {
           params: {
             order: "desc",
             page: 1,
