@@ -37,7 +37,8 @@ export default function InstructorApprovalPage() {
           pageSize,
           "created_at",
           "desc",
-          activeTab === "pending" ? "PENDING" : undefined
+          activeTab === "pending" ? "PENDING" : undefined,
+          activeTab === "history" ? "PENDING" : undefined
         );
         setApplications(res.data);
         if (res.meta) setPageInfo(res.meta);
@@ -132,6 +133,23 @@ export default function InstructorApprovalPage() {
       ),
     },
     {
+      key: "created_at",
+      header: "Thời gian nộp",
+      width: 150,
+      minWidth: 130,
+      render: (app) => (
+        <div className="text-sm text-gray-700">
+          {new Date(app.created_at).toLocaleString("vi-VN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </div>
+      ),
+    },
+    {
       key: "cv",
       header: "CV",
       width: 100,
@@ -205,7 +223,7 @@ export default function InstructorApprovalPage() {
     {
       key: "candidate",
       header: "Ứng viên",
-      width: 300,
+      width: 250,
       minWidth: 150,
       render: (app) => (
         <div className="flex items-center gap-3">
@@ -220,6 +238,52 @@ export default function InstructorApprovalPage() {
           <span className="font-medium text-gray-800">
             {app.user_info?.name}
           </span>
+        </div>
+      ),
+    },
+    {
+      key: "created_at",
+      header: "Thời gian nộp",
+      width: 150,
+      minWidth: 130,
+      render: (app) => (
+        <div className="text-sm">
+          <div className="text-gray-700">
+            {new Date(app.created_at).toLocaleDateString("vi-VN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            })}
+          </div>
+          <div className="text-gray-500 text-xs">
+            {new Date(app.created_at).toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "updated_at",
+      header: "Thời gian xử lý",
+      width: 150,
+      minWidth: 130,
+      render: (app) => (
+        <div className="text-sm">
+          <div className="text-gray-700">
+            {new Date(app.updated_at).toLocaleDateString("vi-VN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            })}
+          </div>
+          <div className="text-gray-500 text-xs">
+            {new Date(app.updated_at).toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
         </div>
       ),
     },
@@ -262,7 +326,7 @@ export default function InstructorApprovalPage() {
       header: "Lý do ứng tuyển",
       width: 180,
       minWidth: 200,
-      maxWidth: 500,
+      maxWidth: 400,
       render: (app) => <div className="text-gray-700">{app.motivation}</div>,
     },
     {

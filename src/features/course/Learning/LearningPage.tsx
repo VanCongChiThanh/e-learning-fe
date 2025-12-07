@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import LearningHeader from "./LearningHeader";
 import LearningTabs from "./LearningTabs";
-import LearningVideo, { TimeTrigger } from "./LearningVideo";
+import LearningVideo, { TimeTrigger, ProgressState, Lecture as LearningVideoLecture } from "./LearningVideo"; // Đổi tên Lecture để tránh xung đột
 import LearningSidebar from "./LearningSidebar";
 import LearningFooter from "./LearningFooter";
-import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail, ExerciseListItem, getQuizDetail, QuizDetail } from "../api";
+import { getCourseDetailBySlug, getSections, getLectures, getEventsForLecture, getCodeExerciseDetail, getQuizDetail, QuizDetail, getMyEnrollmentForCourse, getQuizzesByLecture, updateLectureProgress, getRecentLearning, RecentLearningInfo } from "../api";
 import OverviewTab from "./OverviewTab";
 import NoteTab from "./NoteTab";
 import ReviewTag from "./ReviewTag";
@@ -16,7 +16,16 @@ import CodeExercise from "./CodeExercise";
 import EventNotification from "./EventNotification";
 import EventTab, { StoredEvent } from "./EventTag";
 import QuizTab from "./QuizTag";
+import { Section } from "./LearningSidebar"; // Import Section từ LearningSidebar
 import CodePage from "./CodePage";
+
+// Định nghĩa lại interface Lecture để bao gồm videoUrl và các thuộc tính khác
+interface LectureData {
+  lectureId: string;
+  title: string;
+  position: number;
+  videoUrl: string; // Thêm videoUrl vì nó được sử dụng trong LearningVideo
+}
 
 const FullScreenModal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -35,16 +44,47 @@ const FullScreenModal: React.FC<{ children: React.ReactNode }> = ({ children }) 
   );
 };
 
+// Component cho thông báo "Tiếp tục xem"
+const ContinueWatchingNotification: React.FC<{
+  lectureTitle: string;
+  onContinue: () => void;
+  onDecline: () => void;
+}> = ({ lectureTitle, onContinue, onDecline }) => {
+  return (
+    <div className="fixed bottom-5 right-5 w-full max-w-sm z-50 bg-white rounded-lg shadow-2xl p-4 transition-all duration-500 ease-in-out">
+      <div className="flex items-start">
+        <div className="flex-shrink-0 pt-0.5">
+          <i className="fas fa-play-circle text-blue-500 text-xl"></i>
+        </div>
+        <div className="ml-3 w-0 flex-1">
+          <p className="text-sm font-semibold text-gray-900">Tiếp tục xem?</p>
+          <p className="mt-1 text-sm text-gray-700 truncate">Bạn đang xem dở bài: {lectureTitle}</p>
+        </div>
+      </div>
+      <div className="mt-4 flex gap-3 justify-end">
+        <button onClick={onDecline} className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50">
+          Bắt đầu lại
+        </button>
+        <button onClick={onContinue} className="px-3 py-1.5 bg-[#106c54] text-white rounded-md text-sm font-medium hover:bg-[#0d5a45]">
+          Tiếp tục
+        </button>
+      </div>
+    </div>
+  );
+};
 
-const LearningPage: React.FC = () => {
+
+const LearningPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const [course, setCourse] = useState<any>(null);
-  const [sections, setSections] = useState<any[]>([]);
-  const [lecturesMap, setLecturesMap] = useState<Record<string, any[]>>({});
-  const [currentLecture, setCurrentLecture] = useState<any>(null);
+  const navigate = useNavigate();
+  const [course, setCourse] = useState<any>(null); // Course detail type can be more specific if defined
+  const [sections, setSections] = useState<Section[]>([]); // Sử dụng type Section đã import
+  const [lecturesMap, setLecturesMap] = useState<Record<string, LectureData[]>>({}); // Sử dụng LectureData
+  const [currentLecture, setCurrentLecture] = useState<LectureData | null>(null); // Sử dụng LectureData
   const userId = useSelector((state: RootState) => state.auth.user?.id);
   const [videoTriggers, setVideoTriggers] = useState<TimeTrigger[]>([]);
   const [activeTab, setActiveTab] = useState("Tổng quan");
+  const [enrollmentId, setEnrollmentId] = useState<string | null | undefined>(undefined); // undefined: chưa xác định, null: không có, string: có
 
 
   // State mới để theo dõi các section đang tải
@@ -61,9 +101,14 @@ const LearningPage: React.FC = () => {
 
   const [quizNotificationVisible, setQuizNotificationVisible] = useState(false);
   const [quizNotificationContent, setQuizNotificationContent] = useState<{ title: string; quizId: string | null }>({ title: '', quizId: null });
-  const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
 
   const [modalExerciseId, setModalExerciseId] = useState<string | null>(null);
+  const currentTimeRef = useRef(0);
+  const [initialLectureLoaded, setInitialLectureLoaded] = useState(false);
+  const initialLectureLoadAttempted = useRef(false); // Dùng ref để đảm bảo chỉ chạy một lần
+  const [initialSeekTime, setInitialSeekTime] = useState(0);
+  const [recentLearningInfo, setRecentLearningInfo] = useState<RecentLearningInfo | null>(null);
+  const [showContinueModal, setShowContinueModal] = useState(false);
 
 
 
@@ -79,6 +124,18 @@ const LearningPage: React.FC = () => {
         // Sắp xếp các section theo position trước khi set state
         const sortedSections = [...sectionsData].sort((a, b) => a.position - b.position);
         setSections(sortedSections);
+
+        let fetchedEnrollmentId: string | null = null;
+        if (courseData.courseId) {
+          try {
+            const enrollmentData = await getMyEnrollmentForCourse(courseData.courseId);
+            fetchedEnrollmentId = enrollmentData.enrollmentId;
+          } catch (enrollmentError) {
+            console.warn("Không tìm thấy enrollment cho khóa học này hoặc lỗi:", enrollmentError);
+            fetchedEnrollmentId = null; // Explicitly set to null if not found
+          }
+        }
+        setEnrollmentId(fetchedEnrollmentId); 
       } catch (error) {
         console.error("Lỗi khi tải khóa học hoặc section:", error);
       }
@@ -96,7 +153,7 @@ const LearningPage: React.FC = () => {
           // --- SỬA LỖI Ở ĐÂY ---
           // Kiểm tra xem response.data có phải là một mảng hay không
           if (response && Array.isArray(response.data)) {
-            // Gọi .map() trên mảng response.data
+            // Gọi .map() trên mảng response.data và đảm bảo type
             const newTriggers: TimeTrigger[] = response.data.map((event: any) => ({
               time: event.triggerTime,
               action: event.payload,
@@ -164,8 +221,6 @@ const LearningPage: React.FC = () => {
       try {
         // Logic cho QUIZ vẫn có thể giữ lại alert hoặc nâng cấp sau
         // alert(`Đã đến lúc làm bài tập trắc nghiệm!`);
-        // setActiveQuizId(action); 
-        // setActiveTab("Quiz");
         setNotificationContent({ title: "Đang tải đề bài...", exerciseId: null });
         setQuizNotificationVisible(true);
         const quizDetails: QuizDetail = await getQuizDetail(action);
@@ -189,6 +244,60 @@ const LearningPage: React.FC = () => {
 
   };
 
+  // Hàm để nhận tiến trình video từ component con
+  const handleVideoProgress = (progress: ProgressState) => {
+    currentTimeRef.current = progress.playedSeconds;
+  };
+
+  // Hàm format thời gian sang hh:mm:ss
+  const formatTime = (seconds: number): string => {
+    if (isNaN(seconds) || seconds < 0) {
+      return "00:00:00";
+    }
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
+
+  // Hàm chuyển đổi hh:mm:ss sang giây
+  const timeToSeconds = (timeStr: string): number => {
+    // LOG: Kiểm tra chuỗi thời gian đầu vào
+    console.log(`[timeToSeconds] Input time string: "${timeStr}"`);
+    if (!timeStr || typeof timeStr !== 'string') {
+      console.log('[timeToSeconds] Invalid input, returning 0');
+      return 0;
+    }
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length === 3) {
+      const seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      // LOG: Kiểm tra kết quả chuyển đổi
+      console.log(`[timeToSeconds] Converted to ${seconds} seconds.`);
+      return seconds;
+    }
+    console.log('[timeToSeconds] String format is not hh:mm:ss, returning 0');
+    return 0;
+  };
+
+  // Gửi tiến độ xem video định kỳ
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (userId && currentLecture?.lectureId && currentTimeRef.current > 0) {
+        const payload = {
+          userId: userId,
+          lectureId: currentLecture.lectureId,
+          lastViewAt: formatTime(currentTimeRef.current)
+        };
+        console.log("Updating progress:", payload);
+        updateLectureProgress(payload).catch(err => {
+          console.error("Failed to update lecture progress:", err);
+        });
+      }
+    }, 15000); // Gửi mỗi 15 giây
+
+    return () => clearInterval(interval);
+  }, [currentLecture, userId]);
+
 
   // Hàm để tải lecture cho một section cụ thể
   const fetchLecturesForSection = useCallback(async (sectionId: string) => {
@@ -201,7 +310,7 @@ const LearningPage: React.FC = () => {
       // Bắt đầu tải
       setLoadingSections(prev => new Set(prev).add(sectionId));
 
-      const lectures = await getLectures(sectionId);
+      const lectures: LectureData[] = await getLectures(sectionId); // Cast to LectureData[]
       // Sắp xếp lecture theo position
       const sortedLectures = [...lectures].sort((a, b) => a.position - b.position);
 
@@ -224,23 +333,109 @@ const LearningPage: React.FC = () => {
   }, [lecturesMap, loadingSections]); // Thêm dependencies
 
 
-  // Tự động tải lecture cho section đầu tiên và chọn bài giảng đầu tiên
+  // Tải bài giảng gần nhất hoặc bài đầu tiên
   useEffect(() => {
-    if (sections.length > 0) {
-      const firstSectionId = sections[0].sectionId;
-      // Chỉ tải nếu chưa có dữ liệu
-      if (!lecturesMap[firstSectionId]) {
-        fetchLecturesForSection(firstSectionId).then(firstLectures => {
-          if (firstLectures && firstLectures.length > 0) {
-            setCurrentLecture(firstLectures[0]);
-          }
-        });
-      }
+    // Điều kiện 1: Phải có sections đã được tải
+    if (sections.length === 0) {
+      return;
     }
-  }, [sections, fetchLecturesForSection, lecturesMap]);
+
+    // Điều kiện 2: enrollmentId phải được xác định (không còn là undefined ban đầu)
+    // Nó có thể là string (đã enroll) hoặc null (chưa enroll/lỗi). undefined là trạng thái đang fetch.
+    if (enrollmentId === undefined) {
+      return;
+    }
+
+    // Điều kiện 3: Đảm bảo logic này chỉ chạy một lần cho lần tải trang ban đầu
+    if (initialLectureLoadAttempted.current) {
+      return;
+    }
+    initialLectureLoadAttempted.current = true; 
+
+    const loadAndSetInitialLecture = async () => {
+      let lectureToSet: LectureData | null = null;
+      let seekTime = 0;
+
+      if (enrollmentId) { // Người dùng đã enroll, thử lấy bài giảng gần nhất (enrollmentId là string)
+        console.log("Đang gọi getRecentLearning với enrollmentId:", enrollmentId);
+        try {
+          const recentInfo: RecentLearningInfo = await getRecentLearning(enrollmentId);
+          console.log("Tìm thấy bài giảng gần nhất:", recentInfo);
+          // Thay vì set lecture, hiển thị modal
+          setRecentLearningInfo(recentInfo);
+          setShowContinueModal(true);
+
+          const lectures = await fetchLecturesForSection(recentInfo.sectionId);
+          const foundRecentLecture = lectures?.find(l => l.lectureId === recentInfo.lectureId);
+          if (foundRecentLecture) {
+            lectureToSet = { ...foundRecentLecture, videoUrl: recentInfo.lectureVideoUrl };
+          } else {
+            console.warn("Bài giảng gần nhất không tìm thấy trong danh sách, tải bài đầu tiên của section.");
+            lectureToSet = lectures?.[0] || null;
+          }
+        } catch (error) {
+          console.error("Lỗi khi tải bài giảng gần nhất:", error);
+          console.log("Lỗi API khi tải bài giảng gần nhất, tải bài đầu tiên của khóa học.");
+          // Fallback về bài giảng đầu tiên của khóa học nếu API lỗi
+          const firstSectionId = sections[0].sectionId;
+          const firstLectures = await fetchLecturesForSection(firstSectionId);
+          lectureToSet = firstLectures?.[0] || null;
+        }
+      } else { // enrollmentId là null (người dùng chưa enroll hoặc chưa đăng nhập), tải bài giảng đầu tiên
+        console.log("Không có enrollmentId, tải bài đầu tiên của khóa học.");
+        // Tải bài giảng đầu tiên của khóa học
+        const firstSectionId = sections[0].sectionId;
+        try {
+          fetchLecturesForSection(firstSectionId).then(firstLectures => {
+            lectureToSet = firstLectures?.[0] || null;
+          });
+        } catch (error) {
+          console.error("Lỗi khi tải bài giảng đầu tiên:", error);
+        }
+
+      }
+
+      if (lectureToSet) {
+        setCurrentLecture(lectureToSet);
+        setInitialSeekTime(seekTime);
+      }
+    };
+
+    loadAndSetInitialLecture(); // Gọi hàm async
+  }, [enrollmentId, sections, fetchLecturesForSection]);
+
+  const handleContinueLearning = async () => {
+    if (!recentLearningInfo) return;
+
+    // LOG: Kiểm tra thông tin khi nhấn nút "Tiếp tục"
+    console.log('%c[handleContinueLearning] User clicked "Continue"', 'color: #28a745; font-weight: bold;');
+    console.log('[handleContinueLearning] Recent Info:', recentLearningInfo);
+
+    // **QUAN TRỌNG**: Set thời gian tua trước
+    const newSeekTime = timeToSeconds(recentLearningInfo.lastViewedAt);
+
+    // Tải lectures của section chứa bài xem dở nếu chưa có
+    const lectures = lecturesMap[recentLearningInfo.sectionId] || await fetchLecturesForSection(recentLearningInfo.sectionId);
+    const recentLecture = lectures?.find(l => l.lectureId === recentLearningInfo.lectureId);
+
+    if (recentLecture) {
+      // Cập nhật cả hai state cùng lúc để React xử lý trong một lần render
+      // Điều này giúp `key` và `startTime` của LearningVideo được cập nhật đồng thời.
+      React.startTransition(() => {
+        setInitialSeekTime(newSeekTime);
+        setCurrentLecture({ ...recentLecture, videoUrl: recentLearningInfo.lectureVideoUrl });
+      });
+    }
+    setShowContinueModal(false); // Ẩn thông báo
+  };
+
+  const handleDeclineContinue = () => {
+    setShowContinueModal(false); // Chỉ cần ẩn thông báo
+  };
+
   const handleSelectLecture = (lectureId: string) => {
     for (const lectures of Object.values(lecturesMap)) {
-      const found = lectures.find((l: any) => l.lectureId === lectureId);
+      const found = lectures.find((l: LectureData) => l.lectureId === lectureId); // Sử dụng LectureData
       if (found) {
         setCurrentLecture(found);
         break;
@@ -252,11 +447,10 @@ const LearningPage: React.FC = () => {
     fetchLecturesForSection(sectionId);
   };
   const handleQuizNotificationClick = () => {
-    if (quizNotificationContent.quizId) {
-      setActiveQuizId(quizNotificationContent.quizId);
-      setActiveTab("Quiz");
-    }
+    // Khi click vào thông báo quiz, chuyển sang tab Quiz
+    setActiveTab("Quiz");
   };
+
   const handleCodeNotificationClick = () => {
     // Kiểm tra xem đã có ID bài tập trong state thông báo chưa
     if (codeNotificationContent.exerciseId) {
@@ -267,8 +461,11 @@ const LearningPage: React.FC = () => {
   };
 
   const handleSelectQuizEvent = (quizId: string) => {
-    setActiveQuizId(quizId); // Đặt quiz ID đang hoạt động
-    setActiveTab("Quiz");     // Chuyển sang tab Quiz
+    if (enrollmentId) {
+      navigate(`/learn/quiz/${quizId}/${enrollmentId}`);
+    } else {
+      alert("Không tìm thấy thông tin đăng ký khóa học để bắt đầu bài quiz.");
+    }
   };
 
 
@@ -283,10 +480,13 @@ const LearningPage: React.FC = () => {
           {/* Main Content */}
           <main className="flex-1 mr-80"> {/* mr-80 để chừa chỗ cho sidebar */}
             <LearningVideo
+              key={currentLecture?.lectureId || 'no-lecture'} // **FIX: Thêm key để reset component**
               videoUrl={currentLecture?.videoUrl}
               triggers={videoTriggers}
               onTimeTrigger={handleVideoEvent}
               setTriggers={setVideoTriggers}
+              onProgress={handleVideoProgress}
+              startTime={initialSeekTime} // Truyền thời gian bắt đầu
             />
             <LearningTabs active={activeTab} setActive={setActiveTab} />
             <div className="mt-4 px-4">
@@ -303,13 +503,11 @@ const LearningPage: React.FC = () => {
                 />
               )}
               {activeTab === "Quiz" && (
-                activeQuizId ? (
-                  <QuizTab quizId={activeQuizId} />
-                ) : (
-                  <div className="text-center p-12 bg-white rounded-lg shadow">
-                    <p className="text-gray-500">Chưa có bài kiểm tra nào được kích hoạt.</p>
-                  </div>
-                )
+                currentLecture && (
+                  <QuizTab 
+                    lectureId={currentLecture.lectureId} 
+                    enrollmentId={enrollmentId} 
+                  />)
               )}
               {activeTab === "Sự kiện" && (
               <EventTab 
@@ -348,6 +546,13 @@ const LearningPage: React.FC = () => {
           onClick={handleQuizNotificationClick}
           onClose={() => setQuizNotificationVisible(false)}
         />
+        {showContinueModal && recentLearningInfo && (
+          <ContinueWatchingNotification
+            lectureTitle={recentLearningInfo.lectureTitle}
+            onContinue={handleContinueLearning}
+            onDecline={handleDeclineContinue}
+          />
+        )}
       </div>
       {modalExerciseId && (
         <FullScreenModal>

@@ -12,18 +12,18 @@ import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
-  const { token, isInitialized } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { isInitialized } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    if (token) {
+    // Only fetch user on app init if token exists
+    const hasToken = localStorage.getItem("token");
+    if (hasToken && !isInitialized) {
       dispatch(fetchCurrentUser());
-    } else {
-      // No token, mark as initialized
+    } else if (!hasToken) {
       dispatch(setInitialized());
     }
-  }, [token, dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   // Show loading while initializing auth
   if (!isInitialized) {

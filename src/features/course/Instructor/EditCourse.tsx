@@ -27,7 +27,7 @@ const EditCourse: React.FC = () => {
     async function fetchCourse() {
       setLoading(true);
       try {
-        const res = await axiosAuth.get(`/courses/${courseId}`);
+        const res = await axiosAuth.get(`/courses/instructor/${courseId}/detail`);
         const data = res.data.data;
         setCourse(data);
         setTitle(data.title);
