@@ -513,7 +513,7 @@ $transition-smooth: all 0.3s ease;
     background-color: #ffffff;
     position: sticky;
     top: var(--site-header); /* dính ngay dưới navbar của MainLayout */
-    z-index: 9999;
+    z-index: 10;
 
     /* Kéo sidebar lên “đè” hero ngay từ lúc load */
     margin-top: calc(-1 * var(--hero-overlap));

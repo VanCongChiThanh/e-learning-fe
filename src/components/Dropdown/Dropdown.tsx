@@ -12,7 +12,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   onToggle,
 }) => {
   return (
-    <div className="dropdown relative inline-block">
+    <div className="dropdown relative inline-block z-[9999]">
       <button
         className="dropdown-toggle flex items-center gap-1"
         onClick={onToggle}

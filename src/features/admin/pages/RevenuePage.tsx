@@ -52,10 +52,12 @@ const RevenuePage: React.FC = () => {
       const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
       const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
+
       const data = await getAllInstructorsRevenue({
         start_date: startDate.getTime(),
         end_date: endDate.getTime(),
       });
+
       setRevenues(data);
     } catch (err: any) {
       toast.error(

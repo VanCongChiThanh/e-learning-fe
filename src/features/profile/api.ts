@@ -127,3 +127,44 @@ export const getMyRevenue = async (
   const res = await axiosAuth.post("/instructors/me/revenue", body);
   return res.data.data;
 };
+
+// Get courses revenue by instructor
+export interface InstructorCourseRevenueResponse {
+  course_id: string;
+  title: string;
+  price: number;
+  total_sales: number;
+  gross_revenue: number;
+  net_earnings: number;
+}
+
+export const getMyCourseRevenue = async (
+  body?: MyRevenueRequest
+): Promise<InstructorCourseRevenueResponse[]> => {
+  const res = await axiosAuth.post("/instructors/me/courses/revenue", body);
+  return res.data.data;
+};
+
+// Get course transactions
+export interface CourseTransactionResponse {
+  order_id: string;
+  student_email: string;
+  gross_amount: number;
+  net_amount: number;
+  created_at: string; // ISO timestamp
+}
+
+export const getCourseTransactions = async (
+  courseId: string,
+  startDate?: string,
+  endDate?: string
+): Promise<CourseTransactionResponse[]> => {
+  const params: any = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+
+  const res = await axiosAuth.get(`/courses/${courseId}/transactions`, {
+    params,
+  });
+  return res.data.data;
+};
