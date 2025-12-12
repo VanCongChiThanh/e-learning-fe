@@ -1,86 +1,89 @@
 import React, { useEffect, useState } from "react";
 import "./CourseSearchPage.scss";
 import MainLayout from "../../../../layouts/MainLayout";
-import { searchCourses, addToCart } from "../../api";
+import { searchCourses } from "../../api";
 import { Link, useSearchParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import FreeEnrollDialog from "../../components/FreeEnrollDialog";
+import { useCourseEnrollment } from "../../hooks/useCourseEnrollment";
 
 // Small inline cart button to avoid nested Link issues
 const CartButton: React.FC<{ course: any }> = ({ course }) => {
-  const [isAdding, setIsAdding] = useState(false);
+  const {
+    isProcessing: isAdding,
+    showFreeEnrollDialog,
+    isProcessingEnroll,
+    currentCourse,
+    handleEnrollClick,
+    handleConfirmFreeEnroll,
+    handleCancelFreeEnroll,
+  } = useCourseEnrollment();
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isAdding) return; // Prevent double clicks
-
-    try {
-      setIsAdding(true);
-
-      // Call addToCart API with correct format
-      await addToCart({
-        courseId: course.courseId,
-        addedPrice: course.price || 0,
-      });
-
-      // Show success message (you can replace with toast notification)
-      toast.success(`Đã thêm "${course.title}" vào giỏ hàng!`);
-
-      // Optional: Navigate to cart page after adding
-      // navigate("/cart");
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error("Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại!");
-    } finally {
-      setIsAdding(false);
-    }
+    await handleEnrollClick({
+      courseId: course.courseId,
+      title: course.title,
+      price: course.price || 0,
+    });
   };
 
   return (
-    <button
-      type="button"
-      className={`add-to-cart-btn ${isAdding ? "adding" : ""}`}
-      onClick={handleClick}
-      disabled={isAdding}
-      title={`Thêm ${course.title} vào giỏ hàng`}
-    >
-      {isAdding ? (
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          className="animate-spin"
-        >
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
+    <>
+      <button
+        type="button"
+        className={`add-to-cart-btn ${isAdding ? "adding" : ""}`}
+        onClick={handleClick}
+        disabled={isAdding || isProcessingEnroll}
+        title={`Đăng ký khóa học ${course.title}`}
+      >
+        {isAdding ? (
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            className="animate-spin"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+              fill="none"
+              strokeDasharray="31.416"
+              strokeDashoffset="31.416"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : (
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
             fill="none"
-            strokeDasharray="31.416"
-            strokeDashoffset="31.416"
+            stroke="currentColor"
+            strokeWidth="2"
             strokeLinecap="round"
-          />
-        </svg>
-      ) : (
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="8" cy="21" r="1"></circle>
-          <circle cx="19" cy="21" r="1"></circle>
-          <path d="m2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
-        </svg>
-      )}
-    </button>
+            strokeLinejoin="round"
+          >
+            <circle cx="8" cy="21" r="1"></circle>
+            <circle cx="19" cy="21" r="1"></circle>
+            <path d="m2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+          </svg>
+        )}
+      </button>
+
+      {/* Dialog xác nhận đăng ký khóa học miễn phí */}
+      <FreeEnrollDialog
+        isOpen={showFreeEnrollDialog}
+        courseName={currentCourse?.title || course.title}
+        isProcessing={isProcessingEnroll}
+        onConfirm={handleConfirmFreeEnroll}
+        onCancel={handleCancelFreeEnroll}
+      />
+    </>
   );
 };
 
