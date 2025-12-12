@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { CourseResponse, SectionResponse } from "../types";
 import { toast } from "react-toastify";
-import { addToCart, orderDirectly, paymentOrder } from "../../../api";
+import { orderDirectly, paymentOrder } from "../../../api";
 import PaymentInfo from "../../CartPage/PaymentInfo";
+import FreeEnrollDialog from "../../../components/FreeEnrollDialog";
+import { useCourseEnrollment } from "../../../hooks/useCourseEnrollment";
 
 interface CourseSidebarProps {
   course: CourseResponse;
@@ -41,33 +43,31 @@ export default function CourseSidebar({
     return `${minutes}m`;
   };
 
-  const [isProcessingCart, setIsProcessingCart] = useState(false);
   const [isProcessingBuyNow, setIsProcessingBuyNow] = useState(false);
   const [notes, setNotes] = useState("");
   const [paymentData, setPaymentData] = useState<any>(null);
   const [showBuyNowFlow, setShowBuyNowFlow] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
+  const {
+    isProcessing: isProcessingCart,
+    showFreeEnrollDialog,
+    isProcessingEnroll,
+    currentCourse,
+    handleEnrollClick,
+    handleConfirmFreeEnroll,
+    handleCancelFreeEnroll,
+  } = useCourseEnrollment();
+
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isProcessingCart) return;
-
-    try {
-      setIsProcessingCart(true);
-
-      await addToCart({
-        courseId: course.courseId,
-        addedPrice: course.price || 0,
-      });
-      toast.success(`Đã thêm "${course.title}" vào giỏ hàng!`);
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error("Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại!");
-    } finally {
-      setIsProcessingCart(false);
-    }
+    await handleEnrollClick({
+      courseId: course.courseId,
+      title: course.title,
+      price: course.price || 0,
+    });
   };
 
   const handleShowBuyNow = (e: React.MouseEvent) => {
@@ -209,14 +209,36 @@ export default function CourseSidebar({
               <button
                 className="btn-primary"
                 onClick={handleClick}
-                disabled={isProcessingCart}
+                disabled={isProcessingCart || isProcessingEnroll}
               >
                 {isProcessingCart ? (
-                  "Đang thêm..."
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Đang xử lý...
+                  </>
                 ) : (
                   <>
-                    <i className="fa-solid fa-cart-plus"></i>
-                    Thêm vào giỏ hàng
+                    <i className="fa-solid fa-graduation-cap mr-2"></i>
+                    Đăng ký / Thêm vào giỏ
                   </>
                 )}
               </button>
@@ -272,6 +294,14 @@ export default function CourseSidebar({
           </button>
         </div>
       </div>
+
+      <FreeEnrollDialog
+        isOpen={showFreeEnrollDialog}
+        courseName={currentCourse?.title || course.title}
+        isProcessing={isProcessingEnroll}
+        onConfirm={handleConfirmFreeEnroll}
+        onCancel={handleCancelFreeEnroll}
+      />
     </div>
   );
 }

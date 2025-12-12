@@ -1,7 +1,11 @@
 import axiosAuth from "../../api/axiosAuth";
 import axiosClient from "../../api/axiosClient";
 import aiAPI from "../../api/aiAPI";
-import { CareerPlanRequest,GenerateCareerPlanPayload } from "./types/CareerType";
+import {
+  CareerPlanRequest,
+  GenerateCareerPlanPayload,
+} from "./types/CareerType";
+import { AxiosError } from "axios";
 export interface ApplyInstructorRequest {
   cv_url: string;
   portfolio_link: string;
@@ -47,11 +51,25 @@ export const fetchCart = async () => {
   const response = await axiosAuth.get("/cart");
   return response.data;
 };
+export const addCourseFree = async (courseId: string) => {
+  const response = await axiosAuth.post(`/enrollments/enroll/${courseId}`);
+  return response.data;
+};
 export const addToCart = async (data: {
   courseId: string;
   addedPrice: number;
 }) => {
   const response = await axiosAuth.post(`/cart/add`, data);
+  return response.data;
+};
+
+export const removeFromCart = async (courseId: string) => {
+  const response = await axiosAuth.delete(`/cart/items/${courseId}`);
+  return response.data;
+};
+
+export const clearCart = async () => {
+  const response = await axiosAuth.delete(`/cart/clear`);
   return response.data;
 };
 export const createOrder = async (data: {
@@ -88,7 +106,7 @@ export const getCertificateDetailById = async (certificateId: string) => {
   const response = await axiosAuth.get(`/certificates/${certificateId}`);
   return response.data;
 };
-//career plan 
+//career plan
 
 //get course by list id
 export const getCourseByListId = async (courseIds: string[]) => {
@@ -113,4 +131,55 @@ export const saveCareerPlan = async (data: CareerPlanRequest) => {
 export const getMyCareerPlan = async () => {
   const res = await axiosAuth.get("/career-plans/me");
   return res.data.data;
+};
+
+export const handleCourseEnrollment = async (
+  courseId: string,
+  coursePrice: number = 0
+) => {
+  try {
+    const result = await addCourseFree(courseId);
+    return {
+      success: true,
+      type: "free",
+      data: result,
+      message: "Khóa học miễn phí được tìm thấy",
+    };
+  } catch (freeError: any) {
+    const errorMessage =
+      freeError?.response?.data?.message || freeError?.message || "";
+
+    if (
+      errorMessage.includes("không phải miễn phí") ||
+      errorMessage.includes("not free") ||
+      freeError?.response?.status === 400
+    ) {
+      try {
+        const cartResult = await addToCart({
+          courseId: courseId,
+          addedPrice: coursePrice,
+        });
+        return {
+          success: true,
+          type: "cart",
+          data: cartResult,
+          message: "Đã thêm vào giỏ hàng thành công",
+        };
+      } catch (e: any) {
+        return {
+          success: false,
+          type: "error",
+          error: e,
+          message: e?.response?.data?.error,
+        };
+      }
+    } else {
+      return {
+        success: false,
+        type: "error",
+        error: freeError,
+        message: "Có lỗi xảy ra khi xử lý khóa học",
+      };
+    }
+  }
 };
