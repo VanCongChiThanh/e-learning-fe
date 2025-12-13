@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../app/store";
 import {
   getReviewsForCourse,
-  createReview,
   voteForReview,
-  replyToReview,
   getReviewDetail,
   Review,
   ReviewDetail,
@@ -14,28 +10,6 @@ import {
 } from "../api"; 
 
 // --- Helper Components (Không thay đổi) ---
-
-const StarRatingInput: React.FC<{
-  rating: number;
-  setRating: (rating: number) => void;
-}> = ({ rating, setRating }) => (
-  <div className="flex items-center">
-    {[1, 2, 3, 4, 5].map((star) => (
-      <button
-        key={star}
-        type="button"
-        onClick={() => setRating(star)}
-        className={`text-3xl transition-colors duration-150 ${
-          star <= rating
-            ? "text-yellow-400"
-            : "text-gray-300 hover:text-yellow-400"
-        }`}
-      >
-        ★
-      </button>
-    ))}
-  </div>
-);
 
 const StarRatingDisplay: React.FC<{ rating: number }> = ({ rating }) => (
   <div className="flex items-center">
@@ -87,31 +61,14 @@ const ReviewItem: React.FC<{
   review: Review | ReviewDetail;
   courseId: string;
   onVote: (reviewId: string, voteType: "LIKE" | "DISLIKE") => void;
-  onReplySubmit: (parentReviewId: string, comment: string) => void;
   isReply?: boolean;
-  repliesData?: {
-    firstReplyDetail: ReviewDetail | null;
-    total: number;
-  };
   isOptimistic?: boolean;
 }> = ({
   review,
-  courseId,
   onVote,
-  onReplySubmit,
   isReply = false,
-  repliesData,
   isOptimistic = false,
 }) => {
-  const [showReplyBox, setShowReplyBox] = useState(false);
-  const [replyComment, setReplyComment] = useState("");
-
-  const handleReplyClick = () => {
-    onReplySubmit(review.reviewId, replyComment);
-    setReplyComment("");
-    setShowReplyBox(false);
-  };
-
   const formatTimeAgo = (timestamp: number) => {
     if (isOptimistic) return "vài giây trước";
 
@@ -181,54 +138,8 @@ const ReviewItem: React.FC<{
             <i className="far fa-thumbs-down"></i>
             <span>{review.dislikeCount}</span>
           </button>
-          {!isReply && (
-            <button
-              className="font-bold text-gray-700 hover:underline ml-2"
-              onClick={() => setShowReplyBox(!showReplyBox)}
-              disabled={isOptimistic} 
-            >
-              Phản hồi
-            </button>
-          )}
         </div>
       </div>
-
-      {showReplyBox && !isReply && (
-        <div className="mt-4 pl-14">
-          <textarea
-            className="w-full border rounded-md p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            rows={2}
-            placeholder="Viết phản hồi của bạn..."
-            value={replyComment}
-            onChange={(e) => setReplyComment(e.target.value)}
-          />
-          <button
-            className="bg-gray-800 text-white px-4 py-1.5 rounded-md mt-2 text-sm font-medium hover:bg-gray-700 disabled:bg-gray-300"
-            onClick={handleReplyClick}
-            disabled={!replyComment.trim()}
-          >
-            Gửi
-          </button>
-        </div>
-      )}
-
-      {repliesData && repliesData.firstReplyDetail && (
-        <div className="mt-6"> 
-          <ReviewItem
-            review={repliesData.firstReplyDetail}
-            courseId={courseId}
-            onVote={onVote}
-            onReplySubmit={onReplySubmit}
-            isReply={true}
-            isOptimistic={!!(repliesData.firstReplyDetail as any).isOptimistic}
-          />
-        </div>
-      )}
-      {repliesData && repliesData.total > 1 && (
-        <div className="pl-14 mt-2 text-sm font-bold text-blue-600 cursor-pointer hover:underline">
-          Xem thêm {repliesData.total - 1} phản hồi khác
-        </div>
-      )}
 
       {!isReply && <hr className="mt-6" />}
     </div>
@@ -238,11 +149,9 @@ const ReviewItem: React.FC<{
 // --- Main Component ---
 interface ReviewTagProps {
   courseId: string;
+  refreshTrigger?: number;
 }
-const ReviewTag: React.FC<ReviewTagProps> = ({ courseId }) =>  {
-  const user = useSelector((state: RootState) => state.auth.user);
-  const userId = user?.id;
-
+const ReviewTag: React.FC<ReviewTagProps> = ({ courseId, refreshTrigger = 0 }) =>  {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [replyDetails, setReplyDetails] = useState<Record<string, ReviewDetail>>({});
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
@@ -251,9 +160,6 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId }) =>  {
 
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [search, setSearch] = useState("");
-
-  const [newReviewComment, setNewReviewComment] = useState("");
-  const [newReviewRating, setNewReviewRating] = useState(5);
 
   const fetchReviews = useCallback(
     async (pageNum: number, searchStr: string, rating: number | null) => {
@@ -307,54 +213,11 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId }) =>  {
       fetchReviews(1, search, ratingFilter);
     }, 500);
     return () => clearTimeout(handler);
-  }, [courseId, search, ratingFilter, fetchReviews]); 
+  }, [courseId, search, ratingFilter, fetchReviews, refreshTrigger]); 
 
   const handleLoadMore = () => {
     if (meta && meta.current_page < meta.total_pages) {
       fetchReviews(page + 1, search, ratingFilter);
-    }
-  };
-
-  const handleCreateReview = async () => {
-    if (!newReviewComment.trim() || !user) return; 
-
-    const tempId = `optimistic-${Date.now()}`;
-    const optimisticReview: Review = {
-      reviewId: tempId,
-      courseId: courseId,
-      userId: user.id,
-      rating: newReviewRating,
-      comment: newReviewComment,
-      createdAt: Date.now(),
-      // @ts-ignore
-      isOptimistic: true,
-      
-      userAvatar: user.avatar || null, 
-      userName: "Bạn", // SỬA: Dùng placeholder
-      
-      likeCount: 0,
-      dislikeCount: 0,
-      replies: [],
-      userVoteStatus: null, // SỬA: Thêm trạng thái vote
-    };
-
-    const originalReviews = reviews;
-    setReviews([optimisticReview, ...originalReviews]);
-    setNewReviewComment("");
-    setNewReviewRating(5);
-
-    try {
-      const realNewReview = await createReview(courseId, {
-        comment: newReviewComment,
-        rating: newReviewRating,
-      });
-      setReviews((prev) =>
-        prev.map((r) => (r.reviewId === tempId ? realNewReview : r))
-      );
-    } catch (error) {
-      console.error("Lỗi khi tạo đánh giá:", error);
-      alert("Không thể gửi đánh giá.");
-      setReviews(originalReviews);
     }
   };
 
@@ -460,93 +323,6 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId }) =>  {
     }
   };
 
-  const handleReplySubmit = async (parentReviewId: string, comment: string) => {
-    if (!user) return; 
-
-    const tempId = `optimistic-reply-${Date.now()}`;
-    const optimisticReplyDetail: ReviewDetail = {
-      reviewId: tempId,
-      courseId: courseId,
-      userId: user.id,
-      rating: 5,
-      comment: comment,
-      createdAt: Date.now(),
-      likeCount: 0,
-      dislikeCount: 0,
-      parentReviewId: parentReviewId,
-      
-      userName: "Bạn", // SỬA: Dùng placeholder
-      userAvatar: user.avatar || null, 
-
-      // @ts-ignore
-      isOptimistic: true,
-      userVoteStatus: null, // SỬA: Thêm trạng thái vote
-    };
-    
-    const optimisticReplyMeta: ReviewReplyMeta = {
-      reviewId: tempId,
-      likeCount: 0,
-      dislikeCount: 0,
-      parentReviewId: parentReviewId,
-    };
-
-    const originalReviews = reviews;
-    const originalReplyDetails = replyDetails;
-
-    setReplyDetails((prev) => ({ ...prev, [tempId]: optimisticReplyDetail }));
-    setReviews((prevReviews) =>
-      prevReviews.map((r) => {
-        if (r.reviewId === parentReviewId) {
-          return {
-            ...r,
-            replies: [optimisticReplyMeta, ...(r.replies || [])],
-          };
-        }
-        return r;
-      })
-    );
-
-    try {
-      const realNewReply = await replyToReview(courseId, parentReviewId, {
-        comment,
-        rating: 5,
-      });
-
-      setReplyDetails((prev) => {
-        const newDetails = { ...prev, [realNewReply.reviewId]: realNewReply };
-        delete newDetails[tempId]; 
-        return newDetails;
-      });
-
-      setReviews((prevReviews) =>
-        prevReviews.map((r) => {
-          if (r.reviewId === parentReviewId) {
-            return {
-              ...r,
-              replies: r.replies.map((meta) =>
-                meta.reviewId === tempId
-                  ? {
-                      reviewId: realNewReply.reviewId,
-                      likeCount: realNewReply.likeCount,
-                      dislikeCount: realNewReply.dislikeCount,
-                      parentReviewId: realNewReply.parentReviewId,
-                    }
-                  : meta
-              ),
-            };
-          }
-          return r;
-        })
-      );
-    } catch (error)
-    {
-      console.error("Lỗi khi reply:", error);
-      alert("Gửi phản hồi thất bại.");
-      setReviews(originalReviews);
-      setReplyDetails(originalReplyDetails);
-    }
-  };
-
   const filterOptions = [
     { label: "Tất cả", value: null },
     { label: "5 sao", value: 5 },
@@ -561,30 +337,6 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId }) =>  {
       <h2 className="text-2xl font-bold mb-6 text-gray-900">
         Phản hồi của học viên
       </h2>
-
-      {userId && (
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border">
-          <h3 className="font-bold text-lg mb-2">Để lại đánh giá của bạn</h3>
-          <StarRatingInput
-            rating={newReviewRating}
-            setRating={setNewReviewRating}
-          />
-          <textarea
-            className="w-full border rounded-md p-3 mt-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            rows={3}
-            placeholder="Bạn nghĩ gì về khóa học này?"
-            value={newReviewComment}
-            onChange={(e) => setNewReviewComment(e.target.value)}
-          />
-          <button
-            className="bg-gray-800 text-white px-6 py-2 rounded-md mt-3 font-medium hover:bg-gray-700 disabled:bg-gray-300 transition-colors"
-            onClick={handleCreateReview}
-            disabled={!newReviewComment.trim()}
-          >
-            Gửi đánh giá
-          </button>
-        </div>
-      )}
 
       <h3 className="text-xl font-bold mb-4 text-gray-900">Tất cả đánh giá</h3>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -638,15 +390,7 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId }) =>  {
             review={r}
             courseId={courseId}
             onVote={handleVote}
-            onReplySubmit={handleReplySubmit}
             isOptimistic={!!(r as any).isOptimistic}
-            repliesData={{
-              firstReplyDetail:
-                r.replies?.length > 0
-                  ? replyDetails[r.replies?.[0].reviewId]
-                  : null,
-              total: r.replies?.length || 0,
-            }}
           />
         ))}
       </div>

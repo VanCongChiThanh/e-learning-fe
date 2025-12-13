@@ -511,3 +511,18 @@ export const getRecentLearning = async (enrollmentId: string): Promise<RecentLea
   const response = await axiosAuth.get(`/progress/enrollment/${enrollmentId}/recent-learning`);
   return response.data;
 };
+
+export const checkReviewExist = async (courseId: string): Promise<boolean> => {
+  try {
+    const res = await axiosAuth.get(`/courses/${courseId}/reviews/me/exist`);
+    return res.data.data;
+  } catch (error) {
+    console.error("Lỗi khi kiểm tra review exist:", error);
+    return false;
+  }
+};
+
+export const getProgressSummary = async (enrollmentId: string) => {
+  const res = await axiosAuth.get(`/progress/enrollment/${enrollmentId}/summary`);
+  return res.data;
+};
