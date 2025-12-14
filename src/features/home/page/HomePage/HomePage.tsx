@@ -214,18 +214,38 @@ const HomePage = () => {
           </h3>
 
           <div className="course-rating">
-            <span className="rating-number">{rating.num}</span>
-            <div className="stars" aria-hidden>
-              {[...Array(5)].map((_, i) => (
-                <i
-                  key={i}
-                  className={`fa-solid fa-star ${
-                    i < rating.int ? "filled" : ""
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="students-count">({course.totalReviews || 0})</span>
+            {course.totalReviews > 0 ? (
+              <>
+                <span className="rating-number">{rating.num}</span>
+                <div className="stars" aria-hidden>
+                  {[...Array(5)].map((_, i) => (
+                    <i
+                      key={i}
+                      className={`fa-solid fa-star ${
+                        i < rating.int ? "filled" : ""
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="students-count">({course.totalReviews})</span>
+              </>
+            ) : (
+              <>
+                <span className="rating-number">{rating.num}</span>
+                  <div className="stars" aria-hidden>
+                    {[...Array(5)].map((_, i) => (
+                      <i
+                        key={i}
+                        className={`fa-solid fa-star ${
+                          i < rating.int ? "filled" : ""
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="students-count">({course.totalReviews})</span>
+                <span className="text-sm text-gray-500 italic">Chưa có đánh giá</span>
+              </>
+            )}
           </div>
 
           <div className="course-price">
