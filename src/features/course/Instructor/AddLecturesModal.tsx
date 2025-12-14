@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axiosAuth from "../../../api/axiosAuth";
+import { getPresignedUrlVideoLecture, uploadVideoLectureToS3, updateVideoLecture } from "../api";
 
 interface LectureInput {
   id: string;
@@ -7,6 +8,7 @@ interface LectureInput {
   duration: number;
   videoUrl: string;
   position: number;
+  videoFile?: File;
   type: "VIDEO" | "QUIZ" | "CODING";
 }
 
@@ -89,12 +91,26 @@ const AddLecturesModal: React.FC<AddLecturesModalProps> = ({
     setError("");
 
     try {
+      // Xử lý upload video cho từng lecture nếu có file
+      const processedLectures = await Promise.all(lectures.map(async (lecture) => {
+        let finalVideoUrl = lecture.videoUrl;
+
+        if (lecture.type === "VIDEO" && lecture.videoFile) {
+          const ext = "." + lecture.videoFile.name.split(".").pop()?.toLowerCase();
+          const { url, key } = await getPresignedUrlVideoLecture(ext);
+          await uploadVideoLectureToS3(url, lecture.videoFile);
+          finalVideoUrl = `https://dinhlooc-test-2025.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
+        }
+
+        return { ...lecture, videoUrl: finalVideoUrl };
+      }));
+
       // Tạo từng lecture một (API chỉ hỗ trợ tạo 1 lecture/request)
-      const createPromises = lectures.map((lecture) =>
+      const createPromises = processedLectures.map((lecture) =>
         axiosAuth.post(`/sections/${sectionId}/lectures`, {
           title: lecture.title.trim(),
           duration: lecture.duration,
-          videoUrl: lecture.videoUrl.trim() || null,
+          sourceUrl: lecture.videoUrl || null,
           position: lecture.position,
           type: lecture.type,
         })
@@ -244,19 +260,49 @@ const AddLecturesModal: React.FC<AddLecturesModalProps> = ({
                         />
                       </div>
 
-                      {/* Video URL */}
+                      {/* Video Upload */}
                       <div className="md:col-span-2">
-                        <label className="block text-gray-700 font-semibold mb-2 text-sm">
-                          Video URL (tùy chọn)
+                        <span className="block text-gray-700 font-semibold mb-2 text-sm">
+                          Video bài giảng
+                        </span>
+                        <label className="block border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#106c54] transition-colors bg-gray-50 relative group cursor-pointer">
+                          <input
+                            type="file"
+                            accept="video/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                updateLecture(lecture.id, "videoFile", file);
+                              }
+                            }}
+                            disabled={saving}
+                            className="hidden"
+                          />
+                          {lecture.videoFile ? (
+                            <div className="flex flex-col items-center">
+                              <i className="fas fa-file-video text-4xl text-[#106c54] mb-2"></i>
+                              <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                                {lecture.videoFile.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {(lecture.videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                              </p>
+                              <p className="text-xs text-[#106c54] mt-2 group-hover:underline">
+                                Nhấn để thay đổi video
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center">
+                              <i className="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                              <p className="text-sm text-gray-600">
+                                Nhấn để tải lên video bài giảng
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                MP4, MKV, AVI (Max 500MB)
+                              </p>
+                            </div>
+                          )}
                         </label>
-                        <input
-                          type="url"
-                          value={lecture.videoUrl}
-                          onChange={(e) => updateLecture(lecture.id, "videoUrl", e.target.value)}
-                          disabled={saving}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#106c54] focus:border-transparent text-sm disabled:bg-gray-100"
-                          placeholder="https://example.com/video.mp4"
-                        />
                       </div>
                     </div>
 
@@ -296,7 +342,7 @@ const AddLecturesModal: React.FC<AddLecturesModalProps> = ({
                   <ul className="list-disc list-inside space-y-1">
                     <li>Thêm nhiều bài giảng cùng lúc để tiết kiệm thời gian</li>
                     <li>Vị trí (position) sẽ được tự động đánh số</li>
-                    <li>Video URL là tùy chọn, có thể cập nhật sau</li>
+                    <li>Video là tùy chọn, có thể cập nhật sau</li>
                     <li>Thời lượng tính bằng phút</li>
                   </ul>
                 </div>
@@ -332,7 +378,7 @@ const AddLecturesModal: React.FC<AddLecturesModalProps> = ({
                 {saving ? (
                   <>
                     <i className="fas fa-spinner fa-spin"></i>
-                    Đang tạo {lectures.length} bài giảng...
+                    Đang xử lý & tạo bài giảng...
                   </>
                 ) : (
                   <>
