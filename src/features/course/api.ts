@@ -354,6 +354,26 @@ interface ApiResponse<T> {
   meta?: PaginationMeta;
 }
 
+export interface ReviewStatistics {
+  averageRating: number;
+  totalReviews: number;
+  star1Count: number;
+  star2Count: number;
+  star3Count: number;
+  star4Count: number;
+  star5Count: number;
+  star1Percent: number;
+  star2Percent: number;
+  star3Percent: number;
+  star4Percent: number;
+  star5Percent: number;
+}
+
+export const getReviewStatistics = async (courseId: string): Promise<ReviewStatistics> => {
+  const res = await axiosAuth.get(`/courses/${courseId}/reviews/statistics`);
+  return res.data.data;
+};
+
 /**
  * Lấy danh sách review cho khóa học (có phân trang)
  */

@@ -3,6 +3,8 @@ import {
   getReviewsForCourse,
   voteForReview,
   getReviewDetail,
+  getReviewStatistics,
+  ReviewStatistics,
   Review,
   ReviewDetail,
   PaginationMeta,
@@ -157,9 +159,20 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId, refreshTrigger = 0 }) =
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] =useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [statistics, setStatistics] = useState<ReviewStatistics | null>(null);
 
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+
+  const fetchStatistics = useCallback(async () => {
+    if (!courseId) return;
+    try {
+      const stats = await getReviewStatistics(courseId);
+      setStatistics(stats);
+    } catch (error) {
+      console.error("Failed to fetch review statistics", error);
+    }
+  }, [courseId]);
 
   const fetchReviews = useCallback(
     async (pageNum: number, searchStr: string, rating: number | null) => {
@@ -209,11 +222,12 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId, refreshTrigger = 0 }) =
   );
 
   useEffect(() => {
+    fetchStatistics();
     const handler = setTimeout(() => {
       fetchReviews(1, search, ratingFilter);
     }, 500);
     return () => clearTimeout(handler);
-  }, [courseId, search, ratingFilter, fetchReviews, refreshTrigger]); 
+  }, [courseId, search, ratingFilter, fetchReviews, refreshTrigger, fetchStatistics]); 
 
   const handleLoadMore = () => {
     if (meta && meta.current_page < meta.total_pages) {
@@ -337,6 +351,61 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId, refreshTrigger = 0 }) =
       <h2 className="text-2xl font-bold mb-6 text-gray-900">
         Phản hồi của học viên
       </h2>
+
+      {/* Review Summary Section */}
+      {statistics && (
+        <div className="mb-8 bg-gray-50 p-6 rounded-xl border border-gray-100">
+          <div className="flex flex-col md:flex-row gap-8 items-center">
+            {/* Average Rating */}
+            <div className="flex flex-col items-center justify-center min-w-[150px]">
+              <span className="text-5xl font-bold text-gray-800">
+                {statistics.averageRating.toFixed(1)}
+              </span>
+              <div className="flex my-2 text-yellow-400 text-lg">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <i
+                    key={i}
+                    className={`fa-solid fa-star ${
+                      i < Math.round(statistics.averageRating) ? "" : "text-gray-300"
+                    }`}
+                  ></i>
+                ))}
+              </div>
+              <p className="text-gray-500 font-medium">Xếp hạng khóa học</p>
+            </div>
+
+            {/* Rating Distribution */}
+            <div className="flex-1 w-full space-y-2">
+              {[5, 4, 3, 2, 1].map((star) => {
+                const percent = statistics[`star${star}Percent` as keyof ReviewStatistics] || 0;
+                return (
+                  <div key={star} className="flex items-center gap-3">
+                    <div className="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gray-500 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${percent}%` }}
+                      ></div>
+                    </div>
+                    <div className="flex text-yellow-400 text-xs gap-0.5 min-w-[60px]">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <i
+                          key={i}
+                          className={`fa-solid fa-star ${
+                            i < star ? "filled" : "text-gray-300"
+                          }`}
+                        ></i>
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-600 w-10 text-right">
+                      {Math.round(percent)}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       <h3 className="text-xl font-bold mb-4 text-gray-900">Tất cả đánh giá</h3>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
