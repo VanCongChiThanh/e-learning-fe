@@ -414,6 +414,21 @@ export const voteForReview = async (
   return res.data;
 };
 
+/**
+ * Vote (Like/Dislike) cho một comment
+ */
+export const voteForComment = async (
+  lectureId: string,
+  commentId: string,
+  voteType: 'LIKE' | 'DISLIKE'
+) => {
+  const res = await axiosAuth.post(
+    `/lectures/${lectureId}/comments/${commentId}/vote`,
+    null,
+    { params: { voteType } }
+  );
+  return res.data;
+};
 
 export const replyToReview = async (
   courseId: string,

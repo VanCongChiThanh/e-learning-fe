@@ -18,6 +18,7 @@ import EventTab, { StoredEvent } from "./EventTag";
 import QuizTab from "./QuizTag";
 import { Section } from "./LearningSidebar"; // Import Section từ LearningSidebar
 import CodePage from "./CodePage";
+import DiscussionTab from "./DiscussionTab";
 import ReviewModal from "./ReviewModal";
 
 // Định nghĩa lại interface Lecture để bao gồm videoUrl và các thuộc tính khác
@@ -504,6 +505,9 @@ const LearningPage = () => {
                 <NoteTab lectureId={currentLecture.lectureId!} userId={userId} />
               )}
               {activeTab === "Thông báo" && <div>Chưa có thông báo nào.</div>}
+              {activeTab === "Thảo luận" && currentLecture && (
+                <DiscussionTab lectureId={currentLecture.lectureId} />
+              )}
               {activeTab === "Đánh giá" && <ReviewTag courseId={course.courseId} refreshTrigger={reviewRefreshTrigger} />}
               {activeTab === "Coding Exercise" && currentLecture && (
                 <CodingExerciseTab
