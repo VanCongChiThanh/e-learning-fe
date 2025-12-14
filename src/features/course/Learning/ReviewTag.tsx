@@ -340,10 +340,10 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId, refreshTrigger = 0 }) =
 
       <h3 className="text-xl font-bold mb-4 text-gray-900">Tất cả đánh giá</h3>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
+        <div className="flex-1 flex items-center border border-gray-300 rounded-full bg-white px-1 py-1 shadow-sm focus-within:ring-2 focus-within:ring-[#106c54] focus-within:border-transparent transition-all">
           <input
             type="text"
-            className="border rounded-md px-4 py-2 w-full pl-10"
+            className="flex-1 px-4 py-1.5 bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400"
             placeholder="Tìm kiếm đánh giá..."
             value={search}
             onChange={(e) => {
@@ -351,7 +351,9 @@ const ReviewTag: React.FC<ReviewTagProps> = ({ courseId, refreshTrigger = 0 }) =
               setPage(1);
             }}
           />
-          <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <button className="w-9 h-9 rounded-full bg-[#106c54] text-white flex items-center justify-center hover:bg-[#0d5a45] transition-colors flex-shrink-0">
+            <i className="fas fa-search text-sm"></i>
+          </button>
         </div>
         
         <div className="flex flex-wrap gap-2">
