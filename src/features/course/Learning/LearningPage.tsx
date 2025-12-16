@@ -18,6 +18,8 @@ import EventTab, { StoredEvent } from "./EventTag";
 import QuizTab from "./QuizTag";
 import { Section } from "./LearningSidebar"; // Import Section từ LearningSidebar
 import CodePage from "./CodePage";
+import DiscussionTab from "./DiscussionTab";
+import ReviewModal from "./ReviewModal";
 
 // Định nghĩa lại interface Lecture để bao gồm videoUrl và các thuộc tính khác
 interface LectureData {
@@ -109,6 +111,8 @@ const LearningPage = () => {
   const [initialSeekTime, setInitialSeekTime] = useState(0);
   const [recentLearningInfo, setRecentLearningInfo] = useState<RecentLearningInfo | null>(null);
   const [showContinueModal, setShowContinueModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0);
 
 
 
@@ -475,7 +479,13 @@ const LearningPage = () => {
   return (
     <>
       <div className="flex flex-col min-h-screen bg-gray-50">
-        <LearningHeader title={course.title} />
+        <LearningHeader 
+          title={course.title} 
+          courseId={course.courseId}
+          enrollmentId={enrollmentId}
+          onOpenReviewModal={() => setShowReviewModal(true)}
+          refreshTrigger={reviewRefreshTrigger}
+        />
         <div className="flex flex-1">
           {/* Main Content */}
           <main className="flex-1 mr-80"> {/* mr-80 để chừa chỗ cho sidebar */}
@@ -495,7 +505,10 @@ const LearningPage = () => {
                 <NoteTab lectureId={currentLecture.lectureId!} userId={userId} />
               )}
               {activeTab === "Thông báo" && <div>Chưa có thông báo nào.</div>}
-              {activeTab === "Đánh giá" && <ReviewTag courseId={course.courseId} />}
+              {activeTab === "Thảo luận" && currentLecture && (
+                <DiscussionTab lectureId={currentLecture.lectureId} />
+              )}
+              {activeTab === "Đánh giá" && <ReviewTag courseId={course.courseId} refreshTrigger={reviewRefreshTrigger} />}
               {activeTab === "Coding Exercise" && currentLecture && (
                 <CodingExerciseTab
                   lectureId={currentLecture.lectureId!}
@@ -560,6 +573,19 @@ const LearningPage = () => {
             exerciseId={modalExerciseId}
             onClose={() => setModalExerciseId(null)} // Hàm để đóng Modal
           />
+        </FullScreenModal>
+      )}
+      {showReviewModal && (
+        <FullScreenModal>
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <ReviewModal 
+              courseId={course.courseId} 
+              onClose={() => setShowReviewModal(false)} 
+              onSuccess={() => {
+                setReviewRefreshTrigger(prev => prev + 1);
+              }}
+            />
+          </div>
         </FullScreenModal>
       )}
     </>

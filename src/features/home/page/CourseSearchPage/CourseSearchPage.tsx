@@ -650,29 +650,60 @@ const CourseSearchPage: React.FC = () => {
 
                           <div className="course-meta">
                             <div className="rating">
-                              <span className="rating-value">
-                                {course.averageRating?.toFixed(1) || "5.0"}
-                              </span>
-                              <div className="stars">
-                                {[...Array(5)].map((_, i) => (
-                                  <svg
-                                    key={i}
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill={
-                                      i < Math.floor(course.averageRating || 5)
-                                        ? "#f59e0b"
-                                        : "#e5e7eb"
-                                    }
-                                  >
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                  </svg>
-                                ))}
-                              </div>
-                              <span className="review-count">
-                                ({course.totalReviews || 0})
-                              </span>
+                              {course.totalReviews > 0 ? (
+                                <>
+                                  <span className="rating-value">
+                                    {course.averageRating?.toFixed(1) || "5.0"}
+                                  </span>
+                                  <div className="stars">
+                                    {[...Array(5)].map((_, i) => (
+                                      <svg
+                                        key={i}
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill={
+                                          i < Math.floor(course.averageRating || 5)
+                                            ? "#f59e0b"
+                                            : "#e5e7eb"
+                                        }
+                                      >
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                      </svg>
+                                    ))}
+                                  </div>
+                                  <span className="review-count">
+                                    ({course.totalReviews})
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                <span className="rating-value">
+                                    {course.averageRating?.toFixed(1) || "5.0"}
+                                  </span>
+                                  <div className="stars">
+                                    {[...Array(5)].map((_, i) => (
+                                      <svg
+                                        key={i}
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill={
+                                          i < Math.floor(course.averageRating || 5)
+                                            ? "#f59e0b"
+                                            : "#e5e7eb"
+                                        }
+                                      >
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                      </svg>
+                                    ))}
+                                  </div>
+                                  <span className="review-count">
+                                    ({course.totalReviews})
+                                  </span>
+                                  <span className="text-sm text-gray-500 italic">Chưa có đánh giá</span>
+                                </>
+                              )}
                             </div>
 
                             <div className="course-stats">
