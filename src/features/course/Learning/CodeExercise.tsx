@@ -95,7 +95,7 @@ const QuizTab: React.FC<QuizTabProps> = ({ quizId }) => {
     };
 
     try {
-      const response = await axios.post("https://judge-coursevo.onrender.com/api/judge/test", payload);
+      const response = await axios.post("https://judge-coursevo.vercel.app/api/judge/test", payload);
       setResult(response.data.judge_result);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
