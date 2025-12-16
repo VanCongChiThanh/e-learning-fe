@@ -3,6 +3,7 @@ import CareerQuestionStep from "../../components/CareerQuestionStep";
 import { generateCareerPlan } from "../../api";
 import { useNavigate } from "react-router-dom";
 import { GenerateCareerPlanPayload } from "../../types/CareerType";
+import { toast } from "react-toastify";
 
 const questions = [
   { key: "role", label: "Vị trí việc làm bạn muốn?" },
@@ -34,19 +35,24 @@ const CareerQuestionPage = () => {
     }
 
     setLoading(true);
-    const payload: GenerateCareerPlanPayload = {
-      role: newAnswers.role,
-      goal: newAnswers.goal,
-      answers: newAnswers,
-    };
-    const res = await generateCareerPlan(payload);
-    setLoading(false);
-    navigate("/career/preview", {
-      state: {
-        ...res.data,
-        answers: newAnswers, // thêm phần trả lời của user
-      },
-    });
+    try {
+      const payload: GenerateCareerPlanPayload = {
+        role: newAnswers.role,
+        goal: newAnswers.goal,
+        answers: newAnswers,
+      };
+      const res = await generateCareerPlan(payload);
+      navigate("/career/preview", {
+        state: {
+          ...res.data,
+          answers: newAnswers, // thêm phần trả lời của user
+        },
+      });
+    } catch (error) {
+      toast.error("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
