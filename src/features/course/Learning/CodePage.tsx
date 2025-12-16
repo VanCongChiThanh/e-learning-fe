@@ -178,7 +178,7 @@ const CodePage: React.FC<CodePageProps>= ({ exerciseId, onClose }) => {
 
     try {
       // API for multi-test is not authenticated as per docs
-      const response = await axios.post("https://judge-coursevo.onrender.com/api/judge/multi-test", payload);
+      const response = await axios.post("https://judge-coursevo.vercel.app/api/judge/multi-test", payload);
       // The API returns a nested object, the results array is in response.data.judge_results.submissions
       if (response.data && response.data.judge_results && Array.isArray(response.data.judge_results.submissions)) {
         setResults(response.data.judge_results.submissions);
@@ -216,7 +216,7 @@ const CodePage: React.FC<CodePageProps>= ({ exerciseId, onClose }) => {
     };
 
     try {
-      const response = await axiosAuth.post("https://judge-coursevo.onrender.com/api/judge/submit", payload);
+      const response = await axiosAuth.post("https://judge-coursevo.vercel.app/api/judge/submit", payload);
       // API trả về object chứa judge_result và feedback
       if (response.data && response.data.judge_result) {
         setResults([response.data.judge_result]); // Kết quả chấm chỉ có 1
