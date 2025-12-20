@@ -41,7 +41,7 @@ const EditCourseDetail: React.FC = () => {
   const [sections, setSections] = useState<Section[]>([]);
   const [lecturesMap, setLecturesMap] = useState<Record<string, Lecture[]>>({});
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
-  const [loadingSections, setLoadingSections] = useState<Set<string>>(new Set());
+  // const [loadingSections, setLoadingSections] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [showEditSectionModal, setShowEditSectionModal] = useState(false);
@@ -59,7 +59,26 @@ const EditCourseDetail: React.FC = () => {
 
         // Fetch sections only
         const sectionsRes = await axiosAuth.get(`/courses/${courseId}/sections`);
-        setSections(sectionsRes.data.data.sort((a: Section, b: Section) => a.position - b.position));
+        // setSections(sectionsRes.data.data.sort((a: Section, b: Section) => a.position - b.position));
+        const sortedSections = sectionsRes.data.data.sort((a: Section, b: Section) => a.position - b.position);
+        setSections(sortedSections);
+
+        // Fetch all lectures for all sections concurrently
+        if (sortedSections.length > 0) {
+          const lecturePromises = sortedSections.map((section: Section) =>
+            axiosAuth.get(`/sections/${section.sectionId}/lectures`)
+          );
+          const lectureResponses = await Promise.all(lecturePromises);
+
+          const newLecturesMap: Record<string, Lecture[]> = {};
+          sortedSections.forEach((section: Section, index: number) => {
+            const lecturesData = lectureResponses[index].data.data;
+            newLecturesMap[section.sectionId] = lecturesData.sort(
+              (a: Lecture, b: Lecture) => a.position - b.position
+            );
+          });
+          setLecturesMap(newLecturesMap);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -69,7 +88,7 @@ const EditCourseDetail: React.FC = () => {
     if (courseId) fetchData();
   }, [courseId]);
 
-  const toggleSection = async (sectionId: string) => {
+  const toggleSection = (sectionId: string) => {
     setOpenSections(prev => {
       const newSet = new Set(prev);
       if (newSet.has(sectionId)) {
@@ -81,27 +100,27 @@ const EditCourseDetail: React.FC = () => {
     });
 
     // Nếu section chưa có lectures, thì load
-    if (!lecturesMap[sectionId]) {
-      setLoadingSections(prev => new Set(prev).add(sectionId));
+    // if (!lecturesMap[sectionId]) {
+    //   setLoadingSections(prev => new Set(prev).add(sectionId));
 
-      try {
-        const lecturesRes = await axiosAuth.get(`/sections/${sectionId}/lectures`);
-        setLecturesMap(prev => ({
-          ...prev,
-          [sectionId]: lecturesRes.data.data.sort(
-            (a: Lecture, b: Lecture) => a.position - b.position
-          ),
-        }));
-      } catch (error) {
-        console.error("Error fetching lectures:", error);
-      } finally {
-        setLoadingSections(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(sectionId);
-          return newSet;
-        });
-      }
-    }
+    //   try {
+    //     const lecturesRes = await axiosAuth.get(`/sections/${sectionId}/lectures`);
+    //     setLecturesMap(prev => ({
+    //       ...prev,
+    //       [sectionId]: lecturesRes.data.data.sort(
+    //         (a: Lecture, b: Lecture) => a.position - b.position
+    //       ),
+    //     }));
+    //   } catch (error) {
+    //     console.error("Error fetching lectures:", error);
+    //   } finally {
+    //     setLoadingSections(prev => {
+    //       const newSet = new Set(prev);
+    //       newSet.delete(sectionId);
+    //       return newSet;
+    //     });
+    //   }
+    // }
   };
 
   const handleSectionsAdded = async () => {
@@ -400,12 +419,13 @@ const EditCourseDetail: React.FC = () => {
                     {/* Lectures List */}
                     {openSections.has(section.sectionId) && (
                       <div className="border-l-2 border-green-100 ml-4 pl-6">
-                        {loadingSections.has(section.sectionId) ? (
+                        {/* {loadingSections.has(section.sectionId) ? (
                           <div className="flex items-center justify-center py-8">
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#106c54]"></div>
                             <span className="ml-2 text-gray-600">Đang tải bài giảng...</span>
                           </div>
-                        ) : lecturesMap[section.sectionId]?.length > 0 ? (
+                        ) : lecturesMap[section.sectionId]?.length > 0 ? ( */}
+                        {lecturesMap[section.sectionId]?.length > 0 ? (
                           <div className="space-y-3">
                             {lecturesMap[section.sectionId].map((lecture, lectureIndex) => (
                               <div
