@@ -151,7 +151,7 @@ export interface CourseTransactionResponse {
   student_email: string;
   gross_amount: number;
   net_amount: number;
-  created_at: string; // ISO timestamp
+  created_at: number; 
 }
 
 export const getCourseTransactions = async (
