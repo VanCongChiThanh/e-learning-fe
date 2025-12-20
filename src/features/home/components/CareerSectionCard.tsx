@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getCourseByListId } from "../api";
 
 interface Props {
@@ -12,6 +13,7 @@ const CareerSectionCard = ({
   description,
   course_ids,
 }: Props) => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -84,6 +86,7 @@ const CareerSectionCard = ({
             {courses.map((course) => (
               <div
                 key={course.courseId}
+                onClick={() => navigate(`/courses/${course.slug}`)}
                 className="flex gap-4 p-4 rounded-xl border shadow-sm hover:shadow-md transition cursor-pointer bg-white group"
               >
                 <img
