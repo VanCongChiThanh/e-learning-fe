@@ -129,7 +129,7 @@ const CourseCard = ({ enrollment }: { enrollment: any }) => {
         <div className="progress">
           <div className="progress-header">
             <span>Tiến độ học tập</span>
-            <span>{progressPercentage}%</span>
+            <span>{Number(progressPercentage).toFixed(1)}%</span>
           </div>
           <div className="progress-bar">
             <div
