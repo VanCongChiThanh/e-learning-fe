@@ -63,7 +63,7 @@ const EditCourse: React.FC = () => {
         const ext = "." + newImageFile.name.split(".").pop()?.toLowerCase();
         const { url, key } = await getPresignedUrlCourse(ext);
         await uploadCourseImageToS3(url, newImageFile);
-        const imageUrlFull = `https://dinhlooc-test-2025.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
+        const imageUrlFull = `https://e-learning-data.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
         await updateCourseImageUrl(courseId, imageUrlFull);
         imageToSave = imageUrlFull;
         setImageUrl(imageToSave);

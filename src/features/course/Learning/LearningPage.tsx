@@ -130,9 +130,9 @@ const LearningPage = () => {
         setSections(sortedSections);
 
         let fetchedEnrollmentId: string | null = null;
-        if (courseData.courseId) {
+        if (courseData.courseId&&userId) {
           try {
-            const enrollmentData = await getMyEnrollmentForCourse(courseData.courseId);
+            const enrollmentData = await getMyEnrollmentForCourse(userId , courseData.courseId);
             fetchedEnrollmentId = enrollmentData.enrollmentId;
           } catch (enrollmentError) {
             console.warn("Không tìm thấy enrollment cho khóa học này hoặc lỗi:", enrollmentError);
