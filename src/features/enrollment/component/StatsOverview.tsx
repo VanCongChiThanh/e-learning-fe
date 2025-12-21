@@ -26,7 +26,7 @@ export function StatsOverview({ enrollments }: StatsOverviewProps) {
     },
     {
       label: "Tiến độ trung bình",
-      value: `${totalProgress}%`,
+      value: `${totalProgress.toFixed(1)}%`,
       icon: "📊",
       color: "from-accent to-accent/70",
     },

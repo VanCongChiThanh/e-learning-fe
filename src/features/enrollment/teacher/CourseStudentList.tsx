@@ -169,7 +169,7 @@ const CourseStudentList: React.FC = () => {
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
                         <p className="text-sm font-medium text-gray-900">
-                          {student.progressPercentage}% hoàn thành
+                          {student.progressPercentage.toFixed(1)}% hoàn thành
                         </p>
                         <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
                           <div
@@ -177,23 +177,14 @@ const CourseStudentList: React.FC = () => {
                             style={{ width: `${student.progressPercentage}%` }}
                           ></div>
                         </div>
-                        {student.hasCertificate && (
+                        {/* {student.hasCertificate && (
                           <div className="mt-1">
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
                               🏆 Có chứng chỉ
                             </span>
                           </div>
-                        )}
+                        )} */}
                       </div>
-
-                      <button
-                        onClick={() =>
-                          handleViewStudentProgress(student.userId)
-                        }
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        Xem chi tiết
-                      </button>
                     </div>
                   </div>
                 </li>

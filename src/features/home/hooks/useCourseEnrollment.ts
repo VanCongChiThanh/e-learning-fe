@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { handleCourseEnrollment } from "../api";
+import { useNavigate } from "react-router-dom";
 
 interface Course {
   courseId: string;
@@ -13,7 +14,7 @@ export const useCourseEnrollment = () => {
   const [showFreeEnrollDialog, setShowFreeEnrollDialog] = useState(false);
   const [isProcessingEnroll, setIsProcessingEnroll] = useState(false);
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
-
+  const navigate = useNavigate();
   // Xử lý click nút thêm vào giỏ hàng/đăng ký khóa học
   const handleEnrollClick = async (course: Course) => {
     if (isProcessing) return;
@@ -47,12 +48,15 @@ export const useCourseEnrollment = () => {
           toast.success(
             `Đăng ký khóa học "${currentCourse.title}" thành công! Bạn có thể bắt đầu học ngay bây giờ.`,
             {
-              position: "top-center",
+              position: "top-right",
               autoClose: 5000,
               hideProgressBar: false,
               closeOnClick: true,
               pauseOnHover: true,
               draggable: true,
+              onClose: () => {
+                navigate("/my-learning");
+              },
             }
           );
 
