@@ -488,14 +488,21 @@ export const checkEnrollment = async (courseId: string): Promise<boolean> => {
  * Lấy thông tin enrollment của user hiện tại cho một khóa học.
  * @param courseId - ID của khóa học.
  */
-export const getMyEnrollmentForCourse = async (courseId: string): Promise<{ enrollmentId: string }> => {
+export const getMyEnrollmentForCourse = async (userId: string, courseId: string): Promise<{ enrollmentId: string }> => {
     try {
-        const res = await axiosAuth.get(`/enrollments/course/${courseId}`);
+        const res = await axiosAuth.get(`/enrollments/user/${userId}`);
         // API trả về một mảng enrollment, ta lấy phần tử đầu tiên
-        const enrollmentData = res.data;
-        if (Array.isArray(enrollmentData) && enrollmentData.length > 0) {
-            return { enrollmentId: enrollmentData[0].id };
-        }
+        const enrollmentList = res.data;
+        if (Array.isArray(enrollmentList)) {
+      // Tìm kiếm phần tử có course.courseId trùng với courseId truyền vào
+          const foundEnrollment = enrollmentList.find(
+            (item: any) => item.course?.courseId === courseId
+          );
+
+      if (foundEnrollment) {
+        return { enrollmentId: foundEnrollment.id };
+      }
+    }
         throw new Error("Không tìm thấy thông tin đăng ký khóa học.");
     } catch (error) {
         console.error("Lỗi khi lấy thông tin enrollment:", error);
