@@ -12,7 +12,8 @@ import { useNavigate } from "react-router-dom";
 import PaymentInfo from "./PaymentInfo";
 interface CartItem {
   courseId: string;
-  title: string;
+  courseTitle: string;
+  courseImage: string;
   totalPrice: number;
   addedPrice: number;
   image?: string;
@@ -32,7 +33,7 @@ const CartPage: React.FC = () => {
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const [notes, setNotes] = useState("");
   const [paymentData, setPaymentData] = useState<any>(null);
-
+  const [popup, setPopup] = useState<boolean>(false);
   // States cho xóa khóa học
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [courseToRemove, setCourseToRemove] = useState<string | null>(null);
@@ -95,7 +96,8 @@ const CartPage: React.FC = () => {
           try {
             const res = await paymentOrder(response.data.id);
             if (res.status === "success") {
-              setPaymentData(res.data); // ✅ lưu thông tin thanh toán để hiển thị
+              setPaymentData(res.data);
+              setPopup(true);
               toast.success("Đặt hàng thành công! Vui lòng thanh toán.");
             } else {
               toast.error("Không tạo được thanh toán!");
@@ -348,10 +350,10 @@ const CartPage: React.FC = () => {
                   className="flex items-center p-6 border-b border-gray-200 last:border-b-0"
                 >
                   <div className="flex-shrink-0 w-24 h-16 bg-gray-200 rounded-lg overflow-hidden">
-                    {item.image ? (
+                    {item.courseImage ? (
                       <img
-                        src={item.image}
-                        alt={item.title}
+                        src={item.courseImage}
+                        alt={item.courseTitle}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -363,7 +365,7 @@ const CartPage: React.FC = () => {
 
                   <div className="ml-6 flex-1">
                     <h3 className="text-lg font-medium text-gray-900 mb-1">
-                      {item.title}
+                      {item.courseTitle}
                     </h3>
                     <p className="text-sm text-gray-600">Khóa học</p>
                   </div>
@@ -466,8 +468,36 @@ const CartPage: React.FC = () => {
             </div>
           </div>
         )}
-        {paymentData && <PaymentInfo paymentData={paymentData} />}
+        {/* {paymentData && <PaymentInfo paymentData={paymentData} />} */}
+        {popup && paymentData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in duration-300">
+              {/* Nút đóng Popup */}
+              <button
+                onClick={() => setPopup(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <i className="fa-solid fa-xmark text-xl"></i>
+              </button>
 
+              <div className="p-6 border-b border-gray-100 text-center">
+                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i className="fa-solid fa-check text-2xl"></i>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Thông tin thanh toán
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Vui lòng hoàn tất giao dịch theo thông tin bên dưới
+                </p>
+              </div>
+
+              <div className="p-6">
+                <PaymentInfo paymentData={paymentData} />
+              </div>
+            </div>
+          </div>
+        )}
         {/* Remove Course Confirmation Dialog */}
         {showRemoveDialog && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

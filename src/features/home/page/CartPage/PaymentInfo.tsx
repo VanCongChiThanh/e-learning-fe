@@ -11,7 +11,6 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
 
   const handlePayNow = () => {
     window.location.href = checkoutUrl;
-    
   };
 
   return (
@@ -29,7 +28,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
         <strong>Trạng thái:</strong> {status}
       </p>
 
-      {qrCode && (
+      {/* {qrCode && (
         <div className="mt-3">
           <p><strong>Quét QR để thanh toán:</strong></p>
           <img
@@ -40,7 +39,7 @@ const PaymentInfo: React.FC<PaymentInfoProps> = ({ paymentData }) => {
             className="mt-2"
           />
         </div>
-      )}
+      )} */}
 
       <button
         onClick={handlePayNow}
