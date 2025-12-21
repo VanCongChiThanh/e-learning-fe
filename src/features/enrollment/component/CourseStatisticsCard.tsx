@@ -75,7 +75,7 @@ const CourseStatisticsCard = (stats: any) => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard
           title="Tiến độ trung bình"
-          value={`${stats.stats.averageProgress}%`}
+          value={`${stats.stats.averageProgress.toFixed(1)}%`}
         />
         <StatCard
           title="Chứng chỉ đã cấp"
