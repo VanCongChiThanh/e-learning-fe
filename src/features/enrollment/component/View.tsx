@@ -133,7 +133,7 @@ const View: React.FC<ViewProps> = ({ enrollment }) => {
               Tiến độ học tập
             </span>
             <span className="text-lg font-bold text-teal-600">
-              {progressPercentage}%
+              {Number(progressPercentage).toFixed(1)}%
             </span>
           </div>
 
