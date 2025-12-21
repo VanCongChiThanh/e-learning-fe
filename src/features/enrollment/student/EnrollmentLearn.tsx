@@ -362,7 +362,7 @@ export default function EnrollmentLearn() {
                 </svg>
               }
               title="Tiến độ TB"
-              value={`${stats.avgProgress}%`}
+              value={`${stats.avgProgress.toFixed(1)}%`}
               description="Tiến độ trung bình"
               colorClass="enrollment-learn__stats-card-icon--warning"
             />

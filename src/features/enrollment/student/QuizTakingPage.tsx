@@ -17,6 +17,46 @@ import "./QuizTaking.scss";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../app/store";
 import { toast } from "react-toastify";
+interface ShuffledQuestion extends QuizQuestionAnswerResponse {
+  originalIndex: number; // Index gốc của câu hỏi
+  shuffledOptions: { text: string; originalIndex: number }[]; // Đáp án đã xáo trộn với index gốc
+}
+
+// Helper functions để xáo trộn mảng
+const shuffleArray = <T extends any>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Function để xáo trộn câu hỏi và đáp án
+const shuffleQuestionsAndOptions = (
+  questions: QuizQuestionAnswerResponse[]
+): ShuffledQuestion[] => {
+  // Xáo trộn thứ tự câu hỏi và lưu index gốc
+  const questionsWithIndex = questions.map((q, index) => ({
+    ...q,
+    originalIndex: index,
+  }));
+  const shuffledQuestions = shuffleArray(questionsWithIndex);
+
+  // Xáo trộn đáp án cho mỗi câu hỏi và lưu index gốc
+  return shuffledQuestions.map((question) => {
+    const optionsWithIndex = question.options.map((text, index) => ({
+      text,
+      originalIndex: index,
+    }));
+    const shuffledOptions = shuffleArray(optionsWithIndex);
+
+    return {
+      ...question,
+      shuffledOptions,
+    };
+  });
+};
 
 const QuizTakingPage: React.FC = () => {
   const { quizId, enrollmentId } = useParams<{
@@ -29,10 +69,13 @@ const QuizTakingPage: React.FC = () => {
   const [showQuizPopup, setShowQuizPopup] = useState(true);
 
   const [quiz, setQuiz] = useState<QuizResponse | null>(null);
-  const [questions, setQuestions] = useState<QuizQuestionAnswerResponse[]>([]);
+  const [originalQuestions, setOriginalQuestions] = useState<
+    QuizQuestionAnswerResponse[]
+  >([]);
+  const [questions, setQuestions] = useState<ShuffledQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<{
-    [key: number]: number;
+    [key: number]: number; // Index của đáp án đã chọn trong mảng shuffled
   }>({});
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +102,12 @@ const QuizTakingPage: React.FC = () => {
         ]);
 
         setQuiz(quizData);
-        setQuestions(questionsData);
+        setOriginalQuestions(questionsData);
+
+        // Xáo trộn câu hỏi và đáp án
+        const shuffledData = shuffleQuestionsAndOptions(questionsData);
+        setQuestions(shuffledData);
+
         setTimeRemaining((quizData.timeLimitMinutes || 60) * 60);
         setCanAttempt(canAttemptResult);
 
@@ -142,12 +190,40 @@ const QuizTakingPage: React.FC = () => {
     try {
       if (!userId || !quiz || !enrollmentId) return;
 
-      // Prepare submission data
-      const answers = questions.map((question, index) => ({
-        questionId: question.id,
-        selectedAnswerIndex: selectedAnswers[index] ?? -1, // -1 means no answer selected
-      }));
+      // Prepare submission data - convert shuffled answers back to original format
+      // Important: Submit answers in ORIGINAL question order
+      const answers = originalQuestions.map((originalQuestion) => {
+        // Find this question in shuffled array
+        const shuffledQuestionIndex = questions.findIndex(
+          (sq) => sq.id === originalQuestion.id
+        );
 
+        let originalAnswerIndex = -1;
+
+        if (shuffledQuestionIndex !== -1) {
+          const selectedShuffledAnswerIndex =
+            selectedAnswers[shuffledQuestionIndex];
+
+          if (
+            selectedShuffledAnswerIndex !== undefined &&
+            selectedShuffledAnswerIndex !== -1
+          ) {
+            // Get the shuffled question
+            const shuffledQuestion = questions[shuffledQuestionIndex];
+            // Find original answer index from shuffled selection
+            const selectedOption =
+              shuffledQuestion.shuffledOptions[selectedShuffledAnswerIndex];
+            originalAnswerIndex = selectedOption
+              ? selectedOption.originalIndex
+              : -1;
+          }
+        }
+
+        return {
+          questionId: originalQuestion.id,
+          selectedAnswerIndex: originalAnswerIndex, // -1 means no answer selected
+        };
+      });
       const submissionData: QuizSubmissionRequest = {
         quizId: quiz.id,
         enrollmentId: enrollmentId as UUID,
@@ -332,6 +408,10 @@ const QuizTakingPage: React.FC = () => {
                   <span className="text-amber-600 mr-2">•</span>
                   Nhấn "Nộp bài" khi hoàn thành
                 </li>
+                <li className="flex items-start">
+                  <span className="text-amber-600 mr-2">🔀</span>
+                  <strong>Câu hỏi và đáp án đã được xáo trộn ngẫu nhiên</strong>
+                </li>
               </ul>
             </div>
           </div>
@@ -363,7 +443,13 @@ const QuizTakingPage: React.FC = () => {
         {/* Header with timer and progress */}
         <div className="bg-gradient-to-r from-[#106c54] to-[#0d5942] text-white p-4 rounded-t-2xl">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-bold truncate mr-4">{quiz.title}</h1>
+            <div className="flex items-center space-x-3">
+              <h1 className="text-lg font-bold truncate mr-4">{quiz.title}</h1>
+              <div className="bg-white bg-opacity-20 px-2 py-1 rounded-lg text-xs font-medium flex items-center">
+                <span className="mr-1">🔀</span>
+                <span>Đã xáo trộn</span>
+              </div>
+            </div>
             <button
               onClick={closeQuizPopup}
               className="w-8 h-8 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition-colors duration-200 flex-shrink-0"
@@ -456,7 +542,7 @@ const QuizTakingPage: React.FC = () => {
                       Câu {currentQuestionIndex + 1}
                     </h2>
                     <span className="text-sm text-gray-500">
-                      {currentQuestion.options.length} lựa chọn
+                      {currentQuestion.shuffledOptions.length} lựa chọn
                     </span>
                   </div>
                   <p className="text-gray-800 leading-relaxed">
@@ -465,7 +551,7 @@ const QuizTakingPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {currentQuestion.options.map((option, index) => (
+                  {currentQuestion.shuffledOptions.map((option, index) => (
                     <label
                       key={index}
                       className={`block p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
@@ -486,7 +572,7 @@ const QuizTakingPage: React.FC = () => {
                           className="w-4 h-4 text-[#106c54] focus:ring-[#106c54] focus:ring-2"
                         />
                         <span className="ml-3 text-gray-800">
-                          {String.fromCharCode(65 + index)}. {option}
+                          {String.fromCharCode(65 + index)}. {option.text}
                         </span>
                       </div>
                     </label>
