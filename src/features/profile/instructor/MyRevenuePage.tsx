@@ -560,7 +560,7 @@ const MyRevenuePage: React.FC = () => {
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-600">
                                   {new Date(
-                                    transaction.created_at
+                                    transaction.created_at * 1000
                                   ).toLocaleString("vi-VN", {
                                     year: "numeric",
                                     month: "2-digit",
