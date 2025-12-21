@@ -367,7 +367,9 @@ const LearningPage = () => {
           console.log("Tìm thấy bài giảng gần nhất:", recentInfo);
           // Thay vì set lecture, hiển thị modal
           setRecentLearningInfo(recentInfo);
-          setShowContinueModal(true);
+          if (recentInfo.enrollmentProgressPercentage != 0.0) {
+             setShowContinueModal(true);
+          }
 
           const lectures = await fetchLecturesForSection(recentInfo.sectionId);
           const foundRecentLecture = lectures?.find(l => l.lectureId === recentInfo.lectureId);

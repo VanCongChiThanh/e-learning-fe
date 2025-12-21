@@ -240,7 +240,7 @@ const InstructorRegistration: React.FC = () => {
                 <p>
                   {" "}
                   Sử dụng nền tảng hiện đại với đầy đủ công cụ tạo và quản lý
-                  khóa học{" "}
+                  khóa học {" "}
                 </p>{" "}
               </div>{" "}
             </div>{" "}
