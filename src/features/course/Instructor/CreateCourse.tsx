@@ -52,7 +52,7 @@ const CreateCourse: React.FC = () => {
           const ext = "." + imageFile.name.split(".").pop()?.toLowerCase();
           const { url, key } = await getPresignedUrlCourse(ext);
           await uploadCourseImageToS3(url, imageFile);
-          const imageUrlFull = `https://dinhlooc-test-2025.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
+          const imageUrlFull = `https://e-learning-data.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
           await updateCourseImageUrl(newCourse.courseId, imageUrlFull);
           console.log("✅ Image uploaded:", imageUrlFull);
         } catch (imgError) {

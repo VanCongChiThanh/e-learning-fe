@@ -99,7 +99,7 @@ const AddLecturesModal: React.FC<AddLecturesModalProps> = ({
           const ext = "." + lecture.videoFile.name.split(".").pop()?.toLowerCase();
           const { url, key } = await getPresignedUrlVideoLecture(ext);
           await uploadVideoLectureToS3(url, lecture.videoFile);
-          finalVideoUrl = `https://dinhlooc-test-2025.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
+          finalVideoUrl = `https://e-learning-data.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
         }
 
         return { ...lecture, videoUrl: finalVideoUrl };

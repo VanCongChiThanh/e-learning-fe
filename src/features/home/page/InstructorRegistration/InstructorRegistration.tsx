@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import "./InstructorRegistration.scss";
 import { applyInstructor, ApplyInstructorRequest } from "../../api";
 import {
@@ -25,6 +26,7 @@ interface FormData {
 }
 
 const InstructorRegistration: React.FC = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     first_name: "",
     last_name: "",
@@ -111,26 +113,6 @@ const InstructorRegistration: React.FC = () => {
       await applyInstructor(payload);
 
       setSuccess(true);
-      toast.success(
-        "Gửi đơn đăng ký thành công! Chúng tôi sẽ liên hệ với bạn sớm."
-      );
-      setFormData({
-        first_name: "",
-        last_name: "",
-        email: "",
-        phone: "",
-        expertise: "",
-        education: "",
-        experience: "",
-        bio: "",
-        course_title: "",
-        course_description: "",
-        linkedin: "",
-        portfolio: "",
-        cv: null,
-        terms: false,
-        newsletter: false,
-      });
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.error?.message ||
@@ -143,352 +125,418 @@ const InstructorRegistration: React.FC = () => {
     }
   };
 
-  return (
-      <div className="instructor-registration-page ">
+  if (success) {
+    return (
+      <div className="instructor-registration-page">
         <section className="hero">
           <div className="container">
-            <h1>Trở thành Giảng Viên của Coursevo</h1>
-            <p>Chia sẻ kiến thức và xây dựng sự nghiệp giảng dạy trực tuyến</p>
+            <div className="success-container">
+              <div className="success-icon">✅</div>
+              <h1>Đăng ký thành công!</h1>
+              <p className="success-message">
+                Cảm ơn bạn đã đăng ký trở thành giảng viên của Coursevo. Chúng
+                tôi sẽ xem xét hồ sơ và liên hệ với bạn trong vòng 2-3 ngày làm
+                việc.
+              </p>
+            </div>
           </div>
         </section>
 
         <main className="main-content mx-3">
-          <div className="registration-wrapper">
-            <aside className="benefits">
-              <h2>Lợi ích khi tham gia</h2>{" "}
-              <div className="benefit-item">
-                {" "}
-                <div className="benefit-icon">💰</div>{" "}
-                <div className="benefit-content">
-                  {" "}
-                  <h3>Thu nhập hấp dẫn</h3>{" "}
-                  <p>
-                    {" "}
-                    Nhận đến 70% doanh thu từ khóa học của bạn với mô hình chia
-                    sẻ minh bạch{" "}
-                  </p>{" "}
-                </div>{" "}
-              </div>{" "}
-              <div className="benefit-item">
-                {" "}
-                <div className="benefit-icon">🌍</div>{" "}
-                <div className="benefit-content">
-                  {" "}
-                  <h3>Tiếp cận toàn cầu</h3>{" "}
-                  <p>
-                    {" "}
-                    Kết nối với hàng triệu học viên trên khắp thế giới đang khao
-                    khát học hỏi{" "}
-                  </p>{" "}
-                </div>{" "}
-              </div>{" "}
-              <div className="benefit-item">
-                {" "}
-                <div className="benefit-icon">🛠️</div>{" "}
-                <div className="benefit-content">
-                  {" "}
-                  <h3>Công cụ chuyên nghiệp</h3>{" "}
-                  <p>
-                    {" "}
-                    Sử dụng nền tảng hiện đại với đầy đủ công cụ tạo và quản lý
-                    khóa học{" "}
-                  </p>{" "}
-                </div>{" "}
-              </div>{" "}
-              <div className="benefit-item">
-                {" "}
-                <div className="benefit-icon">📊</div>{" "}
-                <div className="benefit-content">
-                  {" "}
-                  <h3>Hỗ trợ marketing</h3>{" "}
-                  <p>
-                    {" "}
-                    Được hỗ trợ quảng bá khóa học qua các kênh marketing của
-                    chúng tôi{" "}
-                  </p>{" "}
-                </div>{" "}
-              </div>{" "}
-              <div className="benefit-item">
-                {" "}
-                <div className="benefit-icon">🎓</div>{" "}
-                <div className="benefit-content">
-                  {" "}
-                  <h3>Đào tạo miễn phí</h3>{" "}
-                  <p>
-                    {" "}
-                    Tham gia các khóa đào tạo về kỹ năng giảng dạy trực tuyến
-                    hoàn toàn miễn phí{" "}
-                  </p>{" "}
-                </div>{" "}
-              </div>{" "}
-            </aside>
+          <div className="promotion-section">
+            <h2>Trong khi chờ đợi, hãy khám phá nền tảng của chúng tôi</h2>
 
-            <div className="form-container">
-              <div className="form-header">
-                <h2>Đăng ký làm giảng viên</h2>
+            <div className="promo-cards">
+              <div className="promo-card">
+                <div className="promo-icon">📚</div>
+                <h3>Hơn 1000+ Khóa học</h3>
                 <p>
-                  Điền thông tin bên dưới để bắt đầu hành trình giảng dạy của
-                  bạn
+                  Khám phá kho tài nguyên học tập phong phú từ các chuyên gia
+                  hàng đầu
                 </p>
               </div>
 
-              <form id="instructorForm" onSubmit={handleSubmit}>
-                {/* Personal Info */}
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="firstName">
-                      Họ <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      name="first_name"
-                      placeholder="Nguyễn"
-                      value={formData.first_name}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="lastName">
-                      Tên <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      name="last_name"
-                      placeholder="Văn A"
-                      value={formData.last_name}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
+              <div className="promo-card">
+                <div className="promo-icon">👥</div>
+                <h3>Cộng đồng 5000+ Học viên</h3>
+                <p>
+                  Tham gia cộng đồng học tập năng động và kết nối với giảng viên
+                </p>
+              </div>
 
-                {/* Email & Phone */}
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="email">
-                      Email <span className="required">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      placeholder="email@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="phone">
-                      Số điện thoại <span className="required">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      placeholder="0912345678"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
+              <div className="promo-card">
+                <div className="promo-icon">🎓</div>
+                <h3>Chứng chỉ Được Công nhận</h3>
+                <p>
+                  Nhận chứng chỉ hoàn thành được công nhận bởi các doanh nghiệp
+                </p>
+              </div>
+            </div>
 
-                {/* Expertise */}
-                <div className="form-group">
-                  <label htmlFor="expertise">Lĩnh vực chuyên môn</label>
-                  <select
-                    id="expertise"
-                    name="expertise"
-                    value={formData.expertise}
-                    onChange={handleChange}
-                  >
-                    <option value="">Chọn lĩnh vực</option>
-                    <option value="programming">Lập trình & Công nghệ</option>
-                    <option value="business">Kinh doanh & Quản lý</option>
-                    <option value="design">Thiết kế & Sáng tạo</option>
-                    <option value="marketing">Marketing & Truyền thông</option>
-                    <option value="language">Ngoại ngữ</option>
-                    <option value="personal">Phát triển bản thân</option>
-                    <option value="other">Khác</option>
-                  </select>
-                </div>
-
-                {/* Education */}
-                <div className="form-group">
-                  <label htmlFor="education">Trình độ học vấn</label>
-                  <select
-                    id="education"
-                    name="education"
-                    value={formData.education}
-                    onChange={handleChange}
-                  >
-                    <option value="">Chọn trình độ</option>
-                    <option value="bachelor">Cử nhân</option>
-                    <option value="master">Thạc sĩ</option>
-                    <option value="phd">Tiến sĩ</option>
-                    <option value="professional">Chứng chỉ chuyên môn</option>
-                    <option value="other">Khác</option>
-                  </select>
-                </div>
-
-                {/* Experience */}
-                <div className="form-group">
-                  <label htmlFor="experience">Số năm kinh nghiệm</label>
-                  <select
-                    id="experience"
-                    name="experience"
-                    value={formData.experience}
-                    onChange={handleChange}
-                  >
-                    <option value="">Chọn số năm</option>
-                    <option value="0-2">0-2 năm</option>
-                    <option value="3-5">3-5 năm</option>
-                    <option value="6-10">6-10 năm</option>
-                    <option value="10+">Trên 10 năm</option>
-                  </select>
-                </div>
-
-                {/* Motivation */}
-                <div className="form-group">
-                  <label htmlFor="bio">
-                    Giới thiệu bản thân <span className="required">*</span>
-                  </label>
-                  <textarea
-                    id="bio"
-                    name="bio"
-                    placeholder="Chia sẻ kinh nghiệm, thành tựu..."
-                    value={formData.bio}
-                    onChange={handleChange}
-                    required
-                  ></textarea>
-                </div>
-
-                {/* Course info */}
-                <div className="form-group">
-                  <label htmlFor="courseTitle">Tên khóa học dự kiến</label>
-                  <input
-                    type="text"
-                    id="course_title"
-                    name="course_title"
-                    value={formData.course_title}
-                    onChange={handleChange}
-                    placeholder="VD: Lập trình Python từ cơ bản đến nâng cao"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="courseDescription">Mô tả khóa học</label>
-                  <textarea
-                    id="course_description"
-                    name="course_description"
-                    value={formData.course_description}
-                    onChange={handleChange}
-                    placeholder="Mô tả ngắn gọn về nội dung và mục tiêu..."
-                  ></textarea>
-                </div>
-
-                {/* Extra info */}
-                <div className="form-group">
-                  <label htmlFor="linkedin">LinkedIn Profile</label>
-                  <input
-                    type="url"
-                    id="linkedin"
-                    name="linkedin"
-                    value={formData.linkedin}
-                    onChange={handleChange}
-                    placeholder="https://linkedin.com/in/yourprofile"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="portfolio">
-                    Website/Portfolio <span className="required">*</span>
-                  </label>
-                  <input
-                    type="url"
-                    id="portfolio"
-                    name="portfolio"
-                    value={formData.portfolio}
-                    onChange={handleChange}
-                    placeholder="https://yourwebsite.com"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="cv">
-                    Tải lên CV/Resume <span className="required">*</span>
-                  </label>
-                  <div className="file-input-wrapper">
-                    <label htmlFor="cv" className="file-input-label">
-                      📎 Chọn file (PDF, DOC, DOCX)
-                    </label>
-                    <input
-                      type="file"
-                      id="cv"
-                      name="cv"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleFileChange}
-                      required
-                    />
-                  </div>
-                  {cvPreview && (
-                    <div className="cv-preview">
-                      <p className="text-blue-500">{formData.cv?.name}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Checkboxes */}
-                <div className="form-group">
-                  <div className="checkbox-group">
-                    <input
-                      type="checkbox"
-                      id="terms"
-                      name="terms"
-                      checked={formData.terms}
-                      onChange={handleChange}
-                      required
-                    />
-                    <label htmlFor="terms" className="checkbox-label">
-                      Tôi đồng ý với <a href="#terms">Điều khoản</a> và{" "}
-                      <a href="#privacy">Chính sách bảo mật</a>{" "}
-                      <span className="required">*</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <div className="checkbox-group">
-                    <input
-                      type="checkbox"
-                      id="newsletter"
-                      name="newsletter"
-                      checked={formData.newsletter}
-                      onChange={handleChange}
-                    />
-                    <label htmlFor="newsletter" className="checkbox-label">
-                      Nhận thông tin về các chương trình hỗ trợ giảng viên
-                    </label>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={loading}
-                >
-                  {loading ? "Đang gửi..." : "Gửi đơn đăng ký"}
-                </button>
-              </form>
+            <div className="cta-section">
+              <h3>Sẵn sàng bắt đầu hành trình học tập?</h3>
+              <p>
+                Khám phá các khóa học chất lượng cao và nâng cao kỹ năng của bạn
+                ngay hôm nay
+              </p>
+              <button
+                className="btn btn-primary btn-large"
+                onClick={() => navigate("/")}
+              >
+                🚀 Khám phá các khóa học
+              </button>
             </div>
           </div>
         </main>
       </div>
+    );
+  }
+
+  return (
+    <div className="instructor-registration-page ">
+      <section className="hero">
+        <div className="container">
+          <h1>Trở thành Giảng Viên của Coursevo</h1>
+          <p>Chia sẻ kiến thức và xây dựng sự nghiệp giảng dạy trực tuyến</p>
+        </div>
+      </section>
+
+      <main className="main-content mx-3">
+        <div className="registration-wrapper">
+          <aside className="benefits">
+            <h2>Lợi ích khi tham gia</h2>{" "}
+            <div className="benefit-item">
+              {" "}
+              <div className="benefit-icon">💰</div>{" "}
+              <div className="benefit-content">
+                {" "}
+                <h3>Thu nhập hấp dẫn</h3>{" "}
+                <p>
+                  {" "}
+                  Nhận đến 70% doanh thu từ khóa học của bạn với mô hình chia sẻ
+                  minh bạch{" "}
+                </p>{" "}
+              </div>{" "}
+            </div>{" "}
+            <div className="benefit-item">
+              {" "}
+              <div className="benefit-icon">🌍</div>{" "}
+              <div className="benefit-content">
+                {" "}
+                <h3>Tiếp cận toàn cầu</h3>{" "}
+                <p>
+                  {" "}
+                  Kết nối với hàng triệu học viên trên khắp thế giới đang khao
+                  khát học hỏi{" "}
+                </p>{" "}
+              </div>{" "}
+            </div>{" "}
+            <div className="benefit-item">
+              {" "}
+              <div className="benefit-icon">🛠️</div>{" "}
+              <div className="benefit-content">
+                {" "}
+                <h3>Công cụ chuyên nghiệp</h3>{" "}
+                <p>
+                  {" "}
+                  Sử dụng nền tảng hiện đại với đầy đủ công cụ tạo và quản lý
+                  khóa học{" "}
+                </p>{" "}
+              </div>{" "}
+            </div>{" "}
+            <div className="benefit-item">
+              {" "}
+              <div className="benefit-icon">📊</div>{" "}
+              <div className="benefit-content">
+                {" "}
+                <h3>Hỗ trợ marketing</h3>{" "}
+                <p>
+                  {" "}
+                  Được hỗ trợ quảng bá khóa học qua các kênh marketing của chúng
+                  tôi{" "}
+                </p>{" "}
+              </div>{" "}
+            </div>{" "}
+            <div className="benefit-item">
+              {" "}
+              <div className="benefit-icon">🎓</div>{" "}
+              <div className="benefit-content">
+                {" "}
+                <h3>Đào tạo miễn phí</h3>{" "}
+                <p>
+                  {" "}
+                  Tham gia các khóa đào tạo về kỹ năng giảng dạy trực tuyến hoàn
+                  toàn miễn phí{" "}
+                </p>{" "}
+              </div>{" "}
+            </div>{" "}
+          </aside>
+
+          <div className="form-container">
+            <div className="form-header">
+              <h2>Đăng ký làm giảng viên</h2>
+              <p>
+                Điền thông tin bên dưới để bắt đầu hành trình giảng dạy của bạn
+              </p>
+            </div>
+
+            <form id="instructorForm" onSubmit={handleSubmit}>
+              {/* Personal Info */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="firstName">
+                    Họ <span className="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="first_name"
+                    placeholder="Nguyễn"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="lastName">
+                    Tên <span className="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="last_name"
+                    placeholder="Văn A"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Email & Phone */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="email">
+                    Email <span className="required">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="email@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="phone">
+                    Số điện thoại <span className="required">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="0912345678"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Expertise */}
+              <div className="form-group">
+                <label htmlFor="expertise">Lĩnh vực chuyên môn</label>
+                <select
+                  id="expertise"
+                  name="expertise"
+                  value={formData.expertise}
+                  onChange={handleChange}
+                >
+                  <option value="">Chọn lĩnh vực</option>
+                  <option value="programming">Lập trình & Công nghệ</option>
+                  <option value="business">Kinh doanh & Quản lý</option>
+                  <option value="design">Thiết kế & Sáng tạo</option>
+                  <option value="marketing">Marketing & Truyền thông</option>
+                  <option value="language">Ngoại ngữ</option>
+                  <option value="personal">Phát triển bản thân</option>
+                  <option value="other">Khác</option>
+                </select>
+              </div>
+
+              {/* Education */}
+              <div className="form-group">
+                <label htmlFor="education">Trình độ học vấn</label>
+                <select
+                  id="education"
+                  name="education"
+                  value={formData.education}
+                  onChange={handleChange}
+                >
+                  <option value="">Chọn trình độ</option>
+                  <option value="bachelor">Cử nhân</option>
+                  <option value="master">Thạc sĩ</option>
+                  <option value="phd">Tiến sĩ</option>
+                  <option value="professional">Chứng chỉ chuyên môn</option>
+                  <option value="other">Khác</option>
+                </select>
+              </div>
+
+              {/* Experience */}
+              <div className="form-group">
+                <label htmlFor="experience">Số năm kinh nghiệm</label>
+                <select
+                  id="experience"
+                  name="experience"
+                  value={formData.experience}
+                  onChange={handleChange}
+                >
+                  <option value="">Chọn số năm</option>
+                  <option value="0-2">0-2 năm</option>
+                  <option value="3-5">3-5 năm</option>
+                  <option value="6-10">6-10 năm</option>
+                  <option value="10+">Trên 10 năm</option>
+                </select>
+              </div>
+
+              {/* Motivation */}
+              <div className="form-group">
+                <label htmlFor="bio">
+                  Giới thiệu bản thân <span className="required">*</span>
+                </label>
+                <textarea
+                  id="bio"
+                  name="bio"
+                  placeholder="Chia sẻ kinh nghiệm, thành tựu..."
+                  value={formData.bio}
+                  onChange={handleChange}
+                  required
+                ></textarea>
+              </div>
+
+              {/* Course info */}
+              <div className="form-group">
+                <label htmlFor="courseTitle">Tên khóa học dự kiến</label>
+                <input
+                  type="text"
+                  id="course_title"
+                  name="course_title"
+                  value={formData.course_title}
+                  onChange={handleChange}
+                  placeholder="VD: Lập trình Python từ cơ bản đến nâng cao"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="courseDescription">Mô tả khóa học</label>
+                <textarea
+                  id="course_description"
+                  name="course_description"
+                  value={formData.course_description}
+                  onChange={handleChange}
+                  placeholder="Mô tả ngắn gọn về nội dung và mục tiêu..."
+                ></textarea>
+              </div>
+
+              {/* Extra info */}
+              <div className="form-group">
+                <label htmlFor="linkedin">LinkedIn Profile</label>
+                <input
+                  type="url"
+                  id="linkedin"
+                  name="linkedin"
+                  value={formData.linkedin}
+                  onChange={handleChange}
+                  placeholder="https://linkedin.com/in/yourprofile"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="portfolio">
+                  Website/Portfolio <span className="required">*</span>
+                </label>
+                <input
+                  type="url"
+                  id="portfolio"
+                  name="portfolio"
+                  value={formData.portfolio}
+                  onChange={handleChange}
+                  placeholder="https://yourwebsite.com"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="cv">
+                  Tải lên CV/Resume <span className="required">*</span>
+                </label>
+                <div className="file-input-wrapper">
+                  <label htmlFor="cv" className="file-input-label">
+                    📎 Chọn file (PDF, DOC, DOCX)
+                  </label>
+                  <input
+                    type="file"
+                    id="cv"
+                    name="cv"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileChange}
+                    required
+                  />
+                </div>
+                {cvPreview && (
+                  <div className="cv-preview">
+                    <p className="text-blue-500">{formData.cv?.name}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Checkboxes */}
+              <div className="form-group">
+                <div className="checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    name="terms"
+                    checked={formData.terms}
+                    onChange={handleChange}
+                    required
+                  />
+                  <label htmlFor="terms" className="checkbox-label">
+                    Tôi đồng ý với <a href="#terms">Điều khoản</a> và{" "}
+                    <a href="#privacy">Chính sách bảo mật</a>{" "}
+                    <span className="required">*</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="newsletter"
+                    name="newsletter"
+                    checked={formData.newsletter}
+                    onChange={handleChange}
+                  />
+                  <label htmlFor="newsletter" className="checkbox-label">
+                    Nhận thông tin về các chương trình hỗ trợ giảng viên
+                  </label>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                {loading ? "Đang gửi..." : "Gửi đơn đăng ký"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 };
 

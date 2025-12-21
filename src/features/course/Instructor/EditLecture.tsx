@@ -97,7 +97,7 @@ const EditLecture: React.FC = () => {
         const ext = "." + newVideoFile.name.split(".").pop()?.toLowerCase();
         const { url, key } = await getPresignedUrlVideoLecture(ext);
         await uploadVideoLectureToS3(url, newVideoFile);
-        const videoUrlFull = `https://dinhlooc-test-2025.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
+        const videoUrlFull = `https://e-learning-data.s3.us-east-1.amazonaws.com/${encodeURIComponent(key)}`;
         await updateVideoLecture(lectureId, videoUrlFull);
         videoToSave = videoUrlFull;
         setVideoUrl(videoToSave);
@@ -106,7 +106,7 @@ const EditLecture: React.FC = () => {
       }
 
       // Update lecture info
-      await axiosAuth.put(`/sections/lectures/${lectureId}`, {
+      await axiosAuth.put(`/sections/{sectionId}/lectures/${lectureId}`, {
         title,
         description,
         duration: parseInt(duration) || 0,
@@ -295,25 +295,6 @@ const EditLecture: React.FC = () => {
                     required
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mô tả bài giảng
-                  </label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    disabled={!isEditing}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#106c54] transition-colors ${
-                      isEditing
-                        ? "border-gray-300 bg-white"
-                        : "bg-gray-50 border-gray-200 cursor-not-allowed"
-                    }`}
-                    rows={4}
-                    placeholder="Mô tả nội dung bài giảng..."
-                  />
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Thời lượng (phút)
