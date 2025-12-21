@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../app/store";
 import { getCourseDetailBySlug, getSectionsByCourseId } from "../../api";
+import { checkEnrollment } from "../../../course/api";
 import MainLayout from "../../../../layouts/MainLayout";
 import { CourseResponse, SectionResponse } from "./types";
 import CourseHeader from "./components/CourseHeader";
@@ -13,6 +16,8 @@ import "./CoursePreviewPage.scss";
 
 export default function CoursePreviewPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const { token } = useSelector((state: RootState) => state.auth);
   const [course, setCourse] = useState<CourseResponse | null>(null);
   const [sections, setSections] = useState<SectionResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +38,17 @@ export default function CoursePreviewPage() {
         ]);
 
         setCourse(courseData);
+
+        // Kiểm tra enrollment nếu đã đăng nhập
+        if (token && courseData.courseId) {
+          const isEnrolled = await checkEnrollment(courseData.courseId);
+          if (isEnrolled) {
+            // Nếu đã đăng ký, redirect đến trang learning
+            navigate(`/learning/${slug}`, { replace: true });
+            return;
+          }
+        }
+
         // Fetch sections with courseId
         if (courseData.courseId) {
           const sectionsResponse = await getSectionsByCourseId(
@@ -48,7 +64,7 @@ export default function CoursePreviewPage() {
     };
 
     fetchCourseData();
-  }, [slug]);
+  }, [slug, token, navigate]);
 
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);
